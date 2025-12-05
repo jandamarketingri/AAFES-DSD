@@ -20,11 +20,21 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             max-width: 800px;
             width: 90%;
+            position: relative;
+        }
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            max-width: 150px;
+            max-height: 80px;
+            object-fit: contain;
         }
         h1 {
             text-align: center;
             color: #333;
             margin-bottom: 10px;
+            margin-top: 60px;
         }
         .subtitle {
             text-align: center;
@@ -70,6 +80,7 @@
 <body>
 
 <div class="container">
+    <img src="logo.png" alt="Company Logo" class="logo">
     <h1>Sales Portal</h1>
     <p class="subtitle">Select a tool to get started</p>
     
@@ -99,6 +110,9 @@
         </a>
     </div>
 </div>
+
+</body>
+</html>
 
 </body>
 </html>
