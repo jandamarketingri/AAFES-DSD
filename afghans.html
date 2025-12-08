@@ -347,7 +347,7 @@
             };
             blocks.push(block);
             
-            setTimeout(spawnBlocks, 1000 + Math.random() * 1500);
+            setTimeout(spawnBlocks, 500 + Math.random() * 700);
         }
 
         function updateNumberDisplay() {
@@ -483,7 +483,7 @@
     <div class="form-row">
         <div class="form-group">
             <label for="facilityId">Facility ID *</label>
-            <input type="text" id="facilityId" placeholder="Click to play game" maxlength="7" pattern="\d{7}" required readonly>
+            <input type="text" id="facilityId" placeholder="Enter Facility Number" maxlength="7" pattern="\d{7}" required readonly>
         </div>
         <div class="form-group">
             <label for="locationName">Location Name *</label>
