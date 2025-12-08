@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Afghans</title>
+    <title>Apparel Products</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
         body {
@@ -140,10 +140,89 @@
             color: #f44336;
             padding: 20px;
         }
+
+        /* Game Overlay Styles */
+        #gameOverlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        #gameContainer {
+            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        #gameCanvas {
+            display: block;
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 70%, #90EE90 100%);
+            border: 3px solid #333;
+            border-radius: 8px;
+        }
+        #gameControls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .game-button {
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+        #doneBtn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #doneBtn:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        #resetBtn {
+            background-color: #f44336;
+            color: white;
+        }
+        #resetBtn:hover {
+            background-color: #da190b;
+            transform: translateY(-2px);
+        }
+        #numberDisplay {
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            letter-spacing: 8px;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            border: 2px solid #2196F3;
+            font-family: 'Courier New', monospace;
+        }
     </style>
     <script>
         $(document).ready(function(){
             loadSKUData();
+            
+            // Open game when clicking on facility ID field
+            $('#facilityId').on('focus click', function(e) {
+                e.preventDefault();
+                this.blur();
+                openGame();
+            });
         });
 
         function loadSKUData() {
@@ -168,12 +247,9 @@
             var rows = csvData.split('\n');
             var html = '';
             
-            // Start from row 1 to skip header
             for(var i = 1; i < rows.length; i++){
                 if(rows[i].trim()){
                     var cols = rows[i].split(',');
-                    
-                    // Column A: Base SKU, Column B: Description, Column C: URL 1, Column D: URL 2
                     var sku = cols[0] ? cols[0].trim() : '';
                     var description = cols[1] ? cols[1].trim() : '';
                     var url1 = cols[2] ? cols[2].trim() : '';
@@ -188,7 +264,6 @@
                         }
                         html += '    </div>';
                         
-                        // Add images if URLs exist
                         if(url1 || url2){
                             html += '    <div class="image-container">';
                             if(url1){
@@ -215,13 +290,178 @@
                 $('#skuContainer').html('<div class="error">No SKU data found in the sheet.</div>');
             }
         }
+
+        // Game Variables
+        let canvas, ctx;
+        let bucket = { x: 0, y: 0, width: 100, height: 60, speed: 8 };
+        let blocks = [];
+        let collectedNumbers = [];
+        let keys = {};
+        let gameRunning = false;
+        let animationId;
+
+        function openGame() {
+            $('#gameOverlay').css('display', 'flex');
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Initialize bucket position
+            bucket.x = canvas.width / 2 - bucket.width / 2;
+            bucket.y = canvas.height - bucket.height - 10;
+            
+            collectedNumbers = [];
+            blocks = [];
+            updateNumberDisplay();
+            
+            gameRunning = true;
+            gameLoop();
+            spawnBlocks();
+        }
+
+        function closeGame() {
+            gameRunning = false;
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            $('#gameOverlay').hide();
+        }
+
+        function resetGame() {
+            collectedNumbers = [];
+            blocks = [];
+            updateNumberDisplay();
+        }
+
+        function doneGame() {
+            if (collectedNumbers.length === 7) {
+                $('#facilityId').val(collectedNumbers.join(''));
+                closeGame();
+            } else {
+                alert('Please collect all 7 digits!');
+            }
+        }
+
+        function spawnBlocks() {
+            if (!gameRunning) return;
+            
+            const block = {
+                x: Math.random() * (canvas.width - 40),
+                y: -40,
+                width: 40,
+                height: 40,
+                speed: 2 + Math.random() * 2,
+                number: Math.floor(Math.random() * 10)
+            };
+            blocks.push(block);
+            
+            setTimeout(spawnBlocks, 1000 + Math.random() * 1500);
+        }
+
+        function updateNumberDisplay() {
+            let display = '';
+            for (let i = 0; i < 7; i++) {
+                display += (collectedNumbers[i] !== undefined) ? collectedNumbers[i] : '_';
+            }
+            $('#numberDisplay').text(display);
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw gradient background
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#87CEEB');
+            gradient.addColorStop(0.7, '#E0F6FF');
+            gradient.addColorStop(1, '#90EE90');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw blocks
+            for (let i = blocks.length - 1; i >= 0; i--) {
+                const block = blocks[i];
+                block.y += block.speed;
+                
+                // Check collision with bucket
+                if (collectedNumbers.length < 7 &&
+                    block.y + block.height >= bucket.y &&
+                    block.y <= bucket.y + bucket.height &&
+                    block.x + block.width >= bucket.x &&
+                    block.x <= bucket.x + bucket.width) {
+                    
+                    collectedNumbers.push(block.number);
+                    updateNumberDisplay();
+                    blocks.splice(i, 1);
+                    continue;
+                }
+                
+                // Remove blocks that fall off screen
+                if (block.y > canvas.height) {
+                    blocks.splice(i, 1);
+                    continue;
+                }
+                
+                // Draw block
+                ctx.fillStyle = '#FF6B6B';
+                ctx.fillRect(block.x, block.y, block.width, block.height);
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(block.x, block.y, block.width, block.height);
+                
+                // Draw number on block
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(block.number, block.x + block.width / 2, block.y + block.height / 2);
+            }
+            
+            // Move bucket with arrow keys or A/D
+            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
+                bucket.x = Math.max(0, bucket.x - bucket.speed);
+            }
+            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
+                bucket.x = Math.min(canvas.width - bucket.width, bucket.x + bucket.speed);
+            }
+            
+            // Draw bucket
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(bucket.x, bucket.y, bucket.width, bucket.height);
+            ctx.fillStyle = '#A0522D';
+            ctx.fillRect(bucket.x + 5, bucket.y + 5, bucket.width - 10, bucket.height - 10);
+            
+            // Draw bucket handle
+            ctx.strokeStyle = '#654321';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(bucket.x + bucket.width / 2, bucket.y, 20, 0, Math.PI, true);
+            ctx.stroke();
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        // Button handlers
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('doneBtn').addEventListener('click', doneGame);
+            document.getElementById('resetBtn').addEventListener('click', resetGame);
+        });
     </script>
 </head>
 <body>
 
 <a href="index.html" class="back-link">← Back to Main Menu</a>
 
-<h2>🧶 Afghan Blankets</h2>
+<h2>👕 Apparel Products</h2>
 
 <div id="headerForm">
     <div class="form-row">
@@ -238,7 +478,7 @@
     <div class="form-row">
         <div class="form-group">
             <label for="facilityId">Facility ID *</label>
-            <input type="text" id="facilityId" placeholder="7-digit ID" maxlength="7" pattern="\d{7}" required>
+            <input type="text" id="facilityId" placeholder="Click to play game" maxlength="7" pattern="\d{7}" required readonly>
         </div>
         <div class="form-group">
             <label for="locationName">Location Name *</label>
@@ -266,7 +506,19 @@
 </div>
 
 <div id="skuContainer">
-    <div class="loading">Loading afghan products...</div>
+    <div class="loading">Loading apparel products...</div>
+</div>
+
+<!-- Game Overlay -->
+<div id="gameOverlay">
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="600" height="500"></canvas>
+        <div id="numberDisplay">_ _ _ _ _ _ _</div>
+        <div id="gameControls">
+            <button id="resetBtn" class="game-button">Reset</button>
+            <button id="doneBtn" class="game-button">Done</button>
+        </div>
+    </div>
 </div>
 
 </body>
