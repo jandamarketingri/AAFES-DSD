@@ -216,13 +216,6 @@
     <script>
         $(document).ready(function(){
             loadSKUData();
-            
-            // Open game when clicking on facility ID field
-            $('#facilityId').on('focus click', function(e) {
-                e.preventDefault();
-                this.blur();
-                openGame();
-            });
         });
 
         function loadSKUData() {
@@ -454,6 +447,18 @@
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('doneBtn').addEventListener('click', doneGame);
             document.getElementById('resetBtn').addEventListener('click', resetGame);
+            
+            // Open game when clicking on facility ID field
+            document.getElementById('facilityId').addEventListener('focus', function(e) {
+                e.preventDefault();
+                this.blur();
+                openGame();
+            });
+            
+            document.getElementById('facilityId').addEventListener('click', function(e) {
+                e.preventDefault();
+                openGame();
+            });
         });
     </script>
 </head>
