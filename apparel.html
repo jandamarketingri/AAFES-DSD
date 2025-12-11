@@ -81,12 +81,81 @@
             cursor: pointer;
             margin: 0;
         }
-        #skuContainer {
+
+        /* Filter Section */
+        .filter-section {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .filter-buttons {
             display: flex;
-            flex-direction: column;
-            gap: 30px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background-color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .filter-btn:hover {
+            border-color: #2196F3;
+            color: #2196F3;
+        }
+        .filter-btn.active {
+            background-color: #2196F3;
+            color: white;
+            border-color: #2196F3;
+        }
+
+        /* Cart Button */
+        .cart-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        .cart-button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+        .cart-badge {
+            background-color: #f44336;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        /* Product Grid */
+        #skuContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
+            padding-bottom: 100px;
         }
         .sku-card {
             background-color: white;
@@ -94,6 +163,11 @@
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .sku-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .sku-header {
             margin-bottom: 15px;
@@ -101,31 +175,192 @@
             border-bottom: 2px solid #4CAF50;
         }
         .sku-number {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
             color: #2196F3;
             margin-bottom: 8px;
         }
         .sku-description {
-            font-size: 16px;
+            font-size: 14px;
             color: #555;
         }
+        .sku-category {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
         .image-container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-top: 15px;
+            margin: 15px 0;
         }
         .image-wrapper {
-            flex: 1;
-            min-width: 300px;
-            max-width: 500px;
+            width: 100%;
+            margin-bottom: 10px;
         }
         .image-wrapper img {
             width: 100%;
-            height: auto;
+            height: 200px;
+            object-fit: cover;
             border-radius: 4px;
             border: 1px solid #ddd;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .quantity-control button {
+            width: 35px;
+            height: 35px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .quantity-control button:hover {
+            background-color: #f0f0f0;
+        }
+        .quantity-control input {
+            width: 60px;
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        .add-to-cart-btn:hover {
+            background-color: #45a049;
+        }
+        .add-to-cart-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Cart Modal */
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2000;
+        }
+        .cart-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+        .cart-header h3 {
+            margin: 0;
+            color: #333;
+        }
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-item-info {
+            flex: 1;
+        }
+        .cart-item-sku {
+            font-weight: bold;
+            color: #2196F3;
+            margin-bottom: 5px;
+        }
+        .cart-item-desc {
+            font-size: 14px;
+            color: #666;
+        }
+        .cart-item-qty {
+            font-size: 14px;
+            color: #333;
+            margin-right: 15px;
+        }
+        .remove-item {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .remove-item:hover {
+            background-color: #da190b;
+        }
+        .cart-empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .cart-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .cart-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .clear-cart-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        .submit-order-btn {
+            background-color: #4CAF50;
+            color: white;
         }
         .loading {
             text-align: center;
@@ -142,8 +377,28 @@
         }
     </style>
     <script>
+        var cart = [];
+        var allProducts = [];
+
         $(document).ready(function(){
             loadSKUData();
+            
+            // Cart button click
+            $('.cart-button').click(function(){
+                openCart();
+            });
+            
+            // Close cart
+            $('.close-cart').click(function(){
+                closeCart();
+            });
+            
+            // Click outside modal to close
+            $('.cart-modal').click(function(e){
+                if(e.target === this){
+                    closeCart();
+                }
+            });
         });
 
         function loadSKUData() {
@@ -155,7 +410,8 @@
                 method: 'GET',
                 dataType: 'text',
                 success: function(data){
-                    displaySKUs(data);
+                    parseProducts(data);
+                    displayProducts('all');
                 },
                 error: function(xhr, status, error){
                     console.error('Error fetching data:', error);
@@ -164,56 +420,253 @@
             });
         }
 
-        function displaySKUs(csvData) {
+        function parseProducts(csvData) {
             var rows = csvData.split('\n');
-            var html = '';
+            allProducts = [];
             
-            // Start from row 1 to skip header
             for(var i = 1; i < rows.length; i++){
                 if(rows[i].trim()){
                     var cols = rows[i].split(',');
                     
-                    // Column A: Base SKU, Column B: Description, Column C: URL 1, Column D: URL 2
                     var sku = cols[0] ? cols[0].trim() : '';
                     var description = cols[1] ? cols[1].trim() : '';
                     var url1 = cols[2] ? cols[2].trim() : '';
                     var url2 = cols[3] ? cols[3].trim() : '';
                     
                     if(sku){
-                        html += '<div class="sku-card">';
-                        html += '    <div class="sku-header">';
-                        html += '        <div class="sku-number">' + sku + '</div>';
-                        if(description){
-                            html += '        <div class="sku-description">' + description + '</div>';
-                        }
-                        html += '    </div>';
+                        // Determine category based on description
+                        var category = determineCategory(description);
                         
-                        // Add images if URLs exist
-                        if(url1 || url2){
-                            html += '    <div class="image-container">';
-                            if(url1){
-                                html += '        <div class="image-wrapper">';
-                                html += '            <img src="' + url1 + '" alt="' + sku + ' - Image 1" onerror="this.parentElement.style.display=\'none\'">';
-                                html += '        </div>';
-                            }
-                            if(url2){
-                                html += '        <div class="image-wrapper">';
-                                html += '            <img src="' + url2 + '" alt="' + sku + ' - Image 2" onerror="this.parentElement.style.display=\'none\'">';
-                                html += '        </div>';
-                            }
-                            html += '    </div>';
-                        }
-                        
-                        html += '</div>';
+                        allProducts.push({
+                            sku: sku,
+                            description: description,
+                            url1: url1,
+                            url2: url2,
+                            category: category
+                        });
                     }
                 }
             }
+        }
+
+        function determineCategory(description) {
+            var desc = description.toLowerCase();
+            
+            if(desc.includes("women")) {
+                if(desc.includes("basic") && desc.includes("tee")) return "women-basic-tees";
+                if(desc.includes("premium") && desc.includes("tee")) return "women-premium-tees";
+                if(desc.includes("hood") || desc.includes("sweatshirt")) return "women-hoodies";
+                if(desc.includes("cap")) return "women-caps";
+                return "women-other";
+            } else {
+                if(desc.includes("basic") && desc.includes("tee")) return "men-basic-tees";
+                if(desc.includes("premium") && desc.includes("tee")) return "men-premium-tees";
+                if(desc.includes("long") && desc.includes("sleeve")) return "men-long-sleeve";
+                if(desc.includes("hood") || desc.includes("sweatshirt")) return "men-hoodies";
+                if(desc.includes("adjustable") && desc.includes("cap")) return "men-adjustable-caps";
+                if(desc.includes("elevated") && desc.includes("cap")) return "men-elevated-caps";
+                if(desc.includes("cap")) return "men-caps";
+                return "men-other";
+            }
+        }
+
+        function getCategoryLabel(category) {
+            var labels = {
+                "men-basic-tees": "Men's Basic Tees",
+                "men-premium-tees": "Men's Premium Tees",
+                "men-long-sleeve": "Men's Long-Sleeve",
+                "men-hoodies": "Men's Hoodies",
+                "men-adjustable-caps": "Men's Adjustable Caps",
+                "men-elevated-caps": "Men's Elevated Caps",
+                "men-caps": "Men's Caps",
+                "women-basic-tees": "Women's Basic Tees",
+                "women-premium-tees": "Women's Premium Tees",
+                "women-hoodies": "Women's Hoodies",
+                "women-caps": "Women's Caps"
+            };
+            return labels[category] || "Other";
+        }
+
+        function displayProducts(filter) {
+            var html = '';
+            var filteredProducts = allProducts;
+            
+            // Apply filter
+            if(filter === 'men') {
+                filteredProducts = allProducts.filter(p => p.category.startsWith('men-'));
+            } else if(filter === 'women') {
+                filteredProducts = allProducts.filter(p => p.category.startsWith('women-'));
+            } else if(filter !== 'all') {
+                filteredProducts = allProducts.filter(p => p.category === filter);
+            }
+            
+            filteredProducts.forEach(function(product, index){
+                html += '<div class="sku-card">';
+                html += '    <div class="sku-header">';
+                html += '        <div class="sku-number">' + product.sku + '</div>';
+                html += '        <div class="sku-description">' + product.description + '</div>';
+                html += '        <span class="sku-category">' + getCategoryLabel(product.category) + '</span>';
+                html += '    </div>';
+                
+                if(product.url1){
+                    html += '    <div class="image-container">';
+                    html += '        <div class="image-wrapper">';
+                    html += '            <img src="' + product.url1 + '" alt="' + product.sku + '" onerror="this.parentElement.style.display=\'none\'">';
+                    html += '        </div>';
+                    html += '    </div>';
+                }
+                
+                html += '    <div class="quantity-control">';
+                html += '        <button onclick="decrementQty(' + index + ')">-</button>';
+                html += '        <input type="number" id="qty-' + index + '" value="0" min="0">';
+                html += '        <button onclick="incrementQty(' + index + ')">+</button>';
+                html += '    </div>';
+                html += '    <button class="add-to-cart-btn" onclick="addToCart(' + index + ')">Add to Cart</button>';
+                html += '</div>';
+            });
             
             if(html){
                 $('#skuContainer').html(html);
             } else {
-                $('#skuContainer').html('<div class="error">No SKU data found in the sheet.</div>');
+                $('#skuContainer').html('<div class="error">No products match the selected filter.</div>');
             }
+        }
+
+        function filterProducts(category) {
+            $('.filter-btn').removeClass('active');
+            $('[data-filter="' + category + '"]').addClass('active');
+            displayProducts(category);
+        }
+
+        function incrementQty(index) {
+            var input = $('#qty-' + index);
+            input.val(parseInt(input.val()) + 1);
+        }
+
+        function decrementQty(index) {
+            var input = $('#qty-' + index);
+            var val = parseInt(input.val());
+            if(val > 0) {
+                input.val(val - 1);
+            }
+        }
+
+        function addToCart(index) {
+            var qty = parseInt($('#qty-' + index).val());
+            if(qty > 0){
+                var product = allProducts[index];
+                
+                // Check if item already in cart
+                var existingIndex = cart.findIndex(item => item.sku === product.sku);
+                if(existingIndex !== -1){
+                    cart[existingIndex].quantity += qty;
+                } else {
+                    cart.push({
+                        sku: product.sku,
+                        description: product.description,
+                        quantity: qty
+                    });
+                }
+                
+                updateCartBadge();
+                $('#qty-' + index).val(0);
+                
+                // Visual feedback
+                var btn = $('#qty-' + index).closest('.sku-card').find('.add-to-cart-btn');
+                btn.text('Added!');
+                setTimeout(function(){
+                    btn.text('Add to Cart');
+                }, 1000);
+            }
+        }
+
+        function updateCartBadge() {
+            var totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            if(totalItems > 0){
+                $('.cart-badge').text(totalItems).show();
+            } else {
+                $('.cart-badge').hide();
+            }
+        }
+
+        function openCart() {
+            displayCart();
+            $('.cart-modal').fadeIn(300);
+        }
+
+        function closeCart() {
+            $('.cart-modal').fadeOut(300);
+        }
+
+        function displayCart() {
+            var html = '';
+            
+            if(cart.length === 0){
+                html = '<div class="cart-empty">Your cart is empty</div>';
+            } else {
+                cart.forEach(function(item, index){
+                    html += '<div class="cart-item">';
+                    html += '    <div class="cart-item-info">';
+                    html += '        <div class="cart-item-sku">' + item.sku + '</div>';
+                    html += '        <div class="cart-item-desc">' + item.description + '</div>';
+                    html += '    </div>';
+                    html += '    <div class="cart-item-qty">Qty: ' + item.quantity + '</div>';
+                    html += '    <button class="remove-item" onclick="removeFromCart(' + index + ')">Remove</button>';
+                    html += '</div>';
+                });
+            }
+            
+            $('#cartItems').html(html);
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartBadge();
+            displayCart();
+        }
+
+        function clearCart() {
+            if(confirm('Are you sure you want to clear the cart?')){
+                cart = [];
+                updateCartBadge();
+                displayCart();
+            }
+        }
+
+        function submitOrder() {
+            // Validate form
+            if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || 
+               !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
+                alert('Please fill out all required header fields before submitting.');
+                closeCart();
+                return;
+            }
+            
+            if(cart.length === 0){
+                alert('Your cart is empty!');
+                return;
+            }
+            
+            // Prepare order data
+            var orderData = {
+                repName: $('#repName').val(),
+                repEmail: $('#repEmail').val(),
+                facilityId: $('#facilityId').val(),
+                locationName: $('#locationName').val(),
+                beginShipDate: $('#beginShipDate').val(),
+                shipByDate: $('#shipByDate').val(),
+                includeDisplay: $('#includeDisplay').is(':checked'),
+                items: cart
+            };
+            
+            console.log('Order submitted:', orderData);
+            
+            // Here you would typically send this to your backend or Google Sheets
+            alert('Order submitted successfully!\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0));
+            
+            cart = [];
+            updateCartBadge();
+            closeCart();
         }
     </script>
 </head>
@@ -265,8 +718,44 @@
     </div>
 </div>
 
+<div class="filter-section">
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all" onclick="filterProducts('all')">All Products</button>
+        <button class="filter-btn" data-filter="men" onclick="filterProducts('men')">Men's</button>
+        <button class="filter-btn" data-filter="women" onclick="filterProducts('women')">Women's</button>
+        <button class="filter-btn" data-filter="men-basic-tees" onclick="filterProducts('men-basic-tees')">Men's Basic Tees</button>
+        <button class="filter-btn" data-filter="men-premium-tees" onclick="filterProducts('men-premium-tees')">Men's Premium Tees</button>
+        <button class="filter-btn" data-filter="men-long-sleeve" onclick="filterProducts('men-long-sleeve')">Long-Sleeve</button>
+        <button class="filter-btn" data-filter="men-hoodies" onclick="filterProducts('men-hoodies')">Men's Hoodies</button>
+        <button class="filter-btn" data-filter="men-adjustable-caps" onclick="filterProducts('men-adjustable-caps')">Adjustable Caps</button>
+        <button class="filter-btn" data-filter="men-elevated-caps" onclick="filterProducts('men-elevated-caps')">Elevated Caps</button>
+        <button class="filter-btn" data-filter="women-basic-tees" onclick="filterProducts('women-basic-tees')">Women's Basic Tees</button>
+        <button class="filter-btn" data-filter="women-premium-tees" onclick="filterProducts('women-premium-tees')">Women's Premium Tees</button>
+        <button class="filter-btn" data-filter="women-hoodies" onclick="filterProducts('women-hoodies')">Women's Hoodies</button>
+        <button class="filter-btn" data-filter="women-caps" onclick="filterProducts('women-caps')">Women's Caps</button>
+    </div>
+</div>
+
 <div id="skuContainer">
     <div class="loading">Loading apparel products...</div>
+</div>
+
+<button class="cart-button" onclick="openCart()">
+    🛒 Cart <span class="cart-badge" style="display:none;">0</span>
+</button>
+
+<div class="cart-modal">
+    <div class="cart-content">
+        <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <button class="close-cart">&times;</button>
+        </div>
+        <div id="cartItems"></div>
+        <div class="cart-actions">
+            <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
+            <button class="submit-order-btn" onclick="submitOrder()">Submit Order</button>
+        </div>
+    </div>
 </div>
 
 </body>
