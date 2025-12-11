@@ -108,6 +108,14 @@
             font-weight: 600;
             transition: all 0.3s;
         }
+        .filter-btn.men-category {
+            background-color: #E3F2FD;
+            border-color: #90CAF9;
+        }
+        .filter-btn.women-category {
+            background-color: #FCE4EC;
+            border-color: #F48FB1;
+        }
         .filter-btn:hover {
             border-color: #2196F3;
             color: #2196F3;
@@ -721,18 +729,18 @@
 <div class="filter-section">
     <div class="filter-buttons">
         <button class="filter-btn active" data-filter="all" onclick="filterProducts('all')">All Products</button>
-        <button class="filter-btn" data-filter="men" onclick="filterProducts('men')">Men's</button>
-        <button class="filter-btn" data-filter="women" onclick="filterProducts('women')">Women's</button>
-        <button class="filter-btn" data-filter="men-basic-tees" onclick="filterProducts('men-basic-tees')">Men's Basic Tees</button>
-        <button class="filter-btn" data-filter="men-premium-tees" onclick="filterProducts('men-premium-tees')">Men's Premium Tees</button>
-        <button class="filter-btn" data-filter="men-long-sleeve" onclick="filterProducts('men-long-sleeve')">Long-Sleeve</button>
-        <button class="filter-btn" data-filter="men-hoodies" onclick="filterProducts('men-hoodies')">Men's Hoodies</button>
-        <button class="filter-btn" data-filter="men-adjustable-caps" onclick="filterProducts('men-adjustable-caps')">Adjustable Caps</button>
-        <button class="filter-btn" data-filter="men-elevated-caps" onclick="filterProducts('men-elevated-caps')">Elevated Caps</button>
-        <button class="filter-btn" data-filter="women-basic-tees" onclick="filterProducts('women-basic-tees')">Women's Basic Tees</button>
-        <button class="filter-btn" data-filter="women-premium-tees" onclick="filterProducts('women-premium-tees')">Women's Premium Tees</button>
-        <button class="filter-btn" data-filter="women-hoodies" onclick="filterProducts('women-hoodies')">Women's Hoodies</button>
-        <button class="filter-btn" data-filter="women-caps" onclick="filterProducts('women-caps')">Women's Caps</button>
+        <button class="filter-btn men-category" data-filter="men" onclick="filterProducts('men')">Men's</button>
+        <button class="filter-btn women-category" data-filter="women" onclick="filterProducts('women')">Women's</button>
+        <button class="filter-btn men-category" data-filter="men-basic-tees" onclick="filterProducts('men-basic-tees')">Men's Basic Tees</button>
+        <button class="filter-btn men-category" data-filter="men-premium-tees" onclick="filterProducts('men-premium-tees')">Men's Premium Tees</button>
+        <button class="filter-btn men-category" data-filter="men-long-sleeve" onclick="filterProducts('men-long-sleeve')">Long-Sleeve</button>
+        <button class="filter-btn men-category" data-filter="men-hoodies" onclick="filterProducts('men-hoodies')">Men's Hoodies</button>
+        <button class="filter-btn men-category" data-filter="men-adjustable-caps" onclick="filterProducts('men-adjustable-caps')">Adjustable Caps</button>
+        <button class="filter-btn men-category" data-filter="men-elevated-caps" onclick="filterProducts('men-elevated-caps')">Elevated Caps</button>
+        <button class="filter-btn women-category" data-filter="women-basic-tees" onclick="filterProducts('women-basic-tees')">Women's Basic Tees</button>
+        <button class="filter-btn women-category" data-filter="women-premium-tees" onclick="filterProducts('women-premium-tees')">Women's Premium Tees</button>
+        <button class="filter-btn women-category" data-filter="women-hoodies" onclick="filterProducts('women-hoodies')">Women's Hoodies</button>
+        <button class="filter-btn women-category" data-filter="women-caps" onclick="filterProducts('women-caps')">Women's Caps</button>
     </div>
 </div>
 
