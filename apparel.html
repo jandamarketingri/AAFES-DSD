@@ -81,6 +81,51 @@
             cursor: pointer;
             margin: 0;
         }
+        .search-section {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .clear-search-btn {
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .clear-search-btn:hover {
+            background-color: #da190b;
+        }
+        .search-info {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+        }
         .filter-section {
             background-color: white;
             border: 1px solid #ddd;
@@ -484,14 +529,14 @@
                 url: sheetUrl,
                 method: 'GET',
                 dataType: 'text',
-                success: function(data){ parseProducts(data, category); displayProducts(); },
+                success: function(data){ parseProducts(data, category); },
                 error: function(){ $('#skuContainer').html('<div class="error">Error loading data. Check URL and permissions.</div>'); }
             });
         }
 
         function parseProducts(csvData, category) {
             var rows = csvData.split('\n');
-            currentProducts = [];
+            allCategoryProducts = [];
             
             for(var i = 1; i < rows.length; i++){
                 if(rows[i].trim()){
@@ -503,11 +548,13 @@
                             images: [cols[2] ? cols[2].trim() : '', cols[3] ? cols[3].trim() : '', cols[4] ? cols[4].trim() : ''].filter(img => img),
                             category: category,
                             isCap: category.includes('caps'),
-                            sizes: {}
+                            sizes: {},
+                            keywords: ''
                         };
                         
                         if(product.isCap){
                             product.sizes['OS'] = cols[5] ? cols[5].trim() : '';
+                            product.keywords = cols[6] ? cols[6].trim().toLowerCase() : '';
                         } else {
                             product.sizes['S'] = cols[5] ? cols[5].trim() : '';
                             product.sizes['M'] = cols[6] ? cols[6].trim() : '';
@@ -515,11 +562,48 @@
                             product.sizes['XL'] = cols[8] ? cols[8].trim() : '';
                             product.sizes['2XL'] = cols[9] ? cols[9].trim() : '';
                             if(cols[10] && cols[10].trim()) product.sizes['3XL'] = cols[10].trim();
+                            product.keywords = cols[11] ? cols[11].trim().toLowerCase() : '';
                         }
-                        currentProducts.push(product);
+                        
+                        // Create searchable text including all SKUs
+                        product.searchText = [
+                            product.name,
+                            product.description,
+                            product.keywords,
+                            Object.values(product.sizes).join(' ')
+                        ].join(' ').toLowerCase();
+                        
+                        allCategoryProducts.push(product);
                     }
                 }
             }
+            filterAndDisplayProducts();
+        }
+
+        function filterAndDisplayProducts() {
+            if(searchTerm === ''){
+                currentProducts = allCategoryProducts;
+            } else {
+                currentProducts = allCategoryProducts.filter(function(product){
+                    return product.searchText.includes(searchTerm);
+                });
+            }
+            displayProducts();
+            updateSearchInfo();
+        }
+
+        function updateSearchInfo() {
+            if(searchTerm === ''){
+                $('.search-info').html('Showing all ' + currentProducts.length + ' products in ' + getCategoryLabel(currentCategory));
+            } else {
+                $('.search-info').html('Found ' + currentProducts.length + ' product(s) matching "' + searchTerm + '"');
+            }
+        }
+
+        function clearSearch() {
+            searchTerm = '';
+            $('#searchInput').val('');
+            filterAndDisplayProducts();
         }
 
         function getCategoryLabel(category) {
@@ -536,7 +620,11 @@
         function displayProducts() {
             var html = '';
             if(currentProducts.length === 0){
-                html = '<div class="error">No products available.</div>';
+                if(searchTerm === ''){
+                    html = '<div class="error">No products available.</div>';
+                } else {
+                    html = '<div class="error">No products match your search. Try different keywords or clear the search.</div>';
+                }
             } else {
                 currentProducts.forEach(function(product, index){
                     html += '<div class="sku-card"><div class="sku-header">';
@@ -757,6 +845,14 @@
         <button class="filter-btn women-category" data-filter="women-hoodies" onclick="loadCategory('women-hoodies')">Women's Hoodies</button>
         <button class="filter-btn women-category" data-filter="women-caps" onclick="loadCategory('women-caps')">Women's Caps</button>
     </div>
+</div>
+
+<div class="search-section">
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="🔍 Search by product name, SKU, description, or keywords (e.g., Army, Vet, Patriotic)...">
+        <button class="clear-search-btn" onclick="clearSearch()">Clear</button>
+    </div>
+    <div class="search-info">Showing all products</div>
 </div>
 
 <div id="skuContainer">
