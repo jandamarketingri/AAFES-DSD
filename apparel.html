@@ -81,13 +81,55 @@
             cursor: pointer;
             margin: 0;
         }
-        .search-section {
+        .filter-section {
             background-color: white;
             border: 1px solid #ddd;
             border-radius: 8px;
             padding: 20px;
             max-width: 1200px;
             margin: 0 auto 20px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background-color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .filter-btn.men-category {
+            background-color: #E3F2FD;
+            border-color: #90CAF9;
+        }
+        .filter-btn.women-category {
+            background-color: #FCE4EC;
+            border-color: #F48FB1;
+        }
+        .filter-btn:hover {
+            border-color: #333;
+            border-width: 3px;
+        }
+        .filter-btn.active {
+            border-color: #333;
+            border-width: 3px;
+            font-weight: 700;
+        }
+        .search-section {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .search-bar {
@@ -125,48 +167,6 @@
             font-size: 13px;
             color: #666;
             text-align: center;
-        }
-        .filter-section {
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            max-width: 1200px;
-            margin: 0 auto 30px auto;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .filter-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .filter-btn {
-            padding: 10px 20px;
-            border: 2px solid #ddd;
-            background-color: white;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .filter-btn.men-category {
-            background-color: #E3F2FD;
-            border-color: #90CAF9;
-        }
-        .filter-btn.women-category {
-            background-color: #FCE4EC;
-            border-color: #F48FB1;
-        }
-        .filter-btn:hover {
-            border-color: #333;
-            border-width: 3px;
-        }
-        .filter-btn.active {
-            border-color: #333;
-            border-width: 3px;
-            font-weight: 700;
         }
         .cart-button {
             position: fixed;
@@ -485,307 +485,9 @@
             font-size: 16px;
             color: #f44336;
             padding: 20px;
+            line-height: 1.6;
         }
     </style>
-    <script>
-        var SHEET_CONFIG = {
-            'men-basic-tees': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
-            'men-premium-tees': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdW3FHngGzELxgXOOtoQK4LesZ9YS-sKrBEIPbZPy3X2d05IUNbj7tWHLCfZPdOc_R_1Z0KvD9y8Q3/pub?gid=341139997&single=true&output=csv',
-            'men-long-sleeve': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
-            'men-hoodies': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
-            'men-adjustable-caps': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
-            'men-elevated-caps': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
-            'women-basic-tees': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
-            'women-premium-tees': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
-            'women-hoodies': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
-            'women-caps': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID'
-        };
-
-        var cart = [];
-        var currentCategory = 'men-basic-tees';
-        var currentProducts = [];
-
-        $(document).ready(function(){
-            loadCategory(currentCategory);
-            $('.cart-button').click(function(){ openCart(); });
-            $('.close-cart').click(function(){ closeCart(); });
-            $('.cart-modal').click(function(e){ if(e.target === this) closeCart(); });
-        });
-
-        function loadCategory(category) {
-            currentCategory = category;
-            $('.filter-btn').removeClass('active');
-            $('[data-filter="' + category + '"]').addClass('active');
-            
-            var sheetUrl = SHEET_CONFIG[category];
-            if(!sheetUrl || sheetUrl.includes('YOUR_SHEET_ID')){
-                $('#skuContainer').html('<div class="error">Please configure the Google Sheet URL for this category.</div>');
-                return;
-            }
-            
-            $('#skuContainer').html('<div class="loading">Loading products...</div>');
-            
-            $.ajax({
-                url: sheetUrl,
-                method: 'GET',
-                dataType: 'text',
-                success: function(data){ parseProducts(data, category); },
-                error: function(){ $('#skuContainer').html('<div class="error">Error loading data. Check URL and permissions.</div>'); }
-            });
-        }
-
-        function parseProducts(csvData, category) {
-            var rows = csvData.split('\n');
-            allCategoryProducts = [];
-            
-            for(var i = 1; i < rows.length; i++){
-                if(rows[i].trim()){
-                    var cols = rows[i].split(',');
-                    if(cols.length > 0 && cols[0].trim()){
-                        var product = {
-                            name: cols[0] ? cols[0].trim() : '',
-                            description: cols[1] ? cols[1].trim() : '',
-                            images: [cols[2] ? cols[2].trim() : '', cols[3] ? cols[3].trim() : '', cols[4] ? cols[4].trim() : ''].filter(img => img),
-                            category: category,
-                            isCap: category.includes('caps'),
-                            sizes: {},
-                            keywords: ''
-                        };
-                        
-                        if(product.isCap){
-                            product.sizes['OS'] = cols[5] ? cols[5].trim() : '';
-                            product.keywords = cols[6] ? cols[6].trim().toLowerCase() : '';
-                        } else {
-                            product.sizes['S'] = cols[5] ? cols[5].trim() : '';
-                            product.sizes['M'] = cols[6] ? cols[6].trim() : '';
-                            product.sizes['L'] = cols[7] ? cols[7].trim() : '';
-                            product.sizes['XL'] = cols[8] ? cols[8].trim() : '';
-                            product.sizes['2XL'] = cols[9] ? cols[9].trim() : '';
-                            if(cols[10] && cols[10].trim()) product.sizes['3XL'] = cols[10].trim();
-                            product.keywords = cols[11] ? cols[11].trim().toLowerCase() : '';
-                        }
-                        
-                        // Create searchable text including all SKUs
-                        product.searchText = [
-                            product.name,
-                            product.description,
-                            product.keywords,
-                            Object.values(product.sizes).join(' ')
-                        ].join(' ').toLowerCase();
-                        
-                        allCategoryProducts.push(product);
-                    }
-                }
-            }
-            filterAndDisplayProducts();
-        }
-
-        function filterAndDisplayProducts() {
-            if(searchTerm === ''){
-                currentProducts = allCategoryProducts;
-            } else {
-                currentProducts = allCategoryProducts.filter(function(product){
-                    return product.searchText.includes(searchTerm);
-                });
-            }
-            displayProducts();
-            updateSearchInfo();
-        }
-
-        function updateSearchInfo() {
-            if(searchTerm === ''){
-                $('.search-info').html('Showing all ' + currentProducts.length + ' products in ' + getCategoryLabel(currentCategory));
-            } else {
-                $('.search-info').html('Found ' + currentProducts.length + ' product(s) matching "' + searchTerm + '"');
-            }
-        }
-
-        function clearSearch() {
-            searchTerm = '';
-            $('#searchInput').val('');
-            filterAndDisplayProducts();
-        }
-
-        function getCategoryLabel(category) {
-            var labels = {
-                "men-basic-tees": "Men's Basic Tees", "men-premium-tees": "Men's Premium Tees",
-                "men-long-sleeve": "Men's Long-Sleeve", "men-hoodies": "Men's Hoodies",
-                "men-adjustable-caps": "Men's Adjustable Caps", "men-elevated-caps": "Men's Elevated Caps",
-                "women-basic-tees": "Women's Basic Tees", "women-premium-tees": "Women's Premium Tees",
-                "women-hoodies": "Women's Hoodies", "women-caps": "Women's Caps"
-            };
-            return labels[category] || "Products";
-        }
-
-        function displayProducts() {
-            var html = '';
-            if(currentProducts.length === 0){
-                if(searchTerm === ''){
-                    html = '<div class="error">No products available.</div>';
-                } else {
-                    html = '<div class="error">No products match your search. Try different keywords or clear the search.</div>';
-                }
-            } else {
-                currentProducts.forEach(function(product, index){
-                    html += '<div class="sku-card"><div class="sku-header">';
-                    html += '<div class="product-name">' + product.name + '</div>';
-                    html += '<div class="product-description">' + product.description + '</div>';
-                    html += '<span class="sku-category">' + getCategoryLabel(product.category) + '</span></div>';
-                    
-                    if(product.images.length > 0){
-                        html += '<div class="image-gallery">';
-                        html += '<img src="' + product.images[0] + '" class="main-image" id="main-img-' + index + '">';
-                        if(product.images.length > 1){
-                            html += '<div class="thumbnail-container">';
-                            product.images.forEach(function(img, imgIndex){
-                                html += '<img src="' + img + '" class="thumbnail ' + (imgIndex === 0 ? 'active' : '') + '" onclick="changeImage(' + index + ', ' + imgIndex + ')" data-index="' + imgIndex + '">';
-                            });
-                            html += '</div>';
-                        }
-                        html += '</div>';
-                    }
-                    
-                    html += '<div class="size-selector"><label>Select Size:</label><div class="size-buttons" id="sizes-' + index + '">';
-                    for(var size in product.sizes){
-                        if(product.sizes[size]) html += '<button class="size-btn" onclick="selectSize(' + index + ', \'' + size + '\')" data-size="' + size + '">' + size + '</button>';
-                    }
-                    html += '</div></div>';
-                    
-                    html += '<div class="quantity-control"><label>Qty:</label>';
-                    html += '<button onclick="decrementQty(' + index + ')">-</button>';
-                    html += '<input type="number" id="qty-' + index + '" value="1" min="1">';
-                    html += '<button onclick="incrementQty(' + index + ')">+</button></div>';
-                    html += '<button class="add-to-cart-btn" id="add-btn-' + index + '" onclick="addToCart(' + index + ')" disabled>Select Size</button></div>';
-                });
-            }
-            $('#skuContainer').html(html);
-        }
-
-        function changeImage(productIndex, imageIndex) {
-            var product = currentProducts[productIndex];
-            $('#main-img-' + productIndex).attr('src', product.images[imageIndex]);
-            $('#main-img-' + productIndex).closest('.image-gallery').find('.thumbnail').removeClass('active');
-            $('#main-img-' + productIndex).closest('.image-gallery').find('.thumbnail[data-index="' + imageIndex + '"]').addClass('active');
-        }
-
-        function selectSize(productIndex, size) {
-            $('#sizes-' + productIndex + ' .size-btn').removeClass('selected');
-            $('#sizes-' + productIndex + ' .size-btn[data-size="' + size + '"]').addClass('selected');
-            $('#add-btn-' + productIndex).prop('disabled', false).text('Add to Cart').data('selected-size', size);
-        }
-
-        function incrementQty(index) {
-            var input = $('#qty-' + index);
-            input.val(parseInt(input.val()) + 1);
-        }
-
-        function decrementQty(index) {
-            var input = $('#qty-' + index);
-            var val = parseInt(input.val());
-            if(val > 1) input.val(val - 1);
-        }
-
-        function addToCart(index) {
-            var selectedSize = $('#add-btn-' + index).data('selected-size');
-            if(!selectedSize){ alert('Please select a size first!'); return; }
-            
-            var qty = parseInt($('#qty-' + index).val());
-            var product = currentProducts[index];
-            var sku = product.sizes[selectedSize];
-            
-            if(qty > 0 && sku){
-                var existingIndex = cart.findIndex(item => item.sku === sku);
-                if(existingIndex !== -1){
-                    cart[existingIndex].quantity += qty;
-                } else {
-                    cart.push({ productName: product.name, sku: sku, size: selectedSize, quantity: qty });
-                }
-                
-                updateCartBadge();
-                $('#qty-' + index).val(1);
-                $('#sizes-' + index + ' .size-btn').removeClass('selected');
-                $('#add-btn-' + index).prop('disabled', true).text('Select Size').removeData('selected-size');
-                
-                var btn = $('#add-btn-' + index);
-                btn.prop('disabled', false).text('Added!').css('background-color', '#45a049');
-                setTimeout(function(){ btn.prop('disabled', true).text('Select Size').css('background-color', ''); }, 1500);
-            }
-        }
-
-        function updateCartBadge() {
-            var totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            totalItems > 0 ? $('.cart-badge').text(totalItems).show() : $('.cart-badge').hide();
-        }
-
-        function openCart() {
-            displayCart();
-            $('.cart-modal').fadeIn(300);
-        }
-
-        function closeCart() {
-            $('.cart-modal').fadeOut(300);
-        }
-
-        function displayCart() {
-            var html = '';
-            if(cart.length === 0){
-                html = '<div class="cart-empty">Your cart is empty</div>';
-            } else {
-                cart.forEach(function(item, index){
-                    html += '<div class="cart-item"><div class="cart-item-info">';
-                    html += '<div class="cart-item-name">' + item.productName + '</div>';
-                    html += '<div class="cart-item-sku">SKU: ' + item.sku + '</div>';
-                    html += '<div class="cart-item-size">Size: ' + item.size + '</div></div>';
-                    html += '<div class="cart-item-qty">Qty: ' + item.quantity + '</div>';
-                    html += '<button class="remove-item" onclick="removeFromCart(' + index + ')">Remove</button></div>';
-                });
-            }
-            $('#cartItems').html(html);
-        }
-
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCartBadge();
-            displayCart();
-        }
-
-        function clearCart() {
-            if(confirm('Are you sure you want to clear the cart?')){
-                cart = [];
-                updateCartBadge();
-                displayCart();
-            }
-        }
-
-        function submitOrder() {
-            if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || 
-               !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
-                alert('Please fill out all required header fields before submitting.');
-                closeCart();
-                return;
-            }
-            
-            if(cart.length === 0){ alert('Your cart is empty!'); return; }
-            
-            var orderData = {
-                repName: $('#repName').val(),
-                repEmail: $('#repEmail').val(),
-                facilityId: $('#facilityId').val(),
-                locationName: $('#locationName').val(),
-                beginShipDate: $('#beginShipDate').val(),
-                shipByDate: $('#shipByDate').val(),
-                includeDisplay: $('#includeDisplay').is(':checked'),
-                items: cart
-            };
-            
-            console.log('Order submitted:', orderData);
-            alert('Order submitted successfully!\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0));
-            
-            cart = [];
-            updateCartBadge();
-            closeCart();
-        }
-    </script>
 </head>
 <body>
 
@@ -876,6 +578,329 @@
         </div>
     </div>
 </div>
+
+<script>
+// ============================================
+// CONFIGURATION - ADD YOUR GOOGLE SHEET URLS HERE
+// ============================================
+var SHEET_CONFIG = {
+    'men-basic-tees': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
+    'men-premium-tees': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdW3FHngGzELxgXOOtoQK4LesZ9YS-sKrBEIPbZPy3X2d05IUNbj7tWHLCfZPdOc_R_1Z0KvD9y8Q3/pub?gid=341139997&single=true&output=csv',
+    'men-long-sleeve': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
+    'men-hoodies': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
+    'men-adjustable-caps': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
+    'men-elevated-caps': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
+    'women-basic-tees': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
+    'women-premium-tees': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
+    'women-hoodies': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID',
+    'women-caps': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID'
+};
+
+// Expected columns for apparel: Product_Name, Description, Image_1, Image_2, Image_3, SKU_S, SKU_M, SKU_L, SKU_XL, SKU_2XL, SKU_3XL, Keywords
+// Expected columns for caps: Product_Name, Description, Image_1, Image_2, Image_3, SKU_OS, Keywords
+
+var cart = [];
+var currentCategory = 'men-basic-tees';
+var currentProducts = [];
+var allCategoryProducts = [];
+var searchTerm = '';
+
+$(document).ready(function(){
+    loadCategory(currentCategory);
+    $('.cart-button').click(function(){ openCart(); });
+    $('.close-cart').click(function(){ closeCart(); });
+    $('.cart-modal').click(function(e){ if(e.target === this) closeCart(); });
+    
+    $('#searchInput').on('input', function(){
+        searchTerm = $(this).val().toLowerCase().trim();
+        filterAndDisplayProducts();
+    });
+});
+
+function loadCategory(category) {
+    currentCategory = category;
+    searchTerm = '';
+    $('#searchInput').val('');
+    $('.filter-btn').removeClass('active');
+    $('[data-filter="' + category + '"]').addClass('active');
+    
+    var sheetUrl = SHEET_CONFIG[category];
+    if(!sheetUrl || sheetUrl.includes('YOUR_SHEET_ID')){
+        $('#skuContainer').html('<div class="error">Please configure the Google Sheet URL for this category.</div>');
+        return;
+    }
+    
+    $('#skuContainer').html('<div class="loading">Loading products...</div>');
+    
+    console.log('Loading category:', category);
+    console.log('Sheet URL:', sheetUrl);
+    
+    $.ajax({
+        url: sheetUrl,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){ 
+            console.log('Data loaded successfully');
+            parseProducts(data, category); 
+        },
+        error: function(xhr, status, error){ 
+            console.error('Error:', status, error);
+            $('#skuContainer').html('<div class="error">Error loading data.<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
+        }
+    });
+}
+
+function parseProducts(csvData, category) {
+    var rows = csvData.split('\n');
+    allCategoryProducts = [];
+    
+    for(var i = 1; i < rows.length; i++){
+        if(rows[i].trim()){
+            var cols = rows[i].split(',');
+            if(cols.length > 0 && cols[0].trim()){
+                var product = {
+                    name: cols[0] ? cols[0].trim() : '',
+                    description: cols[1] ? cols[1].trim() : '',
+                    images: [cols[2] ? cols[2].trim() : '', cols[3] ? cols[3].trim() : '', cols[4] ? cols[4].trim() : ''].filter(img => img),
+                    category: category,
+                    isCap: category.includes('caps'),
+                    sizes: {},
+                    keywords: ''
+                };
+                
+                if(product.isCap){
+                    product.sizes['OS'] = cols[5] ? cols[5].trim() : '';
+                    product.keywords = cols[6] ? cols[6].trim().toLowerCase() : '';
+                } else {
+                    product.sizes['S'] = cols[5] ? cols[5].trim() : '';
+                    product.sizes['M'] = cols[6] ? cols[6].trim() : '';
+                    product.sizes['L'] = cols[7] ? cols[7].trim() : '';
+                    product.sizes['XL'] = cols[8] ? cols[8].trim() : '';
+                    product.sizes['2XL'] = cols[9] ? cols[9].trim() : '';
+                    if(cols[10] && cols[10].trim()) product.sizes['3XL'] = cols[10].trim();
+                    product.keywords = cols[11] ? cols[11].trim().toLowerCase() : '';
+                }
+                
+                product.searchText = [
+                    product.name,
+                    product.description,
+                    product.keywords,
+                    Object.values(product.sizes).join(' ')
+                ].join(' ').toLowerCase();
+                
+                allCategoryProducts.push(product);
+            }
+        }
+    }
+    filterAndDisplayProducts();
+}
+
+function filterAndDisplayProducts() {
+    if(searchTerm === ''){
+        currentProducts = allCategoryProducts;
+    } else {
+        currentProducts = allCategoryProducts.filter(function(product){
+            return product.searchText.includes(searchTerm);
+        });
+    }
+    displayProducts();
+    updateSearchInfo();
+}
+
+function updateSearchInfo() {
+    if(searchTerm === ''){
+        $('.search-info').html('Showing all ' + currentProducts.length + ' products');
+    } else {
+        $('.search-info').html('Found ' + currentProducts.length + ' product(s) matching "' + searchTerm + '"');
+    }
+}
+
+function clearSearch() {
+    searchTerm = '';
+    $('#searchInput').val('');
+    filterAndDisplayProducts();
+}
+
+function getCategoryLabel(category) {
+    var labels = {
+        "men-basic-tees": "Men's Basic Tees", "men-premium-tees": "Men's Premium Tees",
+        "men-long-sleeve": "Men's Long-Sleeve", "men-hoodies": "Men's Hoodies",
+        "men-adjustable-caps": "Men's Adjustable Caps", "men-elevated-caps": "Men's Elevated Caps",
+        "women-basic-tees": "Women's Basic Tees", "women-premium-tees": "Women's Premium Tees",
+        "women-hoodies": "Women's Hoodies", "women-caps": "Women's Caps"
+    };
+    return labels[category] || "Products";
+}
+
+function displayProducts() {
+    var html = '';
+    if(currentProducts.length === 0){
+        if(searchTerm === ''){
+            html = '<div class="error">No products available.</div>';
+        } else {
+            html = '<div class="error">No products match your search.</div>';
+        }
+    } else {
+        currentProducts.forEach(function(product, index){
+            html += '<div class="sku-card"><div class="sku-header">';
+            html += '<div class="product-name">' + product.name + '</div>';
+            html += '<div class="product-description">' + product.description + '</div>';
+            html += '<span class="sku-category">' + getCategoryLabel(product.category) + '</span></div>';
+            
+            if(product.images.length > 0){
+                html += '<div class="image-gallery">';
+                html += '<img src="' + product.images[0] + '" class="main-image" id="main-img-' + index + '">';
+                if(product.images.length > 1){
+                    html += '<div class="thumbnail-container">';
+                    product.images.forEach(function(img, imgIndex){
+                        html += '<img src="' + img + '" class="thumbnail ' + (imgIndex === 0 ? 'active' : '') + '" onclick="changeImage(' + index + ', ' + imgIndex + ')" data-index="' + imgIndex + '">';
+                    });
+                    html += '</div>';
+                }
+                html += '</div>';
+            }
+            
+            html += '<div class="size-selector"><label>Select Size:</label><div class="size-buttons" id="sizes-' + index + '">';
+            for(var size in product.sizes){
+                if(product.sizes[size]) html += '<button class="size-btn" onclick="selectSize(' + index + ', \'' + size + '\')" data-size="' + size + '">' + size + '</button>';
+            }
+            html += '</div></div>';
+            
+            html += '<div class="quantity-control"><label>Qty:</label>';
+            html += '<button onclick="decrementQty(' + index + ')">-</button>';
+            html += '<input type="number" id="qty-' + index + '" value="1" min="1">';
+            html += '<button onclick="incrementQty(' + index + ')">+</button></div>';
+            html += '<button class="add-to-cart-btn" id="add-btn-' + index + '" onclick="addToCart(' + index + ')" disabled>Select Size</button></div>';
+        });
+    }
+    $('#skuContainer').html(html);
+}
+
+function changeImage(productIndex, imageIndex) {
+    var product = currentProducts[productIndex];
+    $('#main-img-' + productIndex).attr('src', product.images[imageIndex]);
+    $('#main-img-' + productIndex).closest('.image-gallery').find('.thumbnail').removeClass('active');
+    $('#main-img-' + productIndex).closest('.image-gallery').find('.thumbnail[data-index="' + imageIndex + '"]').addClass('active');
+}
+
+function selectSize(productIndex, size) {
+    $('#sizes-' + productIndex + ' .size-btn').removeClass('selected');
+    $('#sizes-' + productIndex + ' .size-btn[data-size="' + size + '"]').addClass('selected');
+    $('#add-btn-' + productIndex).prop('disabled', false).text('Add to Cart').data('selected-size', size);
+}
+
+function incrementQty(index) {
+    var input = $('#qty-' + index);
+    input.val(parseInt(input.val()) + 1);
+}
+
+function decrementQty(index) {
+    var input = $('#qty-' + index);
+    var val = parseInt(input.val());
+    if(val > 1) input.val(val - 1);
+}
+
+function addToCart(index) {
+    var selectedSize = $('#add-btn-' + index).data('selected-size');
+    if(!selectedSize){ alert('Please select a size first!'); return; }
+    
+    var qty = parseInt($('#qty-' + index).val());
+    var product = currentProducts[index];
+    var sku = product.sizes[selectedSize];
+    
+    if(qty > 0 && sku){
+        var existingIndex = cart.findIndex(item => item.sku === sku);
+        if(existingIndex !== -1){
+            cart[existingIndex].quantity += qty;
+        } else {
+            cart.push({ productName: product.name, sku: sku, size: selectedSize, quantity: qty });
+        }
+        
+        updateCartBadge();
+        $('#qty-' + index).val(1);
+        $('#sizes-' + index + ' .size-btn').removeClass('selected');
+        $('#add-btn-' + index).prop('disabled', true).text('Select Size').removeData('selected-size');
+        
+        var btn = $('#add-btn-' + index);
+        btn.prop('disabled', false).text('Added!').css('background-color', '#45a049');
+        setTimeout(function(){ btn.prop('disabled', true).text('Select Size').css('background-color', ''); }, 1500);
+    }
+}
+
+function updateCartBadge() {
+    var totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    totalItems > 0 ? $('.cart-badge').text(totalItems).show() : $('.cart-badge').hide();
+}
+
+function openCart() {
+    displayCart();
+    $('.cart-modal').fadeIn(300);
+}
+
+function closeCart() {
+    $('.cart-modal').fadeOut(300);
+}
+
+function displayCart() {
+    var html = '';
+    if(cart.length === 0){
+        html = '<div class="cart-empty">Your cart is empty</div>';
+    } else {
+        cart.forEach(function(item, index){
+            html += '<div class="cart-item"><div class="cart-item-info">';
+            html += '<div class="cart-item-name">' + item.productName + '</div>';
+            html += '<div class="cart-item-sku">SKU: ' + item.sku + '</div>';
+            html += '<div class="cart-item-size">Size: ' + item.size + '</div></div>';
+            html += '<div class="cart-item-qty">Qty: ' + item.quantity + '</div>';
+            html += '<button class="remove-item" onclick="removeFromCart(' + index + ')">Remove</button></div>';
+        });
+    }
+    $('#cartItems').html(html);
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartBadge();
+    displayCart();
+}
+
+function clearCart() {
+    if(confirm('Are you sure you want to clear the cart?')){
+        cart = [];
+        updateCartBadge();
+        displayCart();
+    }
+}
+
+function submitOrder() {
+    if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || 
+       !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
+        alert('Please fill out all required header fields before submitting.');
+        closeCart();
+        return;
+    }
+    
+    if(cart.length === 0){ alert('Your cart is empty!'); return; }
+    
+    var orderData = {
+        repName: $('#repName').val(),
+        repEmail: $('#repEmail').val(),
+        facilityId: $('#facilityId').val(),
+        locationName: $('#locationName').val(),
+        beginShipDate: $('#beginShipDate').val(),
+        shipByDate: $('#shipByDate').val(),
+        includeDisplay: $('#includeDisplay').is(':checked'),
+        items: cart
+    };
+    
+    console.log('Order submitted:', orderData);
+    alert('Order submitted successfully!\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0));
+    
+    cart = [];
+    updateCartBadge();
+    closeCart();
+}
+</script>
 
 </body>
 </html>
