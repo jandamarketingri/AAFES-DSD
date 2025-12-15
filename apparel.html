@@ -596,6 +596,9 @@ var SHEET_CONFIG = {
     'women-caps': 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID'
 };
 
+// Facility lookup sheet (Column A = Facility ID, Column C = Base Name)
+var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
+
 // Expected columns for apparel: Product_Name, Description, Image_1, Image_2, Image_3, SKU_S, SKU_M, SKU_L, SKU_XL, SKU_2XL, SKU_3XL, Keywords
 // Expected columns for caps: Product_Name, Description, Image_1, Image_2, Image_3, SKU_OS, Keywords
 
@@ -604,9 +607,12 @@ var currentCategory = 'men-basic-tees';
 var currentProducts = [];
 var allCategoryProducts = [];
 var searchTerm = '';
+var facilityData = {};
 
 $(document).ready(function(){
     loadCategory(currentCategory);
+    loadFacilityData();
+    
     $('.cart-button').click(function(){ openCart(); });
     $('.close-cart').click(function(){ closeCart(); });
     $('.cart-modal').click(function(e){ if(e.target === this) closeCart(); });
@@ -614,6 +620,14 @@ $(document).ready(function(){
     $('#searchInput').on('input', function(){
         searchTerm = $(this).val().toLowerCase().trim();
         filterAndDisplayProducts();
+    });
+    
+    // Facility ID lookup
+    $('#facilityId').on('input', function(){
+        var facilityId = $(this).val().trim();
+        if(facilityId.length === 7 && facilityData[facilityId]){
+            $('#locationName').val(facilityData[facilityId]);
+        }
     });
 });
 
@@ -646,6 +660,32 @@ function loadCategory(category) {
         error: function(xhr, status, error){ 
             console.error('Error:', status, error);
             $('#skuContainer').html('<div class="error">Error loading data.<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
+        }
+    });
+}
+
+function loadFacilityData() {
+    $.ajax({
+        url: FACILITY_LOOKUP_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){
+            var rows = data.split('\n');
+            facilityData = {};
+            for(var i = 1; i < rows.length; i++){
+                if(rows[i].trim()){
+                    var cols = rows[i].split(',');
+                    var facilityId = cols[0] ? cols[0].trim() : '';
+                    var baseName = cols[2] ? cols[2].trim() : '';
+                    if(facilityId && baseName){
+                        facilityData[facilityId] = baseName;
+                    }
+                }
+            }
+            console.log('Facility data loaded:', Object.keys(facilityData).length, 'facilities');
+        },
+        error: function(){
+            console.warn('Could not load facility data');
         }
     });
 }
