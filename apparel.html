@@ -786,7 +786,11 @@ function changeImage(productIndex, imageIndex) {
 function selectSize(productIndex, size) {
     $('#sizes-' + productIndex + ' .size-btn').removeClass('selected');
     $('#sizes-' + productIndex + ' .size-btn[data-size="' + size + '"]').addClass('selected');
-    $('#add-btn-' + productIndex).prop('disabled', false).text('Add to Cart').data('selected-size', size);
+    var btn = $('#add-btn-' + productIndex);
+    btn.prop('disabled', false)
+       .text('Add to Cart')
+       .css('background-color', '')
+       .data('selected-size', size);
 }
 
 function incrementQty(index) {
@@ -802,7 +806,10 @@ function decrementQty(index) {
 
 function addToCart(index) {
     var selectedSize = $('#add-btn-' + index).data('selected-size');
-    if(!selectedSize){ alert('Please select a size first!'); return; }
+    if(!selectedSize){ 
+        alert('Please select a size first!'); 
+        return; 
+    }
     
     var qty = parseInt($('#qty-' + index).val());
     var product = currentProducts[index];
@@ -817,13 +824,17 @@ function addToCart(index) {
         }
         
         updateCartBadge();
-        $('#qty-' + index).val(1);
-        $('#sizes-' + index + ' .size-btn').removeClass('selected');
-        $('#add-btn-' + index).prop('disabled', true).text('Select Size').removeData('selected-size');
         
+        // Reset quantity
+        $('#qty-' + index).val(1);
+        
+        // Visual feedback but keep size selected
         var btn = $('#add-btn-' + index);
-        btn.prop('disabled', false).text('Added!').css('background-color', '#45a049');
-        setTimeout(function(){ btn.prop('disabled', true).text('Select Size').css('background-color', ''); }, 1500);
+        var originalText = btn.text();
+        btn.text('Added!').css('background-color', '#45a049');
+        setTimeout(function(){ 
+            btn.text(originalText).css('background-color', ''); 
+        }, 1000);
     }
 }
 
