@@ -64,6 +64,25 @@
             outline: none;
             border-color: #2196F3;
         }
+        .form-group input.valid {
+            border-color: #4CAF50;
+            background-color: #f1f8f4;
+        }
+        .form-group input.invalid {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        .validation-message {
+            font-size: 12px;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        .validation-message.success {
+            color: #4CAF50;
+        }
+        .validation-message.error {
+            color: #f44336;
+        }
         .checkbox-group {
             display: flex;
             align-items: center;
@@ -510,6 +529,7 @@
         <div class="form-group">
             <label for="facilityId">Facility ID *</label>
             <input type="text" id="facilityId" placeholder="7-digit ID" maxlength="7" required>
+            <div id="facilityValidation" class="validation-message"></div>
         </div>
         <div class="form-group">
             <label for="locationName">Location Name *</label>
@@ -622,11 +642,31 @@ $(document).ready(function(){
         filterAndDisplayProducts();
     });
     
-    // Facility ID lookup
+    // Facility ID lookup with validation
     $('#facilityId').on('input', function(){
         var facilityId = $(this).val().trim();
-        if(facilityId.length === 7 && facilityData[facilityId]){
-            $('#locationName').val(facilityData[facilityId]);
+        var $input = $(this);
+        var $validation = $('#facilityValidation');
+        var $locationName = $('#locationName');
+        
+        if(facilityId.length === 0){
+            $input.removeClass('valid invalid');
+            $validation.html('').removeClass('success error');
+            $locationName.val('');
+        } else if(facilityId.length === 7){
+            if(facilityData[facilityId]){
+                $input.removeClass('invalid').addClass('valid');
+                $validation.html('✓ Facility found: ' + facilityData[facilityId]).removeClass('error').addClass('success');
+                $locationName.val(facilityData[facilityId]);
+            } else {
+                $input.removeClass('valid').addClass('invalid');
+                $validation.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error');
+                $locationName.val('');
+            }
+        } else {
+            $input.removeClass('valid invalid');
+            $validation.html('Enter 7-digit facility ID').removeClass('success error');
+            $locationName.val('');
         }
     });
 });
@@ -930,7 +970,14 @@ function submitOrder() {
         closeCart();
         return;
     }
-    
+    // Validate facility ID matches database
+    var facilityId = $('#facilityId').val().trim();
+    if(facilityId.length === 7 && !facilityData[facilityId]){
+        alert('⚠ WARNING: The Facility ID you entered is not in our database.\n\nPlease verify the ID is correct before proceeding.\n\nIf this is a new facility, contact your administrator to have it added to the system.');
+        closeCart();
+        return;
+    }
+    // END OF NEW LINES
     if(cart.length === 0){ alert('Your cart is empty!'); return; }
     
     var orderData = {
