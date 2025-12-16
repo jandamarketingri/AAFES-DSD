@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Signs & Displays</title>
+    <title>Signs Products</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
         body {
@@ -64,6 +64,25 @@
             outline: none;
             border-color: #2196F3;
         }
+        .form-group input.valid {
+            border-color: #4CAF50;
+            background-color: #f1f8f4;
+        }
+        .form-group input.invalid {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        .validation-message {
+            font-size: 12px;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        .validation-message.success {
+            color: #4CAF50;
+        }
+        .validation-message.error {
+            color: #f44336;
+        }
         .checkbox-group {
             display: flex;
             align-items: center;
@@ -81,12 +100,120 @@
             cursor: pointer;
             margin: 0;
         }
-        #skuContainer {
+        .filter-section {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto 20px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .filter-buttons {
             display: flex;
-            flex-direction: column;
-            gap: 30px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background-color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .filter-btn:hover {
+            border-color: #333;
+            border-width: 3px;
+        }
+        .filter-btn.active {
+            border-color: #333;
+            border-width: 3px;
+            font-weight: 700;
+        }
+        .search-section {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .clear-search-btn {
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .clear-search-btn:hover {
+            background-color: #da190b;
+        }
+        .search-info {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+        }
+        .cart-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        .cart-button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+        .cart-badge {
+            background-color: #f44336;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        #skuContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
+            padding-bottom: 100px;
         }
         .sku-card {
             background-color: white;
@@ -94,38 +221,203 @@
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .sku-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
         .sku-header {
             margin-bottom: 15px;
             padding-bottom: 15px;
             border-bottom: 2px solid #4CAF50;
         }
-        .sku-number {
-            font-size: 24px;
+        .product-name {
+            font-size: 18px;
             font-weight: bold;
-            color: #2196F3;
+            color: #333;
             margin-bottom: 8px;
         }
-        .sku-description {
-            font-size: 16px;
-            color: #555;
+        .product-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
         }
-        .image-container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-top: 15px;
+        .sku-category {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
         }
-        .image-wrapper {
-            flex: 1;
-            min-width: 300px;
-            max-width: 500px;
-        }
-        .image-wrapper img {
+        .product-image {
             width: 100%;
-            height: auto;
+            height: 250px;
+            object-fit: cover;
             border-radius: 4px;
             border: 1px solid #ddd;
+            margin: 15px 0;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .quantity-control label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        .quantity-control button {
+            width: 35px;
+            height: 35px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .quantity-control button:hover {
+            background-color: #f0f0f0;
+        }
+        .quantity-control input {
+            width: 60px;
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        .add-to-cart-btn:hover {
+            background-color: #45a049;
+        }
+        .add-to-cart-btn:active {
+            transform: scale(0.98);
+        }
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2000;
+        }
+        .cart-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+        .cart-header h3 {
+            margin: 0;
+            color: #333;
+        }
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-item-info {
+            flex: 1;
+        }
+        .cart-item-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        .cart-item-sku {
+            font-size: 13px;
+            color: #2196F3;
+            margin-bottom: 3px;
+        }
+        .cart-item-qty {
+            font-size: 14px;
+            color: #333;
+            margin-right: 15px;
+        }
+        .remove-item {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .remove-item:hover {
+            background-color: #da190b;
+        }
+        .cart-empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .cart-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .cart-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .clear-cart-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        .submit-order-btn {
+            background-color: #4CAF50;
+            color: white;
         }
         .loading {
             text-align: center;
@@ -139,89 +431,15 @@
             font-size: 16px;
             color: #f44336;
             padding: 20px;
+            line-height: 1.6;
         }
     </style>
-    <script>
-        $(document).ready(function(){
-            loadSKUData();
-        });
-
-        function loadSKUData() {
-            // CHANGE THIS URL TO YOUR APPAREL GOOGLE SHEET
-            var sheetUrl = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID';
-            
-            $.ajax({
-                url: sheetUrl,
-                method: 'GET',
-                dataType: 'text',
-                success: function(data){
-                    displaySKUs(data);
-                },
-                error: function(xhr, status, error){
-                    console.error('Error fetching data:', error);
-                    $('#skuContainer').html('<div class="error">Error loading data from Google Sheet. Please check the URL and permissions.</div>');
-                }
-            });
-        }
-
-        function displaySKUs(csvData) {
-            var rows = csvData.split('\n');
-            var html = '';
-            
-            // Start from row 1 to skip header
-            for(var i = 1; i < rows.length; i++){
-                if(rows[i].trim()){
-                    var cols = rows[i].split(',');
-                    
-                    // Column A: Base SKU, Column B: Description, Column C: URL 1, Column D: URL 2
-                    var sku = cols[0] ? cols[0].trim() : '';
-                    var description = cols[1] ? cols[1].trim() : '';
-                    var url1 = cols[2] ? cols[2].trim() : '';
-                    var url2 = cols[3] ? cols[3].trim() : '';
-                    
-                    if(sku){
-                        html += '<div class="sku-card">';
-                        html += '    <div class="sku-header">';
-                        html += '        <div class="sku-number">' + sku + '</div>';
-                        if(description){
-                            html += '        <div class="sku-description">' + description + '</div>';
-                        }
-                        html += '    </div>';
-                        
-                        // Add images if URLs exist
-                        if(url1 || url2){
-                            html += '    <div class="image-container">';
-                            if(url1){
-                                html += '        <div class="image-wrapper">';
-                                html += '            <img src="' + url1 + '" alt="' + sku + ' - Image 1" onerror="this.parentElement.style.display=\'none\'">';
-                                html += '        </div>';
-                            }
-                            if(url2){
-                                html += '        <div class="image-wrapper">';
-                                html += '            <img src="' + url2 + '" alt="' + sku + ' - Image 2" onerror="this.parentElement.style.display=\'none\'">';
-                                html += '        </div>';
-                            }
-                            html += '    </div>';
-                        }
-                        
-                        html += '</div>';
-                    }
-                }
-            }
-            
-            if(html){
-                $('#skuContainer').html(html);
-            } else {
-                $('#skuContainer').html('<div class="error">No SKU data found in the sheet.</div>');
-            }
-        }
-    </script>
 </head>
 <body>
 
 <a href="index.html" class="back-link">← Back to Main Menu</a>
 
-<h2>🪧 Signs & Displays</h2>
+<h2>🪧 Signs Products</h2>
 
 <div id="headerForm">
     <div class="form-row">
@@ -234,18 +452,17 @@
             <input type="email" id="repEmail" placeholder="Enter your email" required>
         </div>
     </div>
-    
     <div class="form-row">
         <div class="form-group">
             <label for="facilityId">Facility ID *</label>
-            <input type="text" id="facilityId" placeholder="7-digit ID" maxlength="7" pattern="\d{7}" required>
+            <input type="text" id="facilityId" placeholder="7-digit ID" maxlength="7" required>
+            <div id="facilityValidation" class="validation-message"></div>
         </div>
         <div class="form-group">
             <label for="locationName">Location Name *</label>
             <input type="text" id="locationName" placeholder="Enter location name" required>
         </div>
     </div>
-    
     <div class="form-row">
         <div class="form-group">
             <label for="beginShipDate">Begin Ship Date *</label>
@@ -256,7 +473,6 @@
             <input type="date" id="shipByDate" required>
         </div>
     </div>
-    
     <div class="form-row">
         <div class="checkbox-group">
             <input type="checkbox" id="includeDisplay">
@@ -265,9 +481,373 @@
     </div>
 </div>
 
-<div id="skuContainer">
-    <div class="loading">Loading signs...</div>
+<div class="filter-section">
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="8088885" onclick="loadCategory('8088885')">8088885</button>
+        <button class="filter-btn" data-filter="8088886" onclick="loadCategory('8088886')">8088886</button>
+        <button class="filter-btn" data-filter="8088887" onclick="loadCategory('8088887')">8088887</button>
+    </div>
 </div>
 
-</body>
-</html>
+<div class="search-section">
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="🔍 Search by SKU, description, or branch of service...">
+        <button class="clear-search-btn" onclick="clearSearch()">Clear</button>
+    </div>
+    <div class="search-info">Showing all products</div>
+</div>
+
+<div id="skuContainer">
+    <div class="loading">Loading products...</div>
+</div>
+
+<button class="cart-button">
+    🛒 Cart <span class="cart-badge" style="display:none;">0</span>
+</button>
+
+<div class="cart-modal">
+    <div class="cart-content">
+        <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <button class="close-cart">&times;</button>
+        </div>
+        <div id="cartItems"></div>
+        <div class="cart-actions">
+            <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
+            <button class="submit-order-btn" onclick="submitOrder()">Submit Order</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================
+// CONFIGURATION
+// ============================================
+var SIGNS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSSBX53-_Dj4xqRxnnoOLq_yNIF7ZK3-tpxvsulbUIYu7VbiUoIz7PRt7Eg48bYjkzOCr6-UJtIkeG_/pub?gid=2002241172&single=true&output=csv';
+    
+// Google Apps script to process order and post to Google Sheet    
+var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
+    
+// Facility lookup sheet (Column A = Facility ID, Column C = Base Name)
+var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
+
+// Expected columns: SKU (A), CRC (B), Description (C), Image (D), Tag/Branch (E)
+
+var cart = [];
+var currentCategory = '8088885';
+var currentProducts = [];
+var allCategoryProducts = [];
+var searchTerm = '';
+var facilityData = {};
+var allSignsData = [];
+
+$(document).ready(function(){
+    loadAllSignsData();
+    loadFacilityData();
+    
+    $('.cart-button').click(function(){ openCart(); });
+    $('.close-cart').click(function(){ closeCart(); });
+    $('.cart-modal').click(function(e){ if(e.target === this) closeCart(); });
+    
+    $('#searchInput').on('input', function(){
+        searchTerm = $(this).val().toLowerCase().trim();
+        filterAndDisplayProducts();
+    });
+    
+    // Facility ID lookup with validation
+    $('#facilityId').on('input', function(){
+        var facilityId = $(this).val().trim();
+        var $input = $(this);
+        var $validation = $('#facilityValidation');
+        var $locationName = $('#locationName');
+        
+        if(facilityId.length === 0){
+            $input.removeClass('valid invalid');
+            $validation.html('').removeClass('success error');
+            $locationName.val('');
+        } else if(facilityId.length === 7){
+            if(facilityData[facilityId]){
+                $input.removeClass('invalid').addClass('valid');
+                $validation.html('✓ Facility found: ' + facilityData[facilityId]).removeClass('error').addClass('success');
+                $locationName.val(facilityData[facilityId]);
+            } else {
+                $input.removeClass('valid').addClass('invalid');
+                $validation.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error');
+                $locationName.val('');
+            }
+        } else {
+            $input.removeClass('valid invalid');
+            $validation.html('Enter 7-digit facility ID').removeClass('success error');
+            $locationName.val('');
+        }
+    });
+});
+
+function loadAllSignsData() {
+    $('#skuContainer').html('<div class="loading">Loading products...</div>');
+    
+    $.ajax({
+        url: SIGNS_SHEET_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){ 
+            console.log('Data loaded successfully');
+            parseAllSigns(data);
+            loadCategory(currentCategory);
+        },
+        error: function(xhr, status, error){ 
+            console.error('Error:', status, error);
+            $('#skuContainer').html('<div class="error">Error loading data.<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
+        }
+    });
+}
+
+function parseAllSigns(csvData) {
+    var rows = csvData.split('\n');
+    allSignsData = [];
+    
+    for(var i = 1; i < rows.length; i++){
+        if(rows[i].trim()){
+            var cols = rows[i].split(',');
+            if(cols.length > 0 && cols[0].trim()){
+                var product = {
+                    sku: cols[0] ? cols[0].trim() : '',
+                    crc: cols[1] ? cols[1].trim() : '',
+                    description: cols[2] ? cols[2].trim() : '',
+                    image: cols[3] ? cols[3].trim() : '',
+                    tag: cols[4] ? cols[4].trim() : ''
+                };
+                
+                product.searchText = [
+                    product.sku,
+                    product.description,
+                    product.tag
+                ].join(' ').toLowerCase();
+                
+                allSignsData.push(product);
+            }
+        }
+    }
+    console.log('Parsed', allSignsData.length, 'signs');
+}
+
+function loadCategory(category) {
+    currentCategory = category;
+    searchTerm = '';
+    $('#searchInput').val('');
+    $('.filter-btn').removeClass('active');
+    $('[data-filter="' + category + '"]').addClass('active');
+    
+    allCategoryProducts = allSignsData.filter(function(product){
+        return product.crc === category;
+    });
+    
+    filterAndDisplayProducts();
+}
+
+function loadFacilityData() {
+    $.ajax({
+        url: FACILITY_LOOKUP_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){
+            var rows = data.split('\n');
+            facilityData = {};
+            for(var i = 1; i < rows.length; i++){
+                if(rows[i].trim()){
+                    var cols = rows[i].split(',');
+                    var facilityId = cols[0] ? cols[0].trim() : '';
+                    var baseName = cols[2] ? cols[2].trim() : '';
+                    if(facilityId && baseName){
+                        facilityData[facilityId] = baseName;
+                    }
+                }
+            }
+            console.log('Facility data loaded:', Object.keys(facilityData).length, 'facilities');
+        },
+        error: function(){
+            console.warn('Could not load facility data');
+        }
+    });
+}
+
+function filterAndDisplayProducts() {
+    if(searchTerm === ''){
+        currentProducts = allCategoryProducts;
+    } else {
+        currentProducts = allCategoryProducts.filter(function(product){
+            return product.searchText.includes(searchTerm);
+        });
+    }
+    displayProducts();
+    updateSearchInfo();
+}
+
+function updateSearchInfo() {
+    if(searchTerm === ''){
+        $('.search-info').html('Showing all ' + currentProducts.length + ' products');
+    } else {
+        $('.search-info').html('Found ' + currentProducts.length + ' product(s) matching "' + searchTerm + '"');
+    }
+}
+
+function clearSearch() {
+    searchTerm = '';
+    $('#searchInput').val('');
+    filterAndDisplayProducts();
+}
+
+function displayProducts() {
+    var html = '';
+    if(currentProducts.length === 0){
+        if(searchTerm === ''){
+            html = '<div class="error">No products available.</div>';
+        } else {
+            html = '<div class="error">No products match your search.</div>';
+        }
+    } else {
+        currentProducts.forEach(function(product, index){
+            html += '<div class="sku-card"><div class="sku-header">';
+            html += '<div class="product-name">SKU: ' + product.sku + '</div>';
+            html += '<div class="product-description">' + product.description + '</div>';
+            html += '<span class="sku-category">' + product.crc + (product.tag ? ' - ' + product.tag : '') + '</span></div>';
+            
+            if(product.image){
+                html += '<img src="' + product.image + '" class="product-image">';
+            }
+            
+            html += '<div class="quantity-control"><label>Qty:</label>';
+            html += '<button onclick="decrementQty(' + index + ')">-</button>';
+            html += '<input type="number" id="qty-' + index + '" value="1" min="1">';
+            html += '<button onclick="incrementQty(' + index + ')">+</button></div>';
+            html += '<button class="add-to-cart-btn" id="add-btn-' + index + '" onclick="addToCart(' + index + ')">Add to Cart</button></div>';
+        });
+    }
+    $('#skuContainer').html(html);
+}
+
+function incrementQty(index) {
+    var input = $('#qty-' + index);
+    input.val(parseInt(input.val()) + 1);
+}
+
+function decrementQty(index) {
+    var input = $('#qty-' + index);
+    var val = parseInt(input.val());
+    if(val > 1) input.val(val - 1);
+}
+
+function addToCart(index) {
+    var qty = parseInt($('#qty-' + index).val());
+    var product = currentProducts[index];
+    
+    if(qty > 0){
+        var existingIndex = cart.findIndex(item => item.sku === product.sku);
+        if(existingIndex !== -1){
+            cart[existingIndex].quantity += qty;
+        } else {
+            cart.push({ 
+                productName: product.description, 
+                sku: product.sku, 
+                size: 'N/A',
+                quantity: qty 
+            });
+        }
+        
+        updateCartBadge();
+        
+        // Reset quantity
+        $('#qty-' + index).val(1);
+        
+        // Visual feedback
+        var btn = $('#add-btn-' + index);
+        var originalText = btn.text();
+        btn.text('Added!').css('background-color', '#45a049');
+        setTimeout(function(){ 
+            btn.text(originalText).css('background-color', ''); 
+        }, 1000);
+    }
+}
+
+function updateCartBadge() {
+    var totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    totalItems > 0 ? $('.cart-badge').text(totalItems).show() : $('.cart-badge').hide();
+}
+
+function openCart() {
+    displayCart();
+    $('.cart-modal').fadeIn(300);
+}
+
+function closeCart() {
+    $('.cart-modal').fadeOut(300);
+}
+
+function displayCart() {
+    var html = '';
+    if(cart.length === 0){
+        html = '<div class="cart-empty">Your cart is empty</div>';
+    } else {
+        cart.forEach(function(item, index){
+            html += '<div class="cart-item"><div class="cart-item-info">';
+            html += '<div class="cart-item-name">' + item.productName + '</div>';
+            html += '<div class="cart-item-sku">SKU: ' + item.sku + '</div></div>';
+            html += '<div class="cart-item-qty">Qty: ' + item.quantity + '</div>';
+            html += '<button class="remove-item" onclick="removeFromCart(' + index + ')">Remove</button></div>';
+        });
+    }
+    $('#cartItems').html(html);
+}
+
+function removeFromCart(index) {
+    cart.splice(index, 1);
+    updateCartBadge();
+    displayCart();
+}
+
+function clearCart() {
+    if(confirm('Are you sure you want to clear the cart?')){
+        cart = [];
+        updateCartBadge();
+        displayCart();
+    }
+}
+
+function submitOrder() {
+    // Validate all required fields
+    if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || 
+       !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
+        alert('Please fill out all required header fields before submitting.');
+        closeCart();
+        return;
+    }
+    
+    // Validate facility ID matches database
+    var facilityId = $('#facilityId').val().trim();
+    if(facilityId.length === 7 && !facilityData[facilityId]){
+        alert('⚠ WARNING: The Facility ID you entered is not in our database.\n\nPlease verify the ID is correct before proceeding.\n\nIf this is a new facility, contact your administrator to have it added to the system.');
+        closeCart();
+        return;
+    }
+    
+    if(cart.length === 0){ alert('Your cart is empty!'); return; }
+    
+    // Prepare order data
+    var orderData = {
+        repName: $('#repName').val(),
+        repEmail: $('#repEmail').val(),
+        facilityId: $('#facilityId').val(),
+        locationName: $('#locationName').val(),
+        beginShipDate: $('#beginShipDate').val(),
+        shipByDate: $('#shipByDate').val(),
+        includeDisplay: $('#includeDisplay').is(':checked'),
+        orderDate: new Date().toISOString(),
+        items: cart
+    };
+    
+    // Show loading state
+    $('.submit-order-btn').prop('disabled', true).text('Submitting...');
+    
+    // Create a form and submit it (this avoids CORS issues)
+    var form = $('<form>', {
+        method: 'POST',
