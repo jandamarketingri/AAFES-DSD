@@ -851,3 +851,39 @@ function submitOrder() {
     // Create a form and submit it (this avoids CORS issues)
     var form = $('<form>', {
         method: 'POST',
+        action: ORDER_SUBMISSION_URL,
+        target: '_blank',
+        style: 'display:none;'
+    });
+    
+    // Add the data as a form field
+    form.append($('<input>', {
+        type: 'hidden',
+        name: 'data',
+        value: JSON.stringify(orderData)
+    }));
+    
+    // Append form to body and submit
+    $('body').append(form);
+    form.submit();
+    
+    // Clean up
+    setTimeout(function() {
+        form.remove();
+    }, 1000);
+    
+    // Show success message
+    alert('✅ Order submitted successfully!\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0) + '\n\nYou will receive a confirmation email shortly.');
+    
+    // Clear cart
+    cart = [];
+    updateCartBadge();
+    closeCart();
+    
+    // Re-enable button
+    $('.submit-order-btn').prop('disabled', false).text('Submit Order');
+}
+</script>
+
+</body>
+</html>
