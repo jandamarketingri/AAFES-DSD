@@ -615,7 +615,10 @@ var SHEET_CONFIG = {
     'women-hoodies': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdW3FHngGzELxgXOOtoQK4LesZ9YS-sKrBEIPbZPy3X2d05IUNbj7tWHLCfZPdOc_R_1Z0KvD9y8Q3/pub?gid=1690411238&single=true&output=csv',
     'women-caps': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRdW3FHngGzELxgXOOtoQK4LesZ9YS-sKrBEIPbZPy3X2d05IUNbj7tWHLCfZPdOc_R_1Z0KvD9y8Q3/pub?gid=546108962&single=true&output=csv'
 };
-
+    
+// Google Apps script to process order and post to Google Sheet    
+var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyPvcSnzZpK8i8ez6-FvbfSa8xNmsdXaYdS8BP7rio/dev';
+    
 // Facility lookup sheet (Column A = Facility ID, Column C = Base Name)
 var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
 
@@ -964,12 +967,14 @@ function clearCart() {
 }
 
 function submitOrder() {
+    // Validate all required fields
     if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || 
        !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
         alert('Please fill out all required header fields before submitting.');
         closeCart();
         return;
     }
+    
     // Validate facility ID matches database
     var facilityId = $('#facilityId').val().trim();
     if(facilityId.length === 7 && !facilityData[facilityId]){
@@ -977,9 +982,10 @@ function submitOrder() {
         closeCart();
         return;
     }
-    // END OF NEW LINES
+    
     if(cart.length === 0){ alert('Your cart is empty!'); return; }
     
+    // Prepare order data
     var orderData = {
         repName: $('#repName').val(),
         repEmail: $('#repEmail').val(),
@@ -988,15 +994,41 @@ function submitOrder() {
         beginShipDate: $('#beginShipDate').val(),
         shipByDate: $('#shipByDate').val(),
         includeDisplay: $('#includeDisplay').is(':checked'),
+        orderDate: new Date().toISOString(),
         items: cart
     };
     
-    console.log('Order submitted:', orderData);
-    alert('Order submitted successfully!\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0));
+    // Show loading state
+    $('.submit-order-btn').prop('disabled', true).text('Submitting...');
     
-    cart = [];
-    updateCartBadge();
-    closeCart();
+    // Submit to Google Apps Script
+    $.ajax({
+        url: ORDER_SUBMISSION_URL,
+        method: 'POST',
+        data: JSON.stringify(orderData),
+        contentType: 'application/json',
+        success: function(response){
+            console.log('Order submitted successfully:', response);
+            alert('✅ Order submitted successfully!\n\nOrder ID: ' + (response.orderId || 'N/A') + '\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0) + '\n\nYou will receive a confirmation email shortly.');
+            
+            // Clear cart and form
+            cart = [];
+            updateCartBadge();
+            closeCart();
+            
+            // Optionally clear form fields
+            // $('#repName, #repEmail, #facilityId, #locationName').val('');
+            // $('#beginShipDate, #shipByDate').val('');
+            // $('#includeDisplay').prop('checked', false);
+        },
+        error: function(xhr, status, error){
+            console.error('Submission error:', error);
+            alert('❌ Error submitting order. Please try again or contact support.\n\nError: ' + error);
+        },
+        complete: function(){
+            $('.submit-order-btn').prop('disabled', false).text('Submit Order');
+        }
+    });
 }
 </script>
 
