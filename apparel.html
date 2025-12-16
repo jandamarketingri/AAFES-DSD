@@ -1001,34 +1001,40 @@ function submitOrder() {
     // Show loading state
     $('.submit-order-btn').prop('disabled', true).text('Submitting...');
     
-    // Submit to Google Apps Script
-    $.ajax({
-        url: ORDER_SUBMISSION_URL,
+    // Create a form and submit it (this avoids CORS issues)
+    var form = $('<form>', {
         method: 'POST',
-        data: JSON.stringify(orderData),
-        contentType: 'application/json',
-        success: function(response){
-            console.log('Order submitted successfully:', response);
-            alert('✅ Order submitted successfully!\n\nOrder ID: ' + (response.orderId || 'N/A') + '\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0) + '\n\nYou will receive a confirmation email shortly.');
-            
-            // Clear cart and form
-            cart = [];
-            updateCartBadge();
-            closeCart();
-            
-            // Optionally clear form fields
-            // $('#repName, #repEmail, #facilityId, #locationName').val('');
-            // $('#beginShipDate, #shipByDate').val('');
-            // $('#includeDisplay').prop('checked', false);
-        },
-        error: function(xhr, status, error){
-            console.error('Submission error:', error);
-            alert('❌ Error submitting order. Please try again or contact support.\n\nError: ' + error);
-        },
-        complete: function(){
-            $('.submit-order-btn').prop('disabled', false).text('Submit Order');
-        }
+        action: ORDER_SUBMISSION_URL,
+        target: '_blank',
+        style: 'display:none;'
     });
+    
+    // Add the data as a form field
+    form.append($('<input>', {
+        type: 'hidden',
+        name: 'data',
+        value: JSON.stringify(orderData)
+    }));
+    
+    // Append form to body and submit
+    $('body').append(form);
+    form.submit();
+    
+    // Clean up
+    setTimeout(function() {
+        form.remove();
+    }, 1000);
+    
+    // Show success message
+    alert('✅ Order submitted successfully!\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0) + '\n\nYou will receive a confirmation email shortly.');
+    
+    // Clear cart
+    cart = [];
+    updateCartBadge();
+    closeCart();
+    
+    // Re-enable button
+    $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
 </script>
 
