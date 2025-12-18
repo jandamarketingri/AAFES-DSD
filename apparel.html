@@ -917,7 +917,13 @@ function addToCart(index) {
         if(existingIndex !== -1){
             cart[existingIndex].quantity += qty;
         } else {
-            cart.push({ productName: product.name, sku: sku, size: selectedSize, quantity: qty });
+            cart.push({ 
+                productName: product.name, 
+                sku: sku, 
+                size: selectedSize, 
+                quantity: qty,
+                category: product.category // Add category to cart item
+            });
         }
         
         updateCartBadge();
@@ -1052,7 +1058,5 @@ function submitOrder() {
 }
 </script>
 
-</body>
-</html>
 </body>
 </html>
