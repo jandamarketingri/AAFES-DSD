@@ -89,16 +89,16 @@
             gap: 10px;
             padding: 10px 0;
         }
-        .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
+        .checkbox-group input[type="checkbox"]:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
         }
         .checkbox-group label {
             font-weight: 600;
             color: #333;
             cursor: pointer;
             margin: 0;
+            transition: opacity 0.3s;
         }
         .filter-section {
             background-color: white;
@@ -550,8 +550,8 @@
     </div>
     <div class="form-row">
         <div class="checkbox-group">
-            <input type="checkbox" id="includeDisplay">
-            <label for="includeDisplay">Include Display in Order</label>
+            <input type="checkbox" id="includeDisplay" disabled>
+            <label for="includeDisplay">Include Display in Order (Minimum 72 pieces required)</label>
         </div>
     </div>
 </div>
@@ -637,6 +637,10 @@ var facilityData = {};
 $(document).ready(function(){
     loadCategory(currentCategory);
     loadFacilityData();
+    
+    // Initialize display checkbox as disabled
+    $('#includeDisplay').prop('disabled', true);
+    $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '0.5');
     
     $('.cart-button').click(function(){ openCart(); });
     $('.close-cart').click(function(){ closeCart(); });
@@ -944,6 +948,15 @@ function addToCart(index) {
 function updateCartBadge() {
     var totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     totalItems > 0 ? $('.cart-badge').text(totalItems).show() : $('.cart-badge').hide();
+    
+    // Enable/disable display checkbox based on 72 minimum
+    if(totalItems >= 72) {
+        $('#includeDisplay').prop('disabled', false);
+        $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '1');
+    } else {
+        $('#includeDisplay').prop('disabled', true).prop('checked', false);
+        $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '0.5');
+    }
 }
 
 function openCart() {
