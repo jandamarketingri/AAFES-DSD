@@ -754,7 +754,7 @@ function parseProducts(csvData, category) {
                 };
                 
                 if(product.isCap){
-                    product.sizes['OS'] = cols[5] ? cols[5].trim() : '';
+                    product.sizes['N/A'] = cols[5] ? cols[5].trim() : '';
                     product.keywords = cols[6] ? cols[6].trim().toLowerCase() : '';
                 } else {
                     product.sizes['S'] = cols[5] ? cols[5].trim() : '';
