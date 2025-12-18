@@ -271,7 +271,7 @@
             border-radius: 4px;
             border: 1px solid #ddd;
             margin-bottom: 10px;
-            background-color: #f9f9f9;  /* Added background color */
+            background-color: #f9f9f9;
         }
         .thumbnail-container {
             display: flex;
@@ -286,7 +286,7 @@
             border: 2px solid #ddd;
             cursor: pointer;
             transition: border-color 0.3s;
-            background-color: #f9f9f9;  /* Added background color */
+            background-color: #f9f9f9;
         }
         .thumbnail:hover {
             border-color: #4CAF50;
@@ -754,7 +754,7 @@ function parseProducts(csvData, category) {
                 };
                 
                 if(product.isCap){
-                    product.sizes['N/A'] = cols[5] ? cols[5].trim() : '';
+                    product.sizes['OS'] = cols[5] ? cols[5].trim() : '';
                     product.keywords = cols[6] ? cols[6].trim().toLowerCase() : '';
                 } else {
                     product.sizes['S'] = cols[5] ? cols[5].trim() : '';
@@ -845,17 +845,29 @@ function displayProducts() {
                 html += '</div>';
             }
             
-            html += '<div class="size-selector"><label>Select Size:</label><div class="size-buttons" id="sizes-' + index + '">';
-            for(var size in product.sizes){
-                if(product.sizes[size]) html += '<button class="size-btn" onclick="selectSize(' + index + ', \'' + size + '\')" data-size="' + size + '">' + size + '</button>';
+            // Check if this is a one-size product (caps)
+            var isOneSize = (Object.keys(product.sizes).length === 1 && product.sizes['OS']);
+            
+            // Only show size selector if it's NOT a one-size product
+            if(!isOneSize){
+                html += '<div class="size-selector"><label>Select Size:</label><div class="size-buttons" id="sizes-' + index + '">';
+                for(var size in product.sizes){
+                    if(product.sizes[size]) html += '<button class="size-btn" onclick="selectSize(' + index + ', \'' + size + '\')" data-size="' + size + '">' + size + '</button>';
+                }
+                html += '</div></div>';
             }
-            html += '</div></div>';
             
             html += '<div class="quantity-control"><label>Qty:</label>';
             html += '<button onclick="decrementQty(' + index + ')">-</button>';
             html += '<input type="number" id="qty-' + index + '" value="1" min="1">';
             html += '<button onclick="incrementQty(' + index + ')">+</button></div>';
-            html += '<button class="add-to-cart-btn" id="add-btn-' + index + '" onclick="addToCart(' + index + ')" disabled>Select Size</button></div>';
+            
+            // Button text and state depends on whether size selection is needed
+            if(isOneSize){
+                html += '<button class="add-to-cart-btn" id="add-btn-' + index + '" onclick="addToCart(' + index + ')" data-selected-size="OS">Add to Cart</button></div>';
+            } else {
+                html += '<button class="add-to-cart-btn" id="add-btn-' + index + '" onclick="addToCart(' + index + ')" disabled>Select Size</button></div>';
+            }
         });
     }
     $('#skuContainer').html(html);
@@ -1040,5 +1052,7 @@ function submitOrder() {
 }
 </script>
 
+</body>
+</html>
 </body>
 </html>
