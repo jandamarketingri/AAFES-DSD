@@ -753,19 +753,23 @@ function parseProducts(csvData, category) {
                     images: [cols[2] ? cols[2].trim() : '', cols[3] ? cols[3].trim() : '', cols[4] ? cols[4].trim() : ''].filter(img => img),
                     category: category,
                     isCap: category.includes('caps'),
+                    baseSKU: cols[0] ? cols[0].trim() : '', // Store base SKU for reference
                     sizes: {},
                     keywords: ''
                 };
                 
                 if(product.isCap){
+                    // For caps, column F has the OS (One Size) SKU
                     product.sizes['OS'] = cols[5] ? cols[5].trim() : '';
                     product.keywords = cols[6] ? cols[6].trim().toLowerCase() : '';
                 } else {
-                    product.sizes['S'] = cols[5] ? cols[5].trim() : '';
-                    product.sizes['M'] = cols[6] ? cols[6].trim() : '';
-                    product.sizes['L'] = cols[7] ? cols[7].trim() : '';
-                    product.sizes['XL'] = cols[8] ? cols[8].trim() : '';
-                    product.sizes['2XL'] = cols[9] ? cols[9].trim() : '';
+                    // For apparel: F=S, G=M, H=L, I=XL, J=2XL, K=3XL
+                    // Only add size if SKU exists
+                    if(cols[5] && cols[5].trim()) product.sizes['S'] = cols[5].trim();
+                    if(cols[6] && cols[6].trim()) product.sizes['M'] = cols[6].trim();
+                    if(cols[7] && cols[7].trim()) product.sizes['L'] = cols[7].trim();
+                    if(cols[8] && cols[8].trim()) product.sizes['XL'] = cols[8].trim();
+                    if(cols[9] && cols[9].trim()) product.sizes['2XL'] = cols[9].trim();
                     if(cols[10] && cols[10].trim()) product.sizes['3XL'] = cols[10].trim();
                     product.keywords = cols[11] ? cols[11].trim().toLowerCase() : '';
                 }
