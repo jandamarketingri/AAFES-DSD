@@ -252,6 +252,27 @@
             color: #666;
             margin-top: 8px;
         }
+        .pricing-info {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            border-left: 3px solid #4CAF50;
+        }
+        .pricing-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .pricing-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .pricing-value {
+            color: #333;
+            font-weight: bold;
+        }
         .product-image {
             width: 100%;
             height: 250px;
@@ -522,6 +543,7 @@
 
 <script>
 var SIGNS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSSBX53-_Dj4xqRxnnoOLq_yNIF7ZK3-tpxvsulbUIYu7VbiUoIz7PRt7Eg48bYjkzOCr6-UJtIkeG_/pub?gid=2002241172&single=true&output=csv';
+var PRICING_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSSBX53-_Dj4xqRxnnoOLq_yNIF7ZK3-tpxvsulbUIYu7VbiUoIz7PRt7Eg48bYjkzOCr6-UJtIkeG_/pub?gid=42986337&single=true&output=csv';
 var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
 var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
 
@@ -532,6 +554,7 @@ var allCategoryProducts = [];
 var searchTerm = '';
 var facilityData = {};
 var allSignsData = [];
+var pricingData = {};
 
 function parseCSVRow(row) {
     var cols = [];
@@ -623,6 +646,31 @@ function loadFacilityData() {
     });
 }
 
+function loadPricingData() {
+    $.ajax({
+        url: PRICING_SHEET_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){
+            var rows = data.split('\n');
+            pricingData = {};
+            for(var i = 1; i < rows.length; i++){
+                if(rows[i].trim()){
+                    var cols = parseCSVRow(rows[i]);
+                    var crc = cols[2] ? cols[2].trim() : '';
+                    var cost = cols[3] ? cols[3].trim() : '';
+                    var retail = cols[4] ? cols[4].trim() : '';
+                    if(crc){ 
+                        pricingData[crc] = { cost: cost, retail: retail }; 
+                    }
+                }
+            }
+            console.log('Pricing data loaded:', Object.keys(pricingData).length, 'CRCs');
+        },
+        error: function(){ console.warn('Could not load pricing data'); }
+    });
+}
+
 function filterAndDisplayProducts() {
     currentProducts = searchTerm === '' ? allCategoryProducts : allCategoryProducts.filter(function(p){ return p.searchText.includes(searchTerm); });
     displayProducts();
@@ -646,11 +694,21 @@ function displayProducts() {
         html = '<div class="error">' + (searchTerm === '' ? 'No products available.' : 'No products match your search.') + '</div>';
     } else {
         currentProducts.forEach(function(p, i){
+            var pricing = pricingData[p.crc] || { cost: 'N/A', retail: 'N/A' };
+            
             html += '<div class="sku-card"><div class="sku-header">';
             html += '<div class="product-name">SKU: ' + p.sku + '</div>';
             html += '<div class="product-description">' + p.description + '</div>';
             html += '<span class="sku-category">' + p.crc + (p.tag ? ' - ' + p.tag : '') + '</span></div>';
+            
             if(p.image){ html += '<img src="' + p.image + '" class="product-image">'; }
+            
+            html += '<div class="pricing-info">';
+            html += '<div class="pricing-row"><span class="pricing-label">Master CRC:</span><span class="pricing-value">' + p.crc + '</span></div>';
+            html += '<div class="pricing-row"><span class="pricing-label">Cost:</span><span class="pricing-value">$' + pricing.cost + '</span></div>';
+            html += '<div class="pricing-row"><span class="pricing-label">Retail:</span><span class="pricing-value">$' + pricing.retail + '</span></div>';
+            html += '</div>';
+            
             html += '<div class="quantity-control"><label>Qty:</label>';
             html += '<button onclick="decrementQty(' + i + ')">-</button>';
             html += '<input type="number" id="qty-' + i + '" value="0" min="0">';
@@ -720,57 +778,6 @@ function submitOrder() {
         return;
     }
     var fid = $('#facilityId').val().trim();
-    if(fid.length === 7 && !facilityData[fid]){
-        alert('⚠ WARNING: The Facility ID you entered is not in our database.\n\nPlease verify the ID is correct before proceeding.');
-        closeCart();
-        return;
-    }
-    if(cart.length === 0){ alert('Your cart is empty!'); return; }
-    var orderData = {
-        repName: $('#repName').val(),
-        repEmail: $('#repEmail').val(),
-        facilityId: $('#facilityId').val(),
-        locationName: $('#locationName').val(),
-        beginShipDate: $('#beginShipDate').val(),
-        shipByDate: $('#shipByDate').val(),
-        includeDisplay: $('#includeDisplay').is(':checked'),
-        orderDate: new Date().toISOString(),
-        items: cart
-    };
-    $('.submit-order-btn').prop('disabled', true).text('Submitting...');
-    var form = $('<form>', { method: 'POST', action: ORDER_SUBMISSION_URL, target: '_blank', style: 'display:none;' });
-    form.append($('<input>', { type: 'hidden', name: 'data', value: JSON.stringify(orderData) }));
-    $('body').append(form);
-    form.submit();
-    setTimeout(function(){ form.remove(); }, 1000);
-    alert('✅ Order submitted successfully!\n\nTotal items: ' + cart.reduce(function(s, item){ return s + item.quantity; }, 0));
-    cart = [];
-    updateCartBadge();
-    closeCart();
-    $('.submit-order-btn').prop('disabled', false).text('Submit Order');
-}
-
-$(document).ready(function(){
-    console.log('Document ready');
-    loadAllSignsData();
-    loadFacilityData();
-    $('#searchInput').on('input', function(){ searchTerm = $(this).val().toLowerCase().trim(); filterAndDisplayProducts(); });
-    $('#facilityId').on('input', function(){
-        var fid = $(this).val().trim();
-        var $i = $(this);
-        var $v = $('#facilityValidation');
-        var $l = $('#locationName');
-        if(fid.length === 0){ $i.removeClass('valid invalid'); $v.html('').removeClass('success error'); $l.val(''); }
-        else if(fid.length === 7){
-            if(facilityData[fid]){ $i.removeClass('invalid').addClass('valid'); $v.html('✓ Facility found: ' + facilityData[fid]).removeClass('error').addClass('success'); $l.val(facilityData[fid]); }
-            else { $i.removeClass('valid').addClass('invalid'); $v.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error'); $l.val(''); }
-        } else { $i.removeClass('valid invalid'); $v.html('Enter 7-digit facility ID').removeClass('success error'); $l.val(''); }
-    });
-});
-</script>
-
-</body>
-</html>
     // Re-enable button
     $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
