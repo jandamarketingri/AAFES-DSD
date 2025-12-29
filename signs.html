@@ -653,7 +653,7 @@ function displayProducts() {
             if(p.image){ html += '<img src="' + p.image + '" class="product-image">'; }
             html += '<div class="quantity-control"><label>Qty:</label>';
             html += '<button onclick="decrementQty(' + i + ')">-</button>';
-            html += '<input type="number" id="qty-' + i + '" value="1" min="1">';
+            html += '<input type="number" id="qty-' + i + '" value="0" min="0">';
             html += '<button onclick="incrementQty(' + i + ')">+</button></div>';
             html += '<button class="add-to-cart-btn" onclick="addToCart(' + i + ')">Add to Cart</button></div>';
         });
