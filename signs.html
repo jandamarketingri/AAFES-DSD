@@ -607,10 +607,16 @@ function parseAllSigns(csvData) {
     var rows = csvData.split('\n');
     allSignsData = [];
     
+    console.log('Total rows in CSV:', rows.length);
+    
     for(var i = 1; i < rows.length; i++){
         if(rows[i].trim()){
-            var cols = rows[i].split(',');
-            if(cols.length > 0 && cols[0].trim()){
+            // Handle CSV with potential commas in descriptions (quoted fields)
+            var cols = parseCSVRow(rows[i]);
+            
+            console.log('Row', i, 'columns:', cols.length, 'first col:', cols[0]);
+            
+            if(cols.length > 0 && cols[0] && cols[0].trim()){
                 var product = {
                     sku: cols[0] ? cols[0].trim() : '',
                     crc: cols[1] ? cols[1].trim() : '',
@@ -630,6 +636,29 @@ function parseAllSigns(csvData) {
         }
     }
     console.log('Parsed', allSignsData.length, 'signs');
+}
+
+// Helper function to properly parse CSV rows with quoted fields
+function parseCSVRow(row) {
+    var cols = [];
+    var current = '';
+    var inQuotes = false;
+    
+    for(var i = 0; i < row.length; i++){
+        var char = row[i];
+        
+        if(char === '"'){
+            inQuotes = !inQuotes;
+        } else if(char === ',' && !inQuotes){
+            cols.push(current);
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    cols.push(current); // Add last column
+    
+    return cols;
 }
 
 function loadCategory(category) {
