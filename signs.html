@@ -744,17 +744,21 @@ function submitOrder() {
         url: ORDER_SUBMISSION_URL,
         method: 'POST',
         data: { data: JSON.stringify(orderData) },
-        dataType: 'text',
+        dataType: 'json',
         success: function(response) {
-            console.log('Order submitted successfully');
-            alert('✅ Order submitted successfully!\n\nTotal items: ' + cart.reduce(function(s, item){ return s + item.quantity; }, 0) + '\n\nYou will receive a confirmation email shortly.');
-            cart = [];
-            updateCartBadge();
-            closeCart();
+            console.log('Order response:', response);
+            if(response.success) {
+                alert('✅ Order submitted successfully!\n\nTotal items: ' + response.totalItems + '\n\nYou will receive a confirmation email shortly.');
+                cart = [];
+                updateCartBadge();
+                closeCart();
+            } else {
+                alert('❌ Error: ' + (response.error || 'Unknown error') + '\n\nPlease try again or contact support.');
+            }
             $('.submit-order-btn').prop('disabled', false).text('Submit Order');
         },
         error: function(xhr, status, error) {
-            console.error('Order submission failed:', status, error);
+            console.error('Order submission failed:', status, error, xhr.responseText);
             alert('❌ Error submitting order: ' + error + '\n\nPlease try again or contact support.');
             $('.submit-order-btn').prop('disabled', false).text('Submit Order');
         }
