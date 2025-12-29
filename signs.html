@@ -542,128 +542,6 @@ var searchTerm = '';
 var facilityData = {};
 var allSignsData = [];
 
-// Helper function to properly parse CSV rows with quoted fields
-function parseCSVRow(row) {
-    var cols = [];
-    var current = '';
-    var inQuotes = false;
-    
-    for(var i = 0; i < row.length; i++){
-        var char = row[i];
-        
-        if(char === '"'){
-            inQuotes = !inQuotes;
-        } else if(char === ',' && !inQuotes){
-            cols.push(current);
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-    cols.push(current); // Add last column
-    
-    return cols;
-}
-
-function parseAllSigns(csvData) {
-    var rows = csvData.split('\n');
-    allSignsData = [];
-    
-    console.log('Total rows in CSV:', rows.length);
-    
-    for(var i = 1; i < rows.length; i++){
-        if(rows[i].trim()){
-            // Handle CSV with potential commas in descriptions (quoted fields)
-            var cols = parseCSVRow(rows[i]);
-            
-            console.log('Row', i, 'columns:', cols.length, 'first col:', cols[0]);
-            
-            if(cols.length > 0 && cols[0] && cols[0].trim()){
-                var product = {
-                    sku: cols[0] ? cols[0].trim() : '',
-                    crc: cols[1] ? cols[1].trim() : '',
-                    description: cols[2] ? cols[2].trim() : '',
-                    image: cols[3] ? cols[3].trim() : '',
-                    tag: cols[4] ? cols[4].trim() : ''
-                };
-                
-                product.searchText = [
-                    product.sku,
-                    product.description,
-                    product.tag
-                ].join(' ').toLowerCase();
-                
-                allSignsData.push(product);
-            }
-        }
-    }
-    console.log('Parsed', allSignsData.length, 'signs');
-}
-
-function loadCategory(category) {
-    currentCategory = category;
-    searchTerm = '';
-    $('#searchInput').val('');
-    $('.filter-btn').removeClass('active');
-    $('[data-filter="' + category + '"]').addClass('active');
-    
-    allCategoryProducts = allSignsData.filter(function(product){
-        return product.crc === category;
-    });
-    
-    filterAndDisplayProducts();
-}
-
-function loadFacilityData() {
-    $.ajax({
-        url: FACILITY_LOOKUP_URL,
-        method: 'GET',
-        dataType: 'text',
-        success: function(data){
-            var rows = data.split('\n');
-            facilityData = {};
-            for(var i = 1; i < rows.length; i++){
-                if(rows[i].trim()){
-                    var cols = rows[i].split(',');
-                    var facilityId = cols[0] ? cols[0].trim() : '';
-                    var baseName = cols[2] ? cols[2].trim() : '';
-                    if(facilityId && baseName){
-                        facilityData[facilityId] = baseName;
-                    }
-                }
-            }
-            console.log('Facility data loaded:', Object.keys(facilityData).length, 'facilities');
-        },
-        error: function(){
-            console.warn('Could not load facility data');
-        }
-    });
-}
-
-function loadAllSignsData() {
-    console.log('=== STARTING TO LOAD SIGNS DATA ===');
-    console.log('Sheet URL:', SIGNS_SHEET_URL);
-    
-    $('#skuContainer').html('<div class="loading">Loading products...</div>');
-    
-    $.ajax({
-        url: SIGNS_SHEET_URL,
-        method: 'GET',
-        dataType: 'text',
-        success: function(data){ 
-            console.log('✓ Data loaded successfully, length:', data.length);
-            console.log('First 200 chars:', data.substring(0, 200));
-            parseAllSigns(data);
-            loadCategory(currentCategory);
-        },
-        error: function(xhr, status, error){ 
-            console.error('✗ AJAX ERROR:', status, error);
-            console.error('XHR object:', xhr);
-            $('#skuContainer').html('<div class="error">Error loading data.<br><br>Status: ' + status + '<br>Error: ' + error + '<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
-        }
-    });
-}
-
 $(document).ready(function(){
     loadAllSignsData();
     loadFacilityData();
@@ -707,9 +585,6 @@ $(document).ready(function(){
 });
 
 function loadAllSignsData() {
-    console.log('=== STARTING TO LOAD SIGNS DATA ===');
-    console.log('Sheet URL:', SIGNS_SHEET_URL);
-    
     $('#skuContainer').html('<div class="loading">Loading products...</div>');
     
     $.ajax({
@@ -717,15 +592,13 @@ function loadAllSignsData() {
         method: 'GET',
         dataType: 'text',
         success: function(data){ 
-            console.log('✓ Data loaded successfully, length:', data.length);
-            console.log('First 200 chars:', data.substring(0, 200));
+            console.log('Data loaded successfully');
             parseAllSigns(data);
             loadCategory(currentCategory);
         },
         error: function(xhr, status, error){ 
-            console.error('✗ AJAX ERROR:', status, error);
-            console.error('XHR object:', xhr);
-            $('#skuContainer').html('<div class="error">Error loading data.<br><br>Status: ' + status + '<br>Error: ' + error + '<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
+            console.error('Error:', status, error);
+            $('#skuContainer').html('<div class="error">Error loading data.<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
         }
     });
 }
@@ -734,16 +607,10 @@ function parseAllSigns(csvData) {
     var rows = csvData.split('\n');
     allSignsData = [];
     
-    console.log('Total rows in CSV:', rows.length);
-    
     for(var i = 1; i < rows.length; i++){
         if(rows[i].trim()){
-            // Handle CSV with potential commas in descriptions (quoted fields)
-            var cols = parseCSVRow(rows[i]);
-            
-            console.log('Row', i, 'columns:', cols.length, 'first col:', cols[0]);
-            
-            if(cols.length > 0 && cols[0] && cols[0].trim()){
+            var cols = rows[i].split(',');
+            if(cols.length > 0 && cols[0].trim()){
                 var product = {
                     sku: cols[0] ? cols[0].trim() : '',
                     crc: cols[1] ? cols[1].trim() : '',
@@ -803,32 +670,6 @@ function loadFacilityData() {
             console.warn('Could not load facility data');
         }
     });
-}
-
-function filterAndDisplayProducts() {
-    if(searchTerm === ''){
-        currentProducts = allCategoryProducts;
-    } else {
-        currentProducts = allCategoryProducts.filter(function(product){
-            return product.searchText.includes(searchTerm);
-        });
-    }
-    displayProducts();
-    updateSearchInfo();
-}
-
-function updateSearchInfo() {
-    if(searchTerm === ''){
-        $('.search-info').html('Showing all ' + currentProducts.length + ' products');
-    } else {
-        $('.search-info').html('Found ' + currentProducts.length + ' product(s) matching "' + searchTerm + '"');
-    }
-}
-
-function clearSearch() {
-    searchTerm = '';
-    $('#searchInput').val('');
-    filterAndDisplayProducts();
 }
 
 function filterAndDisplayProducts() {
@@ -908,11 +749,9 @@ function addToCart(index) {
         } else {
             cart.push({ 
                 productName: product.description, 
-                sku: product.sku,
-                crc: product.crc, // Add CRC (master SKU)
+                sku: product.sku, 
                 size: 'N/A',
-                quantity: qty,
-                productType: 'signs' // Add product type identifier
+                quantity: qty 
             });
         }
         
@@ -953,7 +792,7 @@ function displayCart() {
         cart.forEach(function(item, index){
             html += '<div class="cart-item"><div class="cart-item-info">';
             html += '<div class="cart-item-name">' + item.productName + '</div>';
-            html += '<div class="cart-item-sku">SKU: ' + item.sku + ' (Master: ' + item.crc + ')</div></div>';
+            html += '<div class="cart-item-sku">SKU: ' + item.sku + '</div></div>';
             html += '<div class="cart-item-qty">Qty: ' + item.quantity + '</div>';
             html += '<button class="remove-item" onclick="removeFromCart(' + index + ')">Remove</button></div>';
         });
@@ -1045,3 +884,7 @@ function submitOrder() {
     // Re-enable button
     $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
+</script>
+
+</body>
+</html>
