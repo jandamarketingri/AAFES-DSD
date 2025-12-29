@@ -502,15 +502,15 @@
     <div class="loading">Loading products...</div>
 </div>
 
-<button class="cart-button">
+<button class="cart-button" onclick="openCart()">
     🛒 Cart <span class="cart-badge" style="display:none;">0</span>
 </button>
 
-<div class="cart-modal">
+<div class="cart-modal" onclick="closeCartOnBackdrop(event)">
     <div class="cart-content">
         <div class="cart-header">
             <h3>Shopping Cart</h3>
-            <button class="close-cart">&times;</button>
+            <button class="close-cart" onclick="closeCart()">&times;</button>
         </div>
         <div id="cartItems"></div>
         <div class="cart-actions">
@@ -521,18 +521,9 @@
 </div>
 
 <script>
-// ============================================
-// CONFIGURATION
-// ============================================
 var SIGNS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSSBX53-_Dj4xqRxnnoOLq_yNIF7ZK3-tpxvsulbUIYu7VbiUoIz7PRt7Eg48bYjkzOCr6-UJtIkeG_/pub?gid=2002241172&single=true&output=csv';
-    
-// Google Apps script to process order and post to Google Sheet    
 var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
-    
-// Facility lookup sheet (Column A = Facility ID, Column C = Base Name)
 var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
-
-// Expected columns: SKU (A), CRC (B), Description (C), Image (D), Tag/Branch (E)
 
 var cart = [];
 var currentCategory = '8088885';
@@ -542,57 +533,36 @@ var searchTerm = '';
 var facilityData = {};
 var allSignsData = [];
 
-// Helper function to properly parse CSV rows with quoted fields
 function parseCSVRow(row) {
     var cols = [];
     var current = '';
     var inQuotes = false;
-    
     for(var i = 0; i < row.length; i++){
         var char = row[i];
-        
-        if(char === '"'){
-            inQuotes = !inQuotes;
-        } else if(char === ',' && !inQuotes){
-            cols.push(current);
-            current = '';
-        } else {
-            current += char;
-        }
+        if(char === '"'){ inQuotes = !inQuotes; }
+        else if(char === ',' && !inQuotes){ cols.push(current); current = ''; }
+        else { current += char; }
     }
-    cols.push(current); // Add last column
-    
+    cols.push(current);
     return cols;
 }
 
 function parseAllSigns(csvData) {
     var rows = csvData.split('\n');
     allSignsData = [];
-    
-    console.log('Total rows in CSV:', rows.length);
-    
+    console.log('Parsing CSV, total rows:', rows.length);
     for(var i = 1; i < rows.length; i++){
         if(rows[i].trim()){
-            // Handle CSV with potential commas in descriptions (quoted fields)
             var cols = parseCSVRow(rows[i]);
-            
-            console.log('Row', i, 'columns:', cols.length, 'first col:', cols[0]);
-            
             if(cols.length > 0 && cols[0] && cols[0].trim()){
                 var product = {
-                    sku: cols[0] ? cols[0].trim() : '',
-                    crc: cols[1] ? cols[1].trim() : '',
-                    description: cols[2] ? cols[2].trim() : '',
+                    sku: cols[0].trim(),
+                    crc: cols[1].trim(),
+                    description: cols[2].trim(),
                     image: cols[3] ? cols[3].trim() : '',
                     tag: cols[4] ? cols[4].trim() : ''
                 };
-                
-                product.searchText = [
-                    product.sku,
-                    product.description,
-                    product.tag
-                ].join(' ').toLowerCase();
-                
+                product.searchText = [product.sku, product.description, product.tag].join(' ').toLowerCase();
                 allSignsData.push(product);
             }
         }
@@ -600,17 +570,34 @@ function parseAllSigns(csvData) {
     console.log('Parsed', allSignsData.length, 'signs');
 }
 
+function loadAllSignsData() {
+    console.log('=== LOADING SIGNS DATA ===');
+    $('#skuContainer').html('<div class="loading">Loading products...</div>');
+    $.ajax({
+        url: SIGNS_SHEET_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){ 
+            console.log('✓ Data loaded, length:', data.length);
+            parseAllSigns(data);
+            loadCategory(currentCategory);
+        },
+        error: function(xhr, status, error){ 
+            console.error('✗ AJAX ERROR:', status, error);
+            $('#skuContainer').html('<div class="error">Error loading data: ' + error + '</div>'); 
+        }
+    });
+}
+
 function loadCategory(category) {
+    console.log('Loading category:', category);
     currentCategory = category;
     searchTerm = '';
     $('#searchInput').val('');
     $('.filter-btn').removeClass('active');
     $('[data-filter="' + category + '"]').addClass('active');
-    
-    allCategoryProducts = allSignsData.filter(function(product){
-        return product.crc === category;
-    });
-    
+    allCategoryProducts = allSignsData.filter(function(p){ return p.crc === category; });
+    console.log('Products in category:', allCategoryProducts.length);
     filterAndDisplayProducts();
 }
 
@@ -625,230 +612,26 @@ function loadFacilityData() {
             for(var i = 1; i < rows.length; i++){
                 if(rows[i].trim()){
                     var cols = rows[i].split(',');
-                    var facilityId = cols[0] ? cols[0].trim() : '';
-                    var baseName = cols[2] ? cols[2].trim() : '';
-                    if(facilityId && baseName){
-                        facilityData[facilityId] = baseName;
-                    }
+                    var fid = cols[0] ? cols[0].trim() : '';
+                    var base = cols[2] ? cols[2].trim() : '';
+                    if(fid && base){ facilityData[fid] = base; }
                 }
             }
-            console.log('Facility data loaded:', Object.keys(facilityData).length, 'facilities');
+            console.log('Facility data loaded:', Object.keys(facilityData).length);
         },
-        error: function(){
-            console.warn('Could not load facility data');
-        }
-    });
-}
-
-function loadAllSignsData() {
-    console.log('=== STARTING TO LOAD SIGNS DATA ===');
-    console.log('Sheet URL:', SIGNS_SHEET_URL);
-    
-    $('#skuContainer').html('<div class="loading">Loading products...</div>');
-    
-    $.ajax({
-        url: SIGNS_SHEET_URL,
-        method: 'GET',
-        dataType: 'text',
-        success: function(data){ 
-            console.log('✓ Data loaded successfully, length:', data.length);
-            console.log('First 200 chars:', data.substring(0, 200));
-            parseAllSigns(data);
-            loadCategory(currentCategory);
-        },
-        error: function(xhr, status, error){ 
-            console.error('✗ AJAX ERROR:', status, error);
-            console.error('XHR object:', xhr);
-            $('#skuContainer').html('<div class="error">Error loading data.<br><br>Status: ' + status + '<br>Error: ' + error + '<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
-        }
-    });
-}
-
-$(document).ready(function(){
-    loadAllSignsData();
-    loadFacilityData();
-    
-    $('.cart-button').click(function(){ openCart(); });
-    $('.close-cart').click(function(){ closeCart(); });
-    $('.cart-modal').click(function(e){ if(e.target === this) closeCart(); });
-    
-    $('#searchInput').on('input', function(){
-        searchTerm = $(this).val().toLowerCase().trim();
-        filterAndDisplayProducts();
-    });
-    
-    // Facility ID lookup with validation
-    $('#facilityId').on('input', function(){
-        var facilityId = $(this).val().trim();
-        var $input = $(this);
-        var $validation = $('#facilityValidation');
-        var $locationName = $('#locationName');
-        
-        if(facilityId.length === 0){
-            $input.removeClass('valid invalid');
-            $validation.html('').removeClass('success error');
-            $locationName.val('');
-        } else if(facilityId.length === 7){
-            if(facilityData[facilityId]){
-                $input.removeClass('invalid').addClass('valid');
-                $validation.html('✓ Facility found: ' + facilityData[facilityId]).removeClass('error').addClass('success');
-                $locationName.val(facilityData[facilityId]);
-            } else {
-                $input.removeClass('valid').addClass('invalid');
-                $validation.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error');
-                $locationName.val('');
-            }
-        } else {
-            $input.removeClass('valid invalid');
-            $validation.html('Enter 7-digit facility ID').removeClass('success error');
-            $locationName.val('');
-        }
-    });
-});
-
-function loadAllSignsData() {
-    console.log('=== STARTING TO LOAD SIGNS DATA ===');
-    console.log('Sheet URL:', SIGNS_SHEET_URL);
-    
-    $('#skuContainer').html('<div class="loading">Loading products...</div>');
-    
-    $.ajax({
-        url: SIGNS_SHEET_URL,
-        method: 'GET',
-        dataType: 'text',
-        success: function(data){ 
-            console.log('✓ Data loaded successfully, length:', data.length);
-            console.log('First 200 chars:', data.substring(0, 200));
-            parseAllSigns(data);
-            loadCategory(currentCategory);
-        },
-        error: function(xhr, status, error){ 
-            console.error('✗ AJAX ERROR:', status, error);
-            console.error('XHR object:', xhr);
-            $('#skuContainer').html('<div class="error">Error loading data.<br><br>Status: ' + status + '<br>Error: ' + error + '<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
-        }
-    });
-}
-
-function parseAllSigns(csvData) {
-    var rows = csvData.split('\n');
-    allSignsData = [];
-    
-    console.log('Total rows in CSV:', rows.length);
-    
-    for(var i = 1; i < rows.length; i++){
-        if(rows[i].trim()){
-            // Handle CSV with potential commas in descriptions (quoted fields)
-            var cols = parseCSVRow(rows[i]);
-            
-            console.log('Row', i, 'columns:', cols.length, 'first col:', cols[0]);
-            
-            if(cols.length > 0 && cols[0] && cols[0].trim()){
-                var product = {
-                    sku: cols[0] ? cols[0].trim() : '',
-                    crc: cols[1] ? cols[1].trim() : '',
-                    description: cols[2] ? cols[2].trim() : '',
-                    image: cols[3] ? cols[3].trim() : '',
-                    tag: cols[4] ? cols[4].trim() : ''
-                };
-                
-                product.searchText = [
-                    product.sku,
-                    product.description,
-                    product.tag
-                ].join(' ').toLowerCase();
-                
-                allSignsData.push(product);
-            }
-        }
-    }
-    console.log('Parsed', allSignsData.length, 'signs');
-}
-
-function loadCategory(category) {
-    currentCategory = category;
-    searchTerm = '';
-    $('#searchInput').val('');
-    $('.filter-btn').removeClass('active');
-    $('[data-filter="' + category + '"]').addClass('active');
-    
-    allCategoryProducts = allSignsData.filter(function(product){
-        return product.crc === category;
-    });
-    
-    filterAndDisplayProducts();
-}
-
-function loadFacilityData() {
-    $.ajax({
-        url: FACILITY_LOOKUP_URL,
-        method: 'GET',
-        dataType: 'text',
-        success: function(data){
-            var rows = data.split('\n');
-            facilityData = {};
-            for(var i = 1; i < rows.length; i++){
-                if(rows[i].trim()){
-                    var cols = rows[i].split(',');
-                    var facilityId = cols[0] ? cols[0].trim() : '';
-                    var baseName = cols[2] ? cols[2].trim() : '';
-                    if(facilityId && baseName){
-                        facilityData[facilityId] = baseName;
-                    }
-                }
-            }
-            console.log('Facility data loaded:', Object.keys(facilityData).length, 'facilities');
-        },
-        error: function(){
-            console.warn('Could not load facility data');
-        }
+        error: function(){ console.warn('Could not load facility data'); }
     });
 }
 
 function filterAndDisplayProducts() {
-    if(searchTerm === ''){
-        currentProducts = allCategoryProducts;
-    } else {
-        currentProducts = allCategoryProducts.filter(function(product){
-            return product.searchText.includes(searchTerm);
-        });
-    }
+    currentProducts = searchTerm === '' ? allCategoryProducts : allCategoryProducts.filter(function(p){ return p.searchText.includes(searchTerm); });
     displayProducts();
     updateSearchInfo();
 }
 
 function updateSearchInfo() {
-    if(searchTerm === ''){
-        $('.search-info').html('Showing all ' + currentProducts.length + ' products');
-    } else {
-        $('.search-info').html('Found ' + currentProducts.length + ' product(s) matching "' + searchTerm + '"');
-    }
-}
-
-function clearSearch() {
-    searchTerm = '';
-    $('#searchInput').val('');
-    filterAndDisplayProducts();
-}
-
-function filterAndDisplayProducts() {
-    if(searchTerm === ''){
-        currentProducts = allCategoryProducts;
-    } else {
-        currentProducts = allCategoryProducts.filter(function(product){
-            return product.searchText.includes(searchTerm);
-        });
-    }
-    displayProducts();
-    updateSearchInfo();
-}
-
-function updateSearchInfo() {
-    if(searchTerm === ''){
-        $('.search-info').html('Showing all ' + currentProducts.length + ' products');
-    } else {
-        $('.search-info').html('Found ' + currentProducts.length + ' product(s) matching "' + searchTerm + '"');
-    }
+    var msg = searchTerm === '' ? 'Showing all ' + currentProducts.length + ' products' : 'Found ' + currentProducts.length + ' product(s) matching "' + searchTerm + '"';
+    $('.search-info').html(msg);
 }
 
 function clearSearch() {
@@ -860,112 +643,67 @@ function clearSearch() {
 function displayProducts() {
     var html = '';
     if(currentProducts.length === 0){
-        if(searchTerm === ''){
-            html = '<div class="error">No products available.</div>';
-        } else {
-            html = '<div class="error">No products match your search.</div>';
-        }
+        html = '<div class="error">' + (searchTerm === '' ? 'No products available.' : 'No products match your search.') + '</div>';
     } else {
-        currentProducts.forEach(function(product, index){
+        currentProducts.forEach(function(p, i){
             html += '<div class="sku-card"><div class="sku-header">';
-            html += '<div class="product-name">SKU: ' + product.sku + '</div>';
-            html += '<div class="product-description">' + product.description + '</div>';
-            html += '<span class="sku-category">' + product.crc + (product.tag ? ' - ' + product.tag : '') + '</span></div>';
-            
-            if(product.image){
-                html += '<img src="' + product.image + '" class="product-image">';
-            }
-            
+            html += '<div class="product-name">SKU: ' + p.sku + '</div>';
+            html += '<div class="product-description">' + p.description + '</div>';
+            html += '<span class="sku-category">' + p.crc + (p.tag ? ' - ' + p.tag : '') + '</span></div>';
+            if(p.image){ html += '<img src="' + p.image + '" class="product-image">'; }
             html += '<div class="quantity-control"><label>Qty:</label>';
-            html += '<button onclick="decrementQty(' + index + ')">-</button>';
-            html += '<input type="number" id="qty-' + index + '" value="1" min="1">';
-            html += '<button onclick="incrementQty(' + index + ')">+</button></div>';
-            html += '<button class="add-to-cart-btn" id="add-btn-' + index + '" onclick="addToCart(' + index + ')">Add to Cart</button></div>';
+            html += '<button onclick="decrementQty(' + i + ')">-</button>';
+            html += '<input type="number" id="qty-' + i + '" value="1" min="1">';
+            html += '<button onclick="incrementQty(' + i + ')">+</button></div>';
+            html += '<button class="add-to-cart-btn" onclick="addToCart(' + i + ')">Add to Cart</button></div>';
         });
     }
     $('#skuContainer').html(html);
 }
 
-function incrementQty(index) {
-    var input = $('#qty-' + index);
-    input.val(parseInt(input.val()) + 1);
-}
+function incrementQty(i) { var input = $('#qty-' + i); input.val(parseInt(input.val()) + 1); }
+function decrementQty(i) { var input = $('#qty-' + i); var val = parseInt(input.val()); if(val > 1) input.val(val - 1); }
 
-function decrementQty(index) {
-    var input = $('#qty-' + index);
-    var val = parseInt(input.val());
-    if(val > 1) input.val(val - 1);
-}
-
-function addToCart(index) {
-    var qty = parseInt($('#qty-' + index).val());
-    var product = currentProducts[index];
-    
+function addToCart(i) {
+    var qty = parseInt($('#qty-' + i).val());
+    var p = currentProducts[i];
     if(qty > 0){
-        var existingIndex = cart.findIndex(item => item.sku === product.sku);
-        if(existingIndex !== -1){
-            cart[existingIndex].quantity += qty;
-        } else {
-            cart.push({ 
-                productName: product.description, 
-                sku: product.sku,
-                crc: product.crc, // Add CRC (master SKU)
-                size: 'N/A',
-                quantity: qty,
-                productType: 'signs' // Add product type identifier
-            });
-        }
-        
+        var ei = cart.findIndex(function(item){ return item.sku === p.sku; });
+        if(ei !== -1){ cart[ei].quantity += qty; }
+        else { cart.push({ productName: p.description, sku: p.sku, crc: p.crc, size: 'N/A', quantity: qty, productType: 'signs' }); }
         updateCartBadge();
-        
-        // Reset quantity
-        $('#qty-' + index).val(1);
-        
-        // Visual feedback
-        var btn = $('#add-btn-' + index);
-        var originalText = btn.text();
+        $('#qty-' + i).val(1);
+        var btn = $('#add-btn-' + i);
         btn.text('Added!').css('background-color', '#45a049');
-        setTimeout(function(){ 
-            btn.text(originalText).css('background-color', ''); 
-        }, 1000);
+        setTimeout(function(){ btn.text('Add to Cart').css('background-color', ''); }, 1000);
     }
 }
 
 function updateCartBadge() {
-    var totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-    totalItems > 0 ? $('.cart-badge').text(totalItems).show() : $('.cart-badge').hide();
+    var total = cart.reduce(function(s, item){ return s + item.quantity; }, 0);
+    if(total > 0){ $('.cart-badge').text(total).show(); } else { $('.cart-badge').hide(); }
 }
 
-function openCart() {
-    displayCart();
-    $('.cart-modal').fadeIn(300);
-}
-
-function closeCart() {
-    $('.cart-modal').fadeOut(300);
-}
+function openCart() { displayCart(); $('.cart-modal').fadeIn(300); }
+function closeCart() { $('.cart-modal').fadeOut(300); }
+function closeCartOnBackdrop(e) { if(e.target === e.currentTarget){ closeCart(); } }
 
 function displayCart() {
     var html = '';
-    if(cart.length === 0){
-        html = '<div class="cart-empty">Your cart is empty</div>';
-    } else {
-        cart.forEach(function(item, index){
+    if(cart.length === 0){ html = '<div class="cart-empty">Your cart is empty</div>'; }
+    else {
+        cart.forEach(function(item, i){
             html += '<div class="cart-item"><div class="cart-item-info">';
             html += '<div class="cart-item-name">' + item.productName + '</div>';
             html += '<div class="cart-item-sku">SKU: ' + item.sku + ' (Master: ' + item.crc + ')</div></div>';
             html += '<div class="cart-item-qty">Qty: ' + item.quantity + '</div>';
-            html += '<button class="remove-item" onclick="removeFromCart(' + index + ')">Remove</button></div>';
+            html += '<button class="remove-item" onclick="removeFromCart(' + i + ')">Remove</button></div>';
         });
     }
     $('#cartItems').html(html);
 }
 
-function removeFromCart(index) {
-    cart.splice(index, 1);
-    updateCartBadge();
-    displayCart();
-}
+function removeFromCart(i) { cart.splice(i, 1); updateCartBadge(); displayCart(); }
 
 function clearCart() {
     if(confirm('Are you sure you want to clear the cart?')){
@@ -976,25 +714,18 @@ function clearCart() {
 }
 
 function submitOrder() {
-    // Validate all required fields
-    if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || 
-       !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
+    if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
         alert('Please fill out all required header fields before submitting.');
         closeCart();
         return;
     }
-    
-    // Validate facility ID matches database
-    var facilityId = $('#facilityId').val().trim();
-    if(facilityId.length === 7 && !facilityData[facilityId]){
-        alert('⚠ WARNING: The Facility ID you entered is not in our database.\n\nPlease verify the ID is correct before proceeding.\n\nIf this is a new facility, contact your administrator to have it added to the system.');
+    var fid = $('#facilityId').val().trim();
+    if(fid.length === 7 && !facilityData[fid]){
+        alert('⚠ WARNING: The Facility ID you entered is not in our database.\n\nPlease verify the ID is correct before proceeding.');
         closeCart();
         return;
     }
-    
     if(cart.length === 0){ alert('Your cart is empty!'); return; }
-    
-    // Prepare order data
     var orderData = {
         repName: $('#repName').val(),
         repEmail: $('#repEmail').val(),
@@ -1006,42 +737,40 @@ function submitOrder() {
         orderDate: new Date().toISOString(),
         items: cart
     };
-    
-    // Show loading state
     $('.submit-order-btn').prop('disabled', true).text('Submitting...');
-    
-    // Create a form and submit it (this avoids CORS issues)
-    var form = $('<form>', {
-        method: 'POST',
-        action: ORDER_SUBMISSION_URL,
-        target: '_blank',
-        style: 'display:none;'
-    });
-    
-    // Add the data as a form field
-    form.append($('<input>', {
-        type: 'hidden',
-        name: 'data',
-        value: JSON.stringify(orderData)
-    }));
-    
-    // Append form to body and submit
+    var form = $('<form>', { method: 'POST', action: ORDER_SUBMISSION_URL, target: '_blank', style: 'display:none;' });
+    form.append($('<input>', { type: 'hidden', name: 'data', value: JSON.stringify(orderData) }));
     $('body').append(form);
     form.submit();
-    
-    // Clean up
-    setTimeout(function() {
-        form.remove();
-    }, 1000);
-    
-    // Show success message
-    alert('✅ Order submitted successfully!\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0) + '\n\nYou will receive a confirmation email shortly.');
-    
-    // Clear cart
+    setTimeout(function(){ form.remove(); }, 1000);
+    alert('✅ Order submitted successfully!\n\nTotal items: ' + cart.reduce(function(s, item){ return s + item.quantity; }, 0));
     cart = [];
     updateCartBadge();
     closeCart();
-    
+    $('.submit-order-btn').prop('disabled', false).text('Submit Order');
+}
+
+$(document).ready(function(){
+    console.log('Document ready');
+    loadAllSignsData();
+    loadFacilityData();
+    $('#searchInput').on('input', function(){ searchTerm = $(this).val().toLowerCase().trim(); filterAndDisplayProducts(); });
+    $('#facilityId').on('input', function(){
+        var fid = $(this).val().trim();
+        var $i = $(this);
+        var $v = $('#facilityValidation');
+        var $l = $('#locationName');
+        if(fid.length === 0){ $i.removeClass('valid invalid'); $v.html('').removeClass('success error'); $l.val(''); }
+        else if(fid.length === 7){
+            if(facilityData[fid]){ $i.removeClass('invalid').addClass('valid'); $v.html('✓ Facility found: ' + facilityData[fid]).removeClass('error').addClass('success'); $l.val(facilityData[fid]); }
+            else { $i.removeClass('valid').addClass('invalid'); $v.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error'); $l.val(''); }
+        } else { $i.removeClass('valid invalid'); $v.html('Enter 7-digit facility ID').removeClass('success error'); $l.val(''); }
+    });
+});
+</script>
+
+</body>
+</html>
     // Re-enable button
     $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
