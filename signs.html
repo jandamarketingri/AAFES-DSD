@@ -773,11 +773,36 @@ function clearCart() {
 
 function submitOrder() {
     if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
-        alert('Please fill out all required header fields before submitting.');
+        alert('✅ Order submitted successfully!\n\nTotal items: ' + cart.reduce(function(s, item){ return s + item.quantity; }, 0));
+    cart = [];
+    updateCartBadge();
+    closeCart();
+    $('.submit-order-btn').prop('disabled', false).text('Submit Order');
+}
+
+$(document).ready(function(){
+    console.log('Document ready');
+    loadAllSignsData();
+    loadFacilityData();
+    loadPricingData();
+    $('#searchInput').on('input', function(){ searchTerm = $(this).val().toLowerCase().trim(); filterAndDisplayProducts(); });
+    $('#facilityId').on('input', function(){
+        var fid = $(this).val().trim();
+        var $i = $(this);
+        var $v = $('#facilityValidation');
+        var $l = $('#locationName');
+        if(fid.length === 0){ $i.removeClass('valid invalid'); $v.html('').removeClass('success error'); $l.val(''); }
+        else if(fid.length === 7){
+            if(facilityData[fid]){ $i.removeClass('invalid').addClass('valid'); $v.html('✓ Facility found: ' + facilityData[fid]).removeClass('error').addClass('success'); $l.val(facilityData[fid]); }
+            else { $i.removeClass('valid').addClass('invalid'); $v.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error'); $l.val(''); }
+        } else { $i.removeClass('valid invalid'); $v.html('Enter 7-digit facility ID').removeClass('success error'); $l.val(''); }
+    });
+});
+</script>
+
+</body>
+</html>Please fill out all required header fields before submitting.');
         closeCart();
         return;
     }
     var fid = $('#facilityId').val().trim();
-    // Re-enable button
-    $('.submit-order-btn').prop('disabled', false).text('Submit Order');
-}
