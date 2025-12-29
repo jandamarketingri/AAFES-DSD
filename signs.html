@@ -749,9 +749,11 @@ function addToCart(index) {
         } else {
             cart.push({ 
                 productName: product.description, 
-                sku: product.sku, 
+                sku: product.sku,
+                crc: product.crc, // Add CRC (master SKU)
                 size: 'N/A',
-                quantity: qty 
+                quantity: qty,
+                productType: 'signs' // Add product type identifier
             });
         }
         
@@ -792,7 +794,7 @@ function displayCart() {
         cart.forEach(function(item, index){
             html += '<div class="cart-item"><div class="cart-item-info">';
             html += '<div class="cart-item-name">' + item.productName + '</div>';
-            html += '<div class="cart-item-sku">SKU: ' + item.sku + '</div></div>';
+            html += '<div class="cart-item-sku">SKU: ' + item.sku + ' (Master: ' + item.crc + ')</div></div>';
             html += '<div class="cart-item-qty">Qty: ' + item.quantity + '</div>';
             html += '<button class="remove-item" onclick="removeFromCart(' + index + ')">Remove</button></div>';
         });
@@ -884,7 +886,3 @@ function submitOrder() {
     // Re-enable button
     $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
-</script>
-
-</body>
-</html>
