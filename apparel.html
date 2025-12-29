@@ -1038,7 +1038,7 @@ function submitOrder() {
     // Show loading state
     $('.submit-order-btn').prop('disabled', true).text('Submitting...');
     
-    // Create a form and submit it (this avoids CORS issues)
+    // Create a form and submit it
     var form = $('<form>', {
         method: 'POST',
         action: ORDER_SUBMISSION_URL,
@@ -1062,8 +1062,8 @@ function submitOrder() {
         form.remove();
     }, 1000);
     
-    // Show success message
-    alert('✅ Order submitted successfully!\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0) + '\n\nYou will receive a confirmation email shortly.');
+    // Show message that order is being processed
+    alert('📤 Order submitted! A new window will open showing the confirmation.\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0));
     
     // Clear cart
     cart = [];
