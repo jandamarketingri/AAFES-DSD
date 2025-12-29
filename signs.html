@@ -585,6 +585,9 @@ $(document).ready(function(){
 });
 
 function loadAllSignsData() {
+    console.log('=== STARTING TO LOAD SIGNS DATA ===');
+    console.log('Sheet URL:', SIGNS_SHEET_URL);
+    
     $('#skuContainer').html('<div class="loading">Loading products...</div>');
     
     $.ajax({
@@ -592,13 +595,15 @@ function loadAllSignsData() {
         method: 'GET',
         dataType: 'text',
         success: function(data){ 
-            console.log('Data loaded successfully');
+            console.log('✓ Data loaded successfully, length:', data.length);
+            console.log('First 200 chars:', data.substring(0, 200));
             parseAllSigns(data);
             loadCategory(currentCategory);
         },
         error: function(xhr, status, error){ 
-            console.error('Error:', status, error);
-            $('#skuContainer').html('<div class="error">Error loading data.<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
+            console.error('✗ AJAX ERROR:', status, error);
+            console.error('XHR object:', xhr);
+            $('#skuContainer').html('<div class="error">Error loading data.<br><br>Status: ' + status + '<br>Error: ' + error + '<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
         }
     });
 }
