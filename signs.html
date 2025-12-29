@@ -726,6 +726,7 @@ function submitOrder() {
         return;
     }
     if(cart.length === 0){ alert('Your cart is empty!'); return; }
+    
     var orderData = {
         repName: $('#repName').val(),
         repEmail: $('#repEmail').val(),
@@ -737,32 +738,35 @@ function submitOrder() {
         orderDate: new Date().toISOString(),
         items: cart
     };
+    
     $('.submit-order-btn').prop('disabled', true).text('Submitting...');
     
-    // Use AJAX instead of form submission to get response
-    $.ajax({
-        url: ORDER_SUBMISSION_URL,
+    // Create a form and submit it
+    var form = $('<form>', {
         method: 'POST',
-        data: { data: JSON.stringify(orderData) },
-        dataType: 'json',
-        success: function(response) {
-            console.log('Order response:', response);
-            if(response.success) {
-                alert('✅ Order submitted successfully!\n\nTotal items: ' + response.totalItems + '\n\nYou will receive a confirmation email shortly.');
-                cart = [];
-                updateCartBadge();
-                closeCart();
-            } else {
-                alert('❌ Error: ' + (response.error || 'Unknown error') + '\n\nPlease try again or contact support.');
-            }
-            $('.submit-order-btn').prop('disabled', false).text('Submit Order');
-        },
-        error: function(xhr, status, error) {
-            console.error('Order submission failed:', status, error, xhr.responseText);
-            alert('❌ Error submitting order: ' + error + '\n\nPlease try again or contact support.');
-            $('.submit-order-btn').prop('disabled', false).text('Submit Order');
-        }
+        action: ORDER_SUBMISSION_URL,
+        target: '_blank',
+        style: 'display:none;'
     });
+    
+    form.append($('<input>', {
+        type: 'hidden',
+        name: 'data',
+        value: JSON.stringify(orderData)
+    }));
+    
+    $('body').append(form);
+    form.submit();
+    
+    setTimeout(function(){ form.remove(); }, 1000);
+    
+    // Show message that order is being processed
+    alert('📤 Order submitted! A new window will open showing the confirmation.\n\nTotal items: ' + cart.reduce(function(s, item){ return s + item.quantity; }, 0));
+    
+    cart = [];
+    updateCartBadge();
+    closeCart();
+    $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
 
 $(document).ready(function(){
