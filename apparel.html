@@ -747,6 +747,11 @@ function parseProducts(csvData, category) {
         if(rows[i].trim()){
             var cols = rows[i].split(',');
             if(cols.length > 0 && cols[0].trim()){
+                // Skip products that start with "OUT" (case-insensitive)
+                var productName = cols[0] ? cols[0].trim() : '';
+                if(productName.toUpperCase().startsWith('OUT')){
+                    continue;
+                }
                 var product = {
                     name: cols[0] ? cols[0].trim() : '',
                     description: cols[1] ? cols[1].trim() : '',
