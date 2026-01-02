@@ -680,6 +680,26 @@ $(document).ready(function(){
     });
 });
 
+function parseCSVRow(row) {
+    var cols = [];
+    var current = '';
+    var inQuotes = false;
+    
+    for(var i = 0; i < row.length; i++){
+        var char = row[i];
+        if(char === '"'){
+            inQuotes = !inQuotes;
+        } else if(char === ',' && !inQuotes){
+            cols.push(current.trim());
+            current = '';
+        } else {
+            current += char;
+        }
+    }
+    cols.push(current.trim());
+    return cols;
+}
+    
 function loadCategory(category) {
     currentCategory = category;
     searchTerm = '';
@@ -745,20 +765,21 @@ function parseProducts(csvData, category) {
     
     for(var i = 1; i < rows.length; i++){
         if(rows[i].trim()){
-            var cols = rows[i].split(',');
+            var cols = parseCSVRow(rows[i]); // Use proper CSV parser instead of split(',')
             if(cols.length > 0 && cols[0].trim()){
                 // Skip products that start with "OUT" (case-insensitive)
                 var productName = cols[0] ? cols[0].trim() : '';
                 if(productName.toUpperCase().startsWith('OUT')){
-                    continue;
+                    continue; // Skip this product
                 }
+                
                 var product = {
-                    name: cols[0] ? cols[0].trim() : '',
+                    name: productName,
                     description: cols[1] ? cols[1].trim() : '',
                     images: [cols[2] ? cols[2].trim() : '', cols[3] ? cols[3].trim() : '', cols[4] ? cols[4].trim() : ''].filter(img => img),
                     category: category,
                     isCap: category.includes('caps'),
-                    baseSKU: cols[0] ? cols[0].trim() : '', // Store base SKU for reference
+                    baseSKU: productName,
                     sizes: {},
                     keywords: ''
                 };
