@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sales Portal - Login</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .login-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+        .help-text {
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-container">
+    <h1>🔐 Sales Portal Login</h1>
+    
+    <div id="errorMessage" class="error"></div>
+    
+    <div class="form-group">
+        <label>Your Name *</label>
+        <input type="text" id="name" placeholder="Enter your full name">
+    </div>
+    
+    <div class="form-group">
+        <label>Email Address *</label>
+        <input type="email" id="email" placeholder="your.email@company.com">
+    </div>
+    
+    <div class="form-group">
+        <label>Access Code *</label>
+        <input type="text" id="accessCode" placeholder="Enter your access code" style="text-transform:uppercase;">
+    </div>
+    
+    <button onclick="handleLogin()">Access Portal</button>
+    
+    <p class="help-text">
+        Don't have an access code? Contact your administrator.
+    </p>
+</div>
+
+<script>
+var AUTH_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+
+function handleLogin() {
+    var name = $('#name').val().trim();
+    var email = $('#email').val().trim();
+    var accessCode = $('#accessCode').val().trim().toUpperCase();
+    
+    if(!name || !email || !accessCode){
+        showError('Please fill in all fields');
+        return;
+    }
+    
+    // Call your Apps Script to validate
+    $.ajax({
+        url: AUTH_SCRIPT_URL,
+        method: 'POST',
+        data: JSON.stringify({
+            action: 'authenticate',
+            name: name,
+            email: email,
+            accessCode: accessCode
+        }),
+        contentType: 'application/json',
+        success: function(response){
+            if(response.success){
+                // Store auth data in sessionStorage
+                sessionStorage.setItem('salesPortalAuth', JSON.stringify({
+                    name: name,
+                    email: email,
+                    accessCode: accessCode,
+                    timestamp: new Date().toISOString()
+                }));
+                
+                // Redirect to main portal
+                window.location.href = 'index.html';
+            } else {
+                showError(response.message || 'Invalid access code');
+            }
+        },
+        error: function(){
+            showError('Authentication error. Please try again.');
+        }
+    });
+}
+
+function showError(message) {
+    $('#errorMessage').text(message).fadeIn();
+    setTimeout(function(){ $('#errorMessage').fadeOut(); }, 5000);
+}
+
+// Allow Enter key to submit
+$('input').keypress(function(e){
+    if(e.which === 13) handleLogin();
+});
+</script>
+
+</body>
+</html>
