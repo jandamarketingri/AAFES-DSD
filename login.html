@@ -172,19 +172,15 @@ function handleLogin() {
     $('#loadingMsg').show();
     $('#errorMessage').hide();
     
-    // Call Apps Script to validate
+    // Call Apps Script to validate using JSONP to avoid CORS
     $.ajax({
-        url: AUTH_SCRIPT_URL,
-        method: 'POST',
-        data: JSON.stringify({
-            action: 'authenticate',
-            email: email,
-            passcode: passcode
-        }),
-        contentType: 'application/json',
-        dataType: 'json',
+        url: AUTH_SCRIPT_URL + '?action=authenticate&email=' + encodeURIComponent(email) + '&passcode=' + encodeURIComponent(passcode),
+        method: 'GET',
+        dataType: 'jsonp',
+        jsonpCallback: 'authCallback',
+        timeout: 10000,
         success: function(response){
-            if(response.success){
+            if(response && response.success){
                 // Store auth data in sessionStorage
                 sessionStorage.setItem('salesPortalAuth', JSON.stringify({
                     name: response.name || email.split('@')[0],
@@ -201,7 +197,7 @@ function handleLogin() {
         },
         error: function(xhr, status, error){
             console.error('Authentication error:', error);
-            showError('Authentication error. Please try again or contact support.');
+            showError('Authentication error. Please check your connection and try again.');
             resetButton();
         }
     });
