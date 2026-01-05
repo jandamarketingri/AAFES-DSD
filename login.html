@@ -22,10 +22,22 @@
             max-width: 400px;
             width: 90%;
         }
+        .logo {
+            display: block;
+            margin: 0 auto 20px auto;
+            max-width: 150px;
+            max-height: 80px;
+        }
         h1 {
             text-align: center;
             color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
             margin-bottom: 30px;
+            font-size: 14px;
         }
         .form-group {
             margin-bottom: 20px;
@@ -59,9 +71,14 @@
             font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
+            transition: opacity 0.3s;
         }
         button:hover {
             opacity: 0.9;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         .error {
             background-color: #ffebee;
@@ -78,91 +95,132 @@
             font-size: 12px;
             margin-top: 20px;
         }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 10px;
+            display: none;
+        }
     </style>
 </head>
 <body>
 
 <div class="login-container">
-    <h1>🔐 Sales Portal Login</h1>
+    <img src="logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+    
+    <h1>🔐 Sales Portal</h1>
+    <p class="subtitle">Please log in to continue</p>
     
     <div id="errorMessage" class="error"></div>
     
     <div class="form-group">
-        <label>Your Name *</label>
-        <input type="text" id="name" placeholder="Enter your full name">
-    </div>
-    
-    <div class="form-group">
         <label>Email Address *</label>
-        <input type="email" id="email" placeholder="your.email@company.com">
+        <input type="email" id="email" placeholder="your.email@company.com" autocomplete="email">
     </div>
     
     <div class="form-group">
-        <label>Access Code *</label>
-        <input type="text" id="accessCode" placeholder="Enter your access code" style="text-transform:uppercase;">
+        <label>Passcode *</label>
+        <input type="password" id="passcode" placeholder="Enter shared passcode" autocomplete="current-password">
     </div>
     
-    <button onclick="handleLogin()">Access Portal</button>
+    <button id="loginBtn" onclick="handleLogin()">Access Portal</button>
+    
+    <div class="loading" id="loadingMsg">Authenticating...</div>
     
     <p class="help-text">
-        Don't have an access code? Contact your administrator.
+        Don't have access? Contact your administrator for the passcode.
     </p>
 </div>
 
 <script>
-var AUTH_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
+// REPLACE THIS WITH YOUR ACTUAL APPS SCRIPT URL
+var AUTH_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
+
+// Check if already authenticated
+$(document).ready(function(){
+    var authData = sessionStorage.getItem('salesPortalAuth');
+    if(authData){
+        try {
+            var auth = JSON.parse(authData);
+            // Already logged in, redirect to portal
+            window.location.href = 'index.html';
+        } catch(e){
+            // Invalid auth data, clear it
+            sessionStorage.removeItem('salesPortalAuth');
+        }
+    }
+});
 
 function handleLogin() {
-    var name = $('#name').val().trim();
     var email = $('#email').val().trim();
-    var accessCode = $('#accessCode').val().trim().toUpperCase();
+    var passcode = $('#passcode').val().trim();
     
-    if(!name || !email || !accessCode){
+    if(!email || !passcode){
         showError('Please fill in all fields');
         return;
     }
     
-    // Call your Apps Script to validate
+    // Validate email format
+    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if(!emailRegex.test(email)){
+        showError('Please enter a valid email address');
+        return;
+    }
+    
+    // Show loading state
+    $('#loginBtn').prop('disabled', true).text('Checking...');
+    $('#loadingMsg').show();
+    $('#errorMessage').hide();
+    
+    // Call Apps Script to validate
     $.ajax({
         url: AUTH_SCRIPT_URL,
         method: 'POST',
         data: JSON.stringify({
             action: 'authenticate',
-            name: name,
             email: email,
-            accessCode: accessCode
+            passcode: passcode
         }),
         contentType: 'application/json',
+        dataType: 'json',
         success: function(response){
             if(response.success){
                 // Store auth data in sessionStorage
                 sessionStorage.setItem('salesPortalAuth', JSON.stringify({
-                    name: name,
+                    name: response.name || email.split('@')[0],
                     email: email,
-                    accessCode: accessCode,
                     timestamp: new Date().toISOString()
                 }));
                 
                 // Redirect to main portal
                 window.location.href = 'index.html';
             } else {
-                showError(response.message || 'Invalid access code');
+                showError(response.message || 'Invalid email or passcode');
+                resetButton();
             }
         },
-        error: function(){
-            showError('Authentication error. Please try again.');
+        error: function(xhr, status, error){
+            console.error('Authentication error:', error);
+            showError('Authentication error. Please try again or contact support.');
+            resetButton();
         }
     });
 }
 
 function showError(message) {
     $('#errorMessage').text(message).fadeIn();
-    setTimeout(function(){ $('#errorMessage').fadeOut(); }, 5000);
+}
+
+function resetButton() {
+    $('#loginBtn').prop('disabled', false).text('Access Portal');
+    $('#loadingMsg').hide();
 }
 
 // Allow Enter key to submit
 $('input').keypress(function(e){
-    if(e.which === 13) handleLogin();
+    if(e.which === 13) {
+        handleLogin();
+    }
 });
 </script>
 
