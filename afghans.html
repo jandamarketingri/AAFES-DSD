@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Apparel Products</title>
+    <title>Afghan Products</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
         body {
@@ -53,16 +53,37 @@
         }
         .form-group input[type="text"],
         .form-group input[type="email"],
-        .form-group input[type="date"] {
+        .form-group input[type="date"],
+        .form-group select {
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 14px;
             transition: border-color 0.3s;
         }
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #2196F3;
+        }
+        .form-group input.valid {
+            border-color: #4CAF50;
+            background-color: #f1f8f4;
+        }
+        .form-group input.invalid {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        .validation-message {
+            font-size: 12px;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        .validation-message.success {
+            color: #4CAF50;
+        }
+        .validation-message.error {
+            color: #f44336;
         }
         .checkbox-group {
             display: flex;
@@ -81,51 +102,342 @@
             cursor: pointer;
             margin: 0;
         }
-        #skuContainer {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
+        .tab-section {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .sku-card {
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover {
+            color: #333;
+        }
+        .tab-btn.active {
+            color: #2196F3;
+            border-bottom-color: #2196F3;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .custom-order-form {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .custom-order-form h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .add-custom-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        .add-custom-btn:hover {
+            background-color: #45a049;
+        }
+        .search-section {
+            margin-bottom: 20px;
+        }
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .clear-search-btn {
+            padding: 10px 20px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+        .clear-search-btn:hover {
+            background-color: #da190b;
+        }
+        .search-info {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+        }
+        .cart-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        .cart-button:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+        .cart-badge {
+            background-color: #f44336;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        #stockContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+            padding-bottom: 100px;
+        }
+        .stock-card {
             background-color: white;
             border: 1px solid #ddd;
             border-radius: 8px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-        .sku-header {
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #4CAF50;
+        .stock-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        .sku-number {
-            font-size: 24px;
+        .product-name {
+            font-size: 18px;
             font-weight: bold;
-            color: #2196F3;
+            color: #333;
             margin-bottom: 8px;
         }
-        .sku-description {
-            font-size: 16px;
-            color: #555;
+        .product-description {
+            font-size: 13px;
+            color: #666;
+            line-height: 1.4;
+            margin-bottom: 10px;
         }
-        .image-container {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-top: 15px;
+        .product-sku {
+            display: inline-block;
+            background-color: #f0f0f0;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 10px;
         }
-        .image-wrapper {
-            flex: 1;
-            min-width: 300px;
-            max-width: 500px;
-        }
-        .image-wrapper img {
+        .product-image {
             width: 100%;
-            height: auto;
+            height: 250px;
+            object-fit: contain;
             border-radius: 4px;
             border: 1px solid #ddd;
+            margin: 15px 0;
+            background-color: #f9f9f9;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .quantity-control label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        .quantity-control button {
+            width: 35px;
+            height: 35px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .quantity-control button:hover {
+            background-color: #f0f0f0;
+        }
+        .quantity-control input {
+            width: 60px;
+            text-align: center;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .add-to-cart-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        .add-to-cart-btn:hover {
+            background-color: #45a049;
+        }
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 2000;
+        }
+        .cart-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 700px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+        }
+        .cart-header h3 {
+            margin: 0;
+            color: #333;
+        }
+        .close-cart {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .cart-item-info {
+            flex: 1;
+        }
+        .cart-item-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 3px;
+        }
+        .cart-item-details {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 3px;
+        }
+        .cart-item-qty {
+            font-size: 14px;
+            color: #333;
+            margin-right: 15px;
+        }
+        .remove-item {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .remove-item:hover {
+            background-color: #da190b;
+        }
+        .cart-empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .cart-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .cart-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .clear-cart-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        .submit-order-btn {
+            background-color: #4CAF50;
+            color: white;
         }
         .loading {
             text-align: center;
@@ -139,334 +451,15 @@
             font-size: 16px;
             color: #f44336;
             padding: 20px;
-        }
-
-        /* Game Overlay Styles */
-        #gameOverlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        #gameContainer {
-            background: linear-gradient(to bottom, #87CEEB, #E0F6FF);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            position: relative;
-        }
-        #gameCanvas {
-            display: block;
-            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 70%, #90EE90 100%);
-            border: 3px solid #333;
-            border-radius: 8px;
-        }
-        #gameControls {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 15px;
-        }
-        .game-button {
-            padding: 12px 24px;
-            font-size: 16px;
-            font-weight: 600;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-        }
-        #doneBtn {
-            background-color: #4CAF50;
-            color: white;
-        }
-        #doneBtn:hover {
-            background-color: #45a049;
-            transform: translateY(-2px);
-        }
-        #resetBtn {
-            background-color: #f44336;
-            color: white;
-        }
-        #resetBtn:hover {
-            background-color: #da190b;
-            transform: translateY(-2px);
-        }
-        #numberDisplay {
-            text-align: center;
-            font-size: 32px;
-            font-weight: bold;
-            color: #333;
-            letter-spacing: 8px;
-            margin-top: 15px;
-            padding: 15px;
-            background-color: white;
-            border-radius: 8px;
-            border: 2px solid #2196F3;
-            font-family: 'Courier New', monospace;
+            line-height: 1.6;
         }
     </style>
-    <script>
-        $(document).ready(function(){
-            loadSKUData();
-        });
-
-        function loadSKUData() {
-            // CHANGE THIS URL TO YOUR APPAREL GOOGLE SHEET
-            var sheetUrl = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID';
-            
-            $.ajax({
-                url: sheetUrl,
-                method: 'GET',
-                dataType: 'text',
-                success: function(data){
-                    displaySKUs(data);
-                },
-                error: function(xhr, status, error){
-                    console.error('Error fetching data:', error);
-                    $('#skuContainer').html('<div class="error">Error loading data from Google Sheet. Please check the URL and permissions.</div>');
-                }
-            });
-        }
-
-        function displaySKUs(csvData) {
-            var rows = csvData.split('\n');
-            var html = '';
-            
-            for(var i = 1; i < rows.length; i++){
-                if(rows[i].trim()){
-                    var cols = rows[i].split(',');
-                    var sku = cols[0] ? cols[0].trim() : '';
-                    var description = cols[1] ? cols[1].trim() : '';
-                    var url1 = cols[2] ? cols[2].trim() : '';
-                    var url2 = cols[3] ? cols[3].trim() : '';
-                    
-                    if(sku){
-                        html += '<div class="sku-card">';
-                        html += '    <div class="sku-header">';
-                        html += '        <div class="sku-number">' + sku + '</div>';
-                        if(description){
-                            html += '        <div class="sku-description">' + description + '</div>';
-                        }
-                        html += '    </div>';
-                        
-                        if(url1 || url2){
-                            html += '    <div class="image-container">';
-                            if(url1){
-                                html += '        <div class="image-wrapper">';
-                                html += '            <img src="' + url1 + '" alt="' + sku + ' - Image 1" onerror="this.parentElement.style.display=\'none\'">';
-                                html += '        </div>';
-                            }
-                            if(url2){
-                                html += '        <div class="image-wrapper">';
-                                html += '            <img src="' + url2 + '" alt="' + sku + ' - Image 2" onerror="this.parentElement.style.display=\'none\'">';
-                                html += '        </div>';
-                            }
-                            html += '    </div>';
-                        }
-                        
-                        html += '</div>';
-                    }
-                }
-            }
-            
-            if(html){
-                $('#skuContainer').html(html);
-            } else {
-                $('#skuContainer').html('<div class="error">No SKU data found in the sheet.</div>');
-            }
-        }
-
-        // Game Variables
-        let canvas, ctx;
-        let bucket = { x: 0, y: 0, width: 100, height: 60, speed: 8 };
-        let blocks = [];
-        let collectedNumbers = [];
-        let keys = {};
-        let gameRunning = false;
-        let animationId;
-
-        function openGame() {
-            $('#gameOverlay').css('display', 'flex');
-            canvas = document.getElementById('gameCanvas');
-            ctx = canvas.getContext('2d');
-            
-            // Initialize bucket position
-            bucket.x = canvas.width / 2 - bucket.width / 2;
-            bucket.y = canvas.height - bucket.height - 10;
-            
-            collectedNumbers = [];
-            blocks = [];
-            updateNumberDisplay();
-            
-            gameRunning = true;
-            gameLoop();
-            spawnBlocks();
-        }
-
-        function closeGame() {
-            gameRunning = false;
-            if (animationId) {
-                cancelAnimationFrame(animationId);
-            }
-            $('#gameOverlay').hide();
-        }
-
-        function resetGame() {
-            collectedNumbers = [];
-            blocks = [];
-            updateNumberDisplay();
-        }
-
-        function doneGame() {
-            if (collectedNumbers.length === 7) {
-                $('#facilityId').val(collectedNumbers.join(''));
-                closeGame();
-            } else {
-                alert('Please collect all 7 digits!');
-            }
-        }
-
-        function spawnBlocks() {
-            if (!gameRunning) return;
-            
-            const block = {
-                x: Math.random() * (canvas.width - 40),
-                y: -40,
-                width: 40,
-                height: 40,
-                speed: 2 + Math.random() * 2,
-                number: Math.floor(Math.random() * 10)
-            };
-            blocks.push(block);
-            
-            setTimeout(spawnBlocks, 300 + Math.random() * 400);
-        }
-
-        function updateNumberDisplay() {
-            let display = '';
-            for (let i = 0; i < 7; i++) {
-                display += (collectedNumbers[i] !== undefined) ? collectedNumbers[i] : '_';
-            }
-            $('#numberDisplay').text(display);
-        }
-
-        function gameLoop() {
-            if (!gameRunning) return;
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw gradient background
-            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#87CEEB');
-            gradient.addColorStop(0.7, '#E0F6FF');
-            gradient.addColorStop(1, '#90EE90');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Update and draw blocks
-            for (let i = blocks.length - 1; i >= 0; i--) {
-                const block = blocks[i];
-                block.y += block.speed;
-                
-                // Check collision with bucket
-                if (collectedNumbers.length < 7 &&
-                    block.y + block.height >= bucket.y &&
-                    block.y <= bucket.y + bucket.height &&
-                    block.x + block.width >= bucket.x &&
-                    block.x <= bucket.x + bucket.width) {
-                    
-                    collectedNumbers.push(block.number);
-                    updateNumberDisplay();
-                    blocks.splice(i, 1);
-                    continue;
-                }
-                
-                // Remove blocks that fall off screen
-                if (block.y > canvas.height) {
-                    blocks.splice(i, 1);
-                    continue;
-                }
-                
-                // Draw block
-                ctx.fillStyle = '#FF6B6B';
-                ctx.fillRect(block.x, block.y, block.width, block.height);
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(block.x, block.y, block.width, block.height);
-                
-                // Draw number on block
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 24px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(block.number, block.x + block.width / 2, block.y + block.height / 2);
-            }
-            
-            // Move bucket with arrow keys or A/D
-            if (keys['ArrowLeft'] || keys['a'] || keys['A']) {
-                bucket.x = Math.max(0, bucket.x - bucket.speed);
-            }
-            if (keys['ArrowRight'] || keys['d'] || keys['D']) {
-                bucket.x = Math.min(canvas.width - bucket.width, bucket.x + bucket.speed);
-            }
-            
-            // Draw bucket
-            ctx.fillStyle = '#8B4513';
-            ctx.fillRect(bucket.x, bucket.y, bucket.width, bucket.height);
-            ctx.fillStyle = '#A0522D';
-            ctx.fillRect(bucket.x + 5, bucket.y + 5, bucket.width - 10, bucket.height - 10);
-            
-            // Draw bucket handle
-            ctx.strokeStyle = '#654321';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(bucket.x + bucket.width / 2, bucket.y, 20, 0, Math.PI, true);
-            ctx.stroke();
-            
-            animationId = requestAnimationFrame(gameLoop);
-        }
-
-        // Keyboard controls
-        document.addEventListener('keydown', (e) => {
-            keys[e.key] = true;
-        });
-
-        document.addEventListener('keyup', (e) => {
-            keys[e.key] = false;
-        });
-
-        // Button handlers
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('doneBtn').addEventListener('click', doneGame);
-            document.getElementById('resetBtn').addEventListener('click', resetGame);
-            
-            // Open game when clicking on facility ID field
-            document.getElementById('facilityId').addEventListener('focus', function(e) {
-                e.preventDefault();
-                this.blur();
-                openGame();
-            });
-            
-            document.getElementById('facilityId').addEventListener('click', function(e) {
-                e.preventDefault();
-                openGame();
-            });
-        });
-    </script>
 </head>
 <body>
 
 <a href="index.html" class="back-link">← Back to Main Menu</a>
 
-<h2>👕 Apparel Products</h2>
+<h2>🧶 Afghan Products</h2>
 
 <div id="headerForm">
     <div class="form-row">
@@ -479,18 +472,17 @@
             <input type="email" id="repEmail" placeholder="Enter your email" required>
         </div>
     </div>
-    
     <div class="form-row">
         <div class="form-group">
             <label for="facilityId">Facility ID *</label>
-            <input type="text" id="facilityId" placeholder="Enter Facility Number" maxlength="7" pattern="\d{7}" required readonly>
+            <input type="text" id="facilityId" placeholder="7-digit ID" maxlength="7" required>
+            <div id="facilityValidation" class="validation-message"></div>
         </div>
         <div class="form-group">
             <label for="locationName">Location Name *</label>
             <input type="text" id="locationName" placeholder="Enter location name" required>
         </div>
     </div>
-    
     <div class="form-row">
         <div class="form-group">
             <label for="beginShipDate">Begin Ship Date *</label>
@@ -501,7 +493,6 @@
             <input type="date" id="shipByDate" required>
         </div>
     </div>
-    
     <div class="form-row">
         <div class="checkbox-group">
             <input type="checkbox" id="includeDisplay">
@@ -510,21 +501,360 @@
     </div>
 </div>
 
-<div id="skuContainer">
-    <div class="loading">Loading apparel products...</div>
-</div>
-
-<!-- Game Overlay -->
-<div id="gameOverlay">
-    <div id="gameContainer">
-        <canvas id="gameCanvas" width="600" height="500"></canvas>
-        <div id="numberDisplay">_ _ _ _ _ _ _</div>
-        <div id="gameControls">
-            <button id="resetBtn" class="game-button">Reset</button>
-            <button id="doneBtn" class="game-button">Done</button>
+<div class="tab-section">
+    <div class="tab-buttons">
+        <button class="tab-btn active" onclick="switchTab('custom')">🎨 Custom Art</button>
+        <button class="tab-btn" onclick="switchTab('stock')">📦 Stock Items</button>
+    </div>
+    
+    <div id="customTab" class="tab-content active">
+        <div class="custom-order-form">
+            <h3>Order Custom Art Afghan</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="customStyle">Blanket Style *</label>
+                    <select id="customStyle" required>
+                        <option value="">-- Select a style --</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="jaArtNumber">J&A Art Number *</label>
+                    <input type="text" id="jaArtNumber" placeholder="e.g., A00123_45" required>
+                    <div id="jaArtValidation" class="validation-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="vendorArtNumber">Vendor Art Number *</label>
+                    <input type="text" id="vendorArtNumber" placeholder="Enter vendor art number" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="customQuantity">Quantity *</label>
+                    <input type="number" id="customQuantity" min="1" value="1" required>
+                </div>
+            </div>
+            <button class="add-custom-btn" onclick="addCustomToCart()">Add Custom Afghan to Cart</button>
+        </div>
+    </div>
+    
+    <div id="stockTab" class="tab-content">
+        <div class="search-section">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="🔍 Search by SKU, description, or branch of service...">
+                <button class="clear-search-btn" onclick="clearSearch()">Clear</button>
+            </div>
+            <div class="search-info">Loading products...</div>
+        </div>
+        <div id="stockContainer">
+            <div class="loading">Loading stock items...</div>
         </div>
     </div>
 </div>
 
-</body>
-</html>
+<button class="cart-button" onclick="openCart()">
+    🛒 Cart <span class="cart-badge" style="display:none;">0</span>
+</button>
+
+<div class="cart-modal" onclick="closeCartOnBackdrop(event)">
+    <div class="cart-content">
+        <div class="cart-header">
+            <h3>Shopping Cart</h3>
+            <button class="close-cart" onclick="closeCart()">&times;</button>
+        </div>
+        <div id="cartItems"></div>
+        <div class="cart-actions">
+            <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
+            <button class="submit-order-btn" onclick="submitOrder()">Submit Order</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==========================================
+// CONFIGURATION
+// ==========================================
+var CUSTOM_STYLES_SHEET_URL = 'YOUR_CUSTOM_STYLES_SHEET_URL_HERE';
+var STOCK_AFGHANS_SHEET_URL = 'YOUR_STOCK_AFGHANS_SHEET_URL_HERE';
+var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
+var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
+
+var cart = [];
+var customStyles = [];
+var stockAfghans = [];
+var currentStockProducts = [];
+var searchTerm = '';
+var facilityData = {};
+
+// ==========================================
+// AUTHENTICATION CHECK
+// ==========================================
+function checkAuthentication() {
+    var authData = sessionStorage.getItem('salesPortalAuth');
+    
+    if(!authData){
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    try {
+        var auth = JSON.parse(authData);
+        $('#repName').val(auth.name).prop('readonly', true);
+        $('#repEmail').val(auth.email).prop('readonly', true);
+        $('#headerForm').prepend(
+            '<div style="background:#d4edda;border:1px solid #c3e6cb;padding:12px;margin-bottom:15px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">' +
+            '<div><strong>✓ Authenticated:</strong> ' + auth.name + ' (' + auth.email + ')</div>' +
+            '<button onclick="logout()" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">Logout</button>' +
+            '</div>'
+        );
+    } catch(e){
+        sessionStorage.removeItem('salesPortalAuth');
+        window.location.href = 'login.html';
+    }
+}
+
+function logout() {
+    if(confirm('Are you sure you want to log out?')){
+        sessionStorage.removeItem('salesPortalAuth');
+        window.location.href = 'login.html';
+    }
+}
+
+// ==========================================
+// INITIALIZATION
+// ==========================================
+$(document).ready(function(){
+    checkAuthentication();
+    loadCustomStyles();
+    loadStockAfghans();
+    loadFacilityData();
+    
+    $('#searchInput').on('input', function(){
+        searchTerm = $(this).val().toLowerCase().trim();
+        filterAndDisplayStock();
+    });
+    
+    $('#facilityId').on('input', function(){
+        var facilityId = $(this).val().trim();
+        var $input = $(this);
+        var $validation = $('#facilityValidation');
+        var $locationName = $('#locationName');
+        
+        if(facilityId.length === 0){
+            $input.removeClass('valid invalid');
+            $validation.html('').removeClass('success error');
+            $locationName.val('');
+        } else if(facilityId.length === 7){
+            if(facilityData[facilityId]){
+                $input.removeClass('invalid').addClass('valid');
+                $validation.html('✓ Facility found: ' + facilityData[facilityId]).removeClass('error').addClass('success');
+                $locationName.val(facilityData[facilityId]);
+            } else {
+                $input.removeClass('valid').addClass('invalid');
+                $validation.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error');
+                $locationName.val('');
+            }
+        } else {
+            $input.removeClass('valid invalid');
+            $validation.html('Enter 7-digit facility ID').removeClass('success error');
+            $locationName.val('');
+        }
+    });
+    
+    $('#jaArtNumber').on('input', function(){
+        var artNumber = $(this).val().trim();
+        var $input = $(this);
+        var $validation = $('#jaArtValidation');
+        
+        if(artNumber.length === 0){
+            $input.removeClass('valid invalid');
+            $validation.html('').removeClass('success error');
+        } else if(artNumber.includes('_')){
+            $input.removeClass('invalid').addClass('valid');
+            $validation.html('✓ Valid format').removeClass('error').addClass('success');
+        } else {
+            $input.removeClass('valid').addClass('invalid');
+            $validation.html('⚠ Art number must contain an underscore (e.g., A00123_45)').removeClass('success').addClass('error');
+        }
+    });
+});
+
+function parseCSVRow(row) {
+    var cols = [];
+    var current = '';
+    var inQuotes = false;
+    for(var i = 0; i < row.length; i++){
+        var char = row[i];
+        if(char === '"'){ inQuotes = !inQuotes; }
+        else if(char === ',' && !inQuotes){ cols.push(current.trim()); current = ''; }
+        else { current += char; }
+    }
+    cols.push(current.trim());
+    return cols;
+}
+
+// ==========================================
+// LOAD DATA
+// ==========================================
+function loadCustomStyles() {
+    if(!CUSTOM_STYLES_SHEET_URL || CUSTOM_STYLES_SHEET_URL.includes('YOUR_')){
+        console.warn('Custom styles sheet URL not configured');
+        return;
+    }
+    
+    $.ajax({
+        url: CUSTOM_STYLES_SHEET_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){
+            var rows = data.split('\n');
+            customStyles = [];
+            for(var i = 1; i < rows.length; i++){
+                if(rows[i].trim()){
+                    var cols = parseCSVRow(rows[i]);
+                    customStyles.push({
+                        description: cols[0] || '',
+                        sku: cols[1] || '',
+                        crc: cols[2] || '',
+                        cost: cols[3] || '',
+                        retail: cols[4] || '',
+                        upc: cols[6] || ''
+                    });
+                }
+            }
+            populateStyleDropdown();
+        },
+        error: function(){
+            console.error('Error loading custom styles');
+        }
+    });
+}
+
+function populateStyleDropdown() {
+    var dropdown = $('#customStyle');
+    dropdown.empty();
+    dropdown.append('<option value="">-- Select a style --</option>');
+    customStyles.forEach(function(style, index){
+        dropdown.append('<option value="' + index + '">' + style.description + '</option>');
+    });
+}
+
+function loadStockAfghans() {
+    if(!STOCK_AFGHANS_SHEET_URL || STOCK_AFGHANS_SHEET_URL.includes('YOUR_')){
+        $('#stockContainer').html('<div class="error">Please configure the stock afghans sheet URL.</div>');
+        return;
+    }
+    
+    $.ajax({
+        url: STOCK_AFGHANS_SHEET_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){
+            var rows = data.split('\n');
+            stockAfghans = [];
+            for(var i = 1; i < rows.length; i++){
+                if(rows[i].trim()){
+                    var cols = parseCSVRow(rows[i]);
+                    if(cols[0] && cols[0].trim()){
+                        stockAfghans.push({
+                            sku: cols[0].trim(),
+                            crc: cols[1] ? cols[1].trim() : '',
+                            description: cols[2] ? cols[2].trim() : '',
+                            image: cols[3] ? cols[3].trim() : '',
+                            branch: cols[4] ? cols[4].trim() : '',
+                            searchText: [cols[0], cols[2], cols[4]].join(' ').toLowerCase()
+                        });
+                    }
+                }
+            }
+            filterAndDisplayStock();
+        },
+        error: function(){
+            $('#stockContainer').html('<div class="error">Error loading stock items.</div>');
+        }
+    });
+}
+
+function loadFacilityData() {
+    $.ajax({
+        url: FACILITY_LOOKUP_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){
+            var rows = data.split('\n');
+            facilityData = {};
+            for(var i = 1; i < rows.length; i++){
+                if(rows[i].trim()){
+                    var cols = rows[i].split(',');
+                    var facilityId = cols[0] ? cols[0].trim() : '';
+                    var baseName = cols[2] ? cols[2].trim() : '';
+                    if(facilityId && baseName){
+                        facilityData[facilityId] = baseName;
+                    }
+                }
+            }
+        },
+        error: function(){
+            console.warn('Could not load facility data');
+        }
+    });
+}
+
+// ==========================================
+// TAB SWITCHING
+// ==========================================
+function switchTab(tab) {
+    $('.tab-btn').removeClass('active');
+    $('.tab-content').removeClass('active');
+    
+    if(tab === 'custom'){
+        $('.tab-btn:first').addClass('active');
+        $('#customTab').addClass('active');
+    } else {
+        $('.tab-btn:last').addClass('active');
+        $('#stockTab').addClass('active');
+    }
+}
+
+// ==========================================
+// CUSTOM AFGHAN ORDERING
+// ==========================================
+function addCustomToCart() {
+    var styleIndex = $('#customStyle').val();
+    var jaArtNumber = $('#jaArtNumber').val().trim();
+    var vendorArtNumber = $('#vendorArtNumber').val().trim();
+    var quantity = parseInt($('#customQuantity').val());
+    
+    if(!styleIndex || styleIndex === ''){
+        alert('Please select a blanket style');
+        return;
+    }
+    
+    if(!jaArtNumber || !jaArtNumber.includes('_')){
+        alert('Please enter a valid J&A Art Number (must contain an underscore)');
+        return;
+    }
+    
+    if(!vendorArtNumber){
+        alert('Please enter a vendor art number');
+        return;
+    }
+    
+    if(!quantity || quantity < 1){
+        alert('Please enter a valid quantity');
+        return;
+    }
+    
+    var style = customStyles[styleIndex];
+    
+    cart.push({
+        type: 'custom',
+        productName: style.description + ' - Custom Art',
+        sku: style.sku,
+        crc: style.crc,
+        jaArtNumber: jaArtNumber,
+        vendorArtNumber: vendorArtNumber,
+        quantity: quantity,
+        productType: 'afghan-custom'
+    });
