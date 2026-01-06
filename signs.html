@@ -769,7 +769,50 @@ function submitOrder() {
     $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
 
+// ==========================================
+// AUTHENTICATION CHECK
+// ==========================================
+function checkAuthentication() {
+    var authData = sessionStorage.getItem('salesPortalAuth');
+    
+    if(!authData){
+        // Not logged in, redirect to login
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    try {
+        var auth = JSON.parse(authData);
+        
+        // Pre-fill the form with authenticated user data
+        $('#repName').val(auth.name).prop('readonly', true);
+        $('#repEmail').val(auth.email).prop('readonly', true);
+        
+        // Add visual indicator that they're logged in
+        $('#headerForm').prepend(
+            '<div style="background:#d4edda;border:1px solid #c3e6cb;padding:12px;margin-bottom:15px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">' +
+            '<div><strong>✓ Authenticated:</strong> ' + auth.name + ' (' + auth.email + ')</div>' +
+            '<button onclick="logout()" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">Logout</button>' +
+            '</div>'
+        );
+        
+    } catch(e){
+        // Invalid auth data, clear and redirect
+        console.error('Auth parse error:', e);
+        sessionStorage.removeItem('salesPortalAuth');
+        window.location.href = 'login.html';
+    }
+}
+
+function logout() {
+    if(confirm('Are you sure you want to log out?')){
+        sessionStorage.removeItem('salesPortalAuth');
+        window.location.href = 'login.html';
+    }
+}
+    
 $(document).ready(function(){
+    checkAuthentication();
     console.log('Document ready');
     loadAllSignsData();
     loadFacilityData();
