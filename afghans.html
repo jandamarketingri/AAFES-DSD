@@ -848,6 +848,34 @@ function addCustomToCart() {
     
     var style = customStyles[styleIndex];
     
+function addCustomToCart() {
+    var styleIndex = $('#customStyle').val();
+    var jaArtNumber = $('#jaArtNumber').val().trim();
+    var vendorArtNumber = $('#vendorArtNumber').val().trim();
+    var quantity = parseInt($('#customQuantity').val());
+    
+    if(!styleIndex || styleIndex === ''){
+        alert('Please select a blanket style');
+        return;
+    }
+    
+    if(!jaArtNumber || !jaArtNumber.includes('_')){
+        alert('Please enter a valid J&A Art Number (must contain an underscore)');
+        return;
+    }
+    
+    if(!vendorArtNumber){
+        alert('Please enter a vendor art number');
+        return;
+    }
+    
+    if(!quantity || quantity < 1){
+        alert('Please enter a valid quantity');
+        return;
+    }
+    
+    var style = customStyles[styleIndex];
+    
     cart.push({
         type: 'custom',
         productName: style.description + ' - Custom Art',
@@ -858,3 +886,15 @@ function addCustomToCart() {
         quantity: quantity,
         productType: 'afghan-custom'
     });
+    
+    updateCartBadge();
+    
+    // Clear form
+    $('#customStyle').val('');
+    $('#jaArtNumber').val('').removeClass('valid invalid');
+    $('#jaArtValidation').html('').removeClass('success error');
+    $('#vendorArtNumber').val('');
+    $('#customQuantity').val(1);
+    
+    alert('✓ Custom afghan added to cart!');
+}
