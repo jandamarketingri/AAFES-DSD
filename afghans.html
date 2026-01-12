@@ -578,11 +578,11 @@ function parseAllSigns(csvData) {
     console.log('Parsed', allSignsData.length, 'signs');
 }
 
-function loadAllSignsData() {
+function loadAllAfghansData() {
     console.log('=== LOADING SIGNS DATA ===');
     $('#skuContainer').html('<div class="loading">Loading products...</div>');
     $.ajax({
-        url: SIGNS_SHEET_URL,
+        url: AFGHANS_STOCK_SHEET_URL,
         method: 'GET',
         dataType: 'text',
         success: function(data){ 
@@ -936,7 +936,7 @@ function collectCustomAfghans() {
 $(document).ready(function(){
     checkAuthentication();
     console.log('Document ready');
-    loadAllSignsData();
+    loadAllAfghansData();
     loadFacilityData();
     $('#searchInput').on('input', function(){ searchTerm = $(this).val().toLowerCase().trim(); filterAndDisplayProducts(); });
     $('#facilityId').on('input', function(){
