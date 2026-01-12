@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Signs Products</title>
+    <title>Afghan Products</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
         body {
@@ -440,7 +440,7 @@
 
 <a href="index.html" class="back-link">← Back to Main Menu</a>
 
-<h2>🪧 Signs Products</h2>
+<h2>🧶 Afghans</h2>
 
 <div id="headerForm">
     <div class="form-row">
@@ -484,9 +484,8 @@
 
 <div class="filter-section">
     <div class="filter-buttons">
-        <button class="filter-btn active" data-filter="8088885" onclick="loadCategory('8088885')">8088885</button>
-        <button class="filter-btn" data-filter="8088886" onclick="loadCategory('8088886')">8088886</button>
-        <button class="filter-btn" data-filter="8088887" onclick="loadCategory('8088887')">8088887</button>
+        <button class="filter-btn active" data-filter="stock" onclick="loadCategory('stock')">Stock Afghans</button>
+        <button class="filter-btn" data-filter="custom" onclick="loadCategory('custom')">Custom Afghans</button>
     </div>
 </div>
 
@@ -498,6 +497,14 @@
     <div class="search-info">Showing all products</div>
 </div>
 
+<div id="customAfghanForm" style="display:none; background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 30px; max-width: 1200px; margin: 0 auto 30px auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+    <h3 style="margin-top:0; color:#333;">Custom Afghan Entry</h3>
+    <div id="customAfghanEntries">
+        <!-- Entries will be added here dynamically -->
+    </div>
+    <button onclick="addCustomAfghanEntry()" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-top: 15px;">+ Add Another Afghan</button>
+</div>
+    
 <div id="skuContainer">
     <div class="loading">Loading products...</div>
 </div>
@@ -521,12 +528,13 @@
 </div>
 
 <script>
-var SIGNS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSSBX53-_Dj4xqRxnnoOLq_yNIF7ZK3-tpxvsulbUIYu7VbiUoIz7PRt7Eg48bYjkzOCr6-UJtIkeG_/pub?gid=2002241172&single=true&output=csv';
+var AFGHANS_STOCK_SHEET_URL = 'YOUR_STOCK_AFGHANS_SHEET_URL_HERE';
 var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
 var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
 
 var cart = [];
-var currentCategory = '8088885';
+var currentCategory = 'stock';
+var customAfghanCounter = 0;
 var currentProducts = [];
 var allCategoryProducts = [];
 var searchTerm = '';
@@ -596,9 +604,27 @@ function loadCategory(category) {
     $('#searchInput').val('');
     $('.filter-btn').removeClass('active');
     $('[data-filter="' + category + '"]').addClass('active');
-    allCategoryProducts = allSignsData.filter(function(p){ return p.crc === category; });
-    console.log('Products in category:', allCategoryProducts.length);
-    filterAndDisplayProducts();
+    
+    if(category === 'custom'){
+        // Show custom form, hide product grid and search
+        $('#customAfghanForm').show();
+        $('#skuContainer').hide();
+        $('.search-section').hide();
+        
+        // Initialize with one entry if empty
+        if($('#customAfghanEntries').children().length === 0){
+            addCustomAfghanEntry();
+        }
+    } else {
+        // Show product grid for stock afghans
+        $('#customAfghanForm').hide();
+        $('#skuContainer').show();
+        $('.search-section').show();
+        
+        allCategoryProducts = allSignsData; // All stock afghans
+        console.log('Products in category:', allCategoryProducts.length);
+        filterAndDisplayProducts();
+    }
 }
 
 function loadFacilityData() {
@@ -665,6 +691,23 @@ function incrementQty(i) { var input = $('#qty-' + i); input.val(parseInt(input.
 function decrementQty(i) { var input = $('#qty-' + i); var val = parseInt(input.val()); if(val > 1) input.val(val - 1); }
 
 function addToCart(i) {
+    
+    if(currentCategory === 'custom'){
+        var customAfghans = collectCustomAfghans();
+        if(customAfghans.length === 0){
+            alert('Please fill in all required fields for at least one afghan.');
+            return;
+        }
+        
+        customAfghans.forEach(function(afghan){
+            cart.push(afghan);
+        });
+        
+        updateCartBadge();
+        alert('Custom afghans added to cart!');
+        return;
+    }
+    
     var qty = parseInt($('#qty-' + i).val());
     var p = currentProducts[i];
     if(qty > 0){
@@ -810,6 +853,85 @@ function logout() {
         window.location.href = 'login.html';
     }
 }
+
+function addCustomAfghanEntry() {
+    customAfghanCounter++;
+    var entryId = 'custom-' + customAfghanCounter;
+    
+    var html = '<div class="custom-entry" id="' + entryId + '" style="background: #f9f9f9; padding: 20px; margin-bottom: 15px; border-radius: 6px; border: 2px solid #ddd;">';
+    html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">';
+    html += '<h4 style="margin: 0; color: #333;">Afghan #' + customAfghanCounter + '</h4>';
+    html += '<button onclick="removeCustomAfghanEntry(\'' + entryId + '\')" style="background: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600;">Remove</button>';
+    html += '</div>';
+    
+    html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">';
+    
+    // Material Type dropdown
+    html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">Material Type *</label>';
+    html += '<select id="material-' + entryId + '" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">';
+    html += '<option value="">Select Material</option>';
+    html += '<option value="100WVN">WOVEN - 100WVN</option>';
+    html += '<option value="100FLC">ARCTIC FLEECE (Flat) - 100FLC</option>';
+    html += '<option value="100CRL">CORAL FLEECE (Fluffy) - 100CRL</option>';
+    html += '</select></div>';
+    
+    // J&A Art Number
+    html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">J&A Art Number *</label>';
+    html += '<input type="text" id="jaart-' + entryId + '" placeholder="A00..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></div>';
+    
+    // Vendor Art Number
+    html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">Vendor Art Number</label>';
+    html += '<input type="text" id="vendorart-' + entryId + '" placeholder="Optional" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></div>';
+    
+    // Quantity
+    html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">Quantity *</label>';
+    html += '<input type="number" id="qty-' + entryId + '" value="1" min="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;"></div>';
+    
+    html += '</div>';
+    
+    // Comments (full width)
+    html += '<div style="margin-top: 15px;"><label style="display: block; font-weight: 600; margin-bottom: 5px;">Comments</label>';
+    html += '<textarea id="comments-' + entryId + '" rows="2" placeholder="Additional notes..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical;"></textarea></div>';
+    
+    html += '</div>';
+    
+    $('#customAfghanEntries').append(html);
+}
+
+function removeCustomAfghanEntry(entryId) {
+    if(confirm('Remove this afghan entry?')){
+        $('#' + entryId).remove();
+    }
+}
+
+function collectCustomAfghans() {
+    var customAfghans = [];
+    
+    $('.custom-entry').each(function(){
+        var entryId = $(this).attr('id');
+        var material = $('#material-' + entryId).val();
+        var jaArt = $('#jaart-' + entryId).val().trim();
+        var vendorArt = $('#vendorart-' + entryId).val().trim();
+        var qty = parseInt($('#qty-' + entryId).val());
+        var comments = $('#comments-' + entryId).val().trim();
+        
+        if(material && jaArt && qty > 0){
+            customAfghans.push({
+                productName: 'Custom Afghan - ' + material,
+                sku: material,
+                jaArtNumber: jaArt,
+                vendorArtNumber: vendorArt,
+                quantity: qty,
+                comments: comments,
+                size: 'N/A',
+                productType: 'custom-afghan'
+            });
+        }
+    });
+    
+    return customAfghans;
+}
+
     
 $(document).ready(function(){
     checkAuthentication();
