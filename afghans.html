@@ -874,9 +874,11 @@ function addCustomAfghanEntry() {
     html += '<option value="100FLC">ARCTIC FLEECE (Flat) - 100FLC</option>';
     html += '<option value="100CRL">CORAL FLEECE (Fluffy) - 100CRL</option>';
     html += '</select></div>';
+
+    html += '<div style="font-size: 12px; color: #666; margin-top: 10px; font-style: italic;">* Either J&A Art Number or Vendor Art Number is required</div>';
     
     // J&A Art Number
-    html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">J&A Art Number *</label>';
+    html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">J&A Art Number</label>';
     html += '<input type="text" id="jaart-' + entryId + '" placeholder="A00..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"></div>';
     
     // Vendor Art Number
@@ -915,7 +917,7 @@ function collectCustomAfghans() {
         var qty = parseInt($('#qty-' + entryId).val());
         var comments = $('#comments-' + entryId).val().trim();
         
-        if(material && jaArt && qty > 0){
+        if(material && (jaArt || vendorArt) && qty > 0){
             customAfghans.push({
                 productName: 'Custom Afghan - ' + material,
                 sku: material,
