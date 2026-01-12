@@ -874,8 +874,6 @@ function addCustomAfghanEntry() {
     html += '<option value="100FLC">ARCTIC FLEECE (Flat) - 100FLC</option>';
     html += '<option value="100CRL">CORAL FLEECE (Fluffy) - 100CRL</option>';
     html += '</select></div>';
-
-    html += '<div style="font-size: 12px; color: #666; margin-top: 10px; font-style: italic;">* Either J&A Art Number or Vendor Art Number is required</div>';
     
     // J&A Art Number
     html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">J&A Art Number</label>';
@@ -890,6 +888,8 @@ function addCustomAfghanEntry() {
     html += '<input type="number" id="qty-' + entryId + '" value="1" min="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"></div>';
     
     html += '</div>';
+
+    html += '<div style="font-size: 12px; color: #666; margin-top: 10px; font-style: italic;">* Either J&A Art Number or Vendor Art Number is required</div>';
     
     // Comments (full width)
     html += '<div style="margin-top: 15px;"><label style="display: block; font-weight: 600; margin-bottom: 5px;">Comments</label>';
