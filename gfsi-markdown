@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GFSI Markdown Requests</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #2196F3;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        #headerForm {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .form-group {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+        }
+        .form-group label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="date"],
+        .form-group input[type="number"],
+        .form-group select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+        .form-group input.valid {
+            border-color: #4CAF50;
+            background-color: #f1f8f4;
+        }
+        .form-group input.invalid {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        .validation-message {
+            font-size: 12px;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        .validation-message.success {
+            color: #4CAF50;
+        }
+        .validation-message.error {
+            color: #f44336;
+        }
+        #ordersContainer {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 100px;
+        }
+        .order-card {
+            background-color: white;
+            border: 2px solid #2196F3;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2196F3;
+        }
+        .order-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .remove-order-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .remove-order-btn:hover {
+            background-color: #da190b;
+        }
+        .styles-section {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .style-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.5fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+        }
+        .style-row-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1.5fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #666;
+        }
+        .style-line-total {
+            text-align: right;
+            font-weight: bold;
+            color: #4CAF50;
+            padding: 10px;
+        }
+        .remove-style-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        .remove-style-btn:hover {
+            background-color: #da190b;
+        }
+        .add-style-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .add-style-btn:hover {
+            background-color: #45a049;
+        }
+        .order-totals {
+            background-color: #e3f2fd;
+            border: 2px solid #2196F3;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .total-row.grand-total {
+            font-size: 20px;
+            font-weight: bold;
+            color: #2196F3;
+            padding-top: 10px;
+            border-top: 2px solid #2196F3;
+            margin-top: 10px;
+        }
+        .add-order-btn {
+            display: block;
+            width: 100%;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 15px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .add-order-btn:hover {
+            background-color: #1976D2;
+        }
+        .submit-all-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.3s;
+        }
+        .submit-all-btn:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+        .conditional-fields {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<a href="index.html" class="back-link">← Back to Main Menu</a>
+
+<h2>📊 GFSI Markdown Requests</h2>
+
+<div id="headerForm">
+    <div class="form-row">
+        <div class="form-group">
+            <label for="repName">Sales Rep Name *</label>
+            <input type="text" id="repName" placeholder="Enter your name" required readonly>
+        </div>
+        <div class="form-group">
+            <label for="repEmail">Email Address *</label>
+            <input type="email" id="repEmail" placeholder="Enter your email" required readonly>
+        </div>
+    </div>
+</div>
+
+<div id="ordersContainer">
+    <!-- Orders will be added here dynamically -->
+</div>
+
+<button class="add-order-btn" onclick="addOrder()">+ Add Another Request</button>
+
+<button class="submit-all-btn" onclick="submitAllOrders()">Submit Credit Requests</button>
+
+<script>
+var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
+var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
+
+var facilityData = {};
+var orderCounter = 0;
+var orders = [];
+
+// ==========================================
+// AUTHENTICATION CHECK
+// ==========================================
+function checkAuthentication() {
+    var authData = sessionStorage.getItem('salesPortalAuth');
+    
+    if(!authData){
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    try {
+        var auth = JSON.parse(authData);
+        $('#repName').val(auth.name);
+        $('#repEmail').val(auth.email);
+        
+        $('#headerForm').prepend(
+            '<div style="background:#d4edda;border:1px solid #c3e6cb;padding:12px;margin-bottom:15px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">' +
+            '<div><strong>✓ Authenticated:</strong> ' + auth.name + ' (' + auth.email + ')</div>' +
+            '<button onclick="logout()" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">Logout</button>' +
+            '</div>'
+        );
+        
+    } catch(e){
+        console.error('Auth parse error:', e);
+        sessionStorage.removeItem('salesPortalAuth');
+        window.location.href = 'login.html';
+    }
+}
+
+function logout() {
+    if(confirm('Are you sure you want to log out?')){
+        sessionStorage.removeItem('salesPortalAuth');
+        window.location.href = 'login.html';
+    }
+}
+
+function loadFacilityData() {
+    $.ajax({
+        url: FACILITY_LOOKUP_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){
+            var rows = data.split('\n');
+            facilityData = {};
+            for(var i = 1; i < rows.length; i++){
+                if(rows[i].trim()){
+                    var cols = rows[i].split(',');
+                    var facilityId = cols[0] ? cols[0].trim() : '';
+                    var baseName = cols[2] ? cols[2].trim() : '';
+                    if(facilityId && baseName){
+                        facilityData[facilityId] = baseName;
+                    }
+                }
+            }
+            console.log('Facility data loaded:', Object.keys(facilityData).length, 'facilities');
+        },
+        error: function(){
+            console.warn('Could not load facility data');
+        }
+    });
+}
+
+function addOrder() {
+    orderCounter++;
+    var orderId = 'order-' + orderCounter;
+    
+    var order = {
+        id: orderId,
+        type: 'markdown',
+        facilityId: '',
+        locationName: '',
+        brand: 'Champion',
+        gender: 'Men\'s',
+        orderNumber: '',
+        promoName: '',
+        startDate: '',
+        shipDate: '',
+        styles: []
+    };
+    
+    orders.push(order);
+    renderOrder(order);
+    addStyle(orderId);
+}
+
+function renderOrder(order) {
+    var html = '<div class="order-card" id="' + order.id + '">';
+    html += '<div class="order-header">';
+    html += '<div class="order-title">Order #' + order.id.split('-')[1] + '</div>';
+    html += '<button class="remove-order-btn" onclick="removeOrder(\'' + order.id + '\')">Remove Order</button>';
+    html += '</div>';
+    
+    // Type selection
+    html += '<div class="form-row">';
+    html += '<div class="form-group">';
+    html += '<label>Request Type *</label>';
+    html += '<select id="' + order.id + '-type" onchange="updateOrderType(\'' + order.id + '\')">';
+    html += '<option value="markdown">Markdown (12.5%)</option>';
+    html += '<option value="custom">Custom Promotion (10%)</option>';
+    html += '</select></div></div>';
+    
+    // Common fields
+    html += '<div class="form-row">';
+    html += '<div class="form-group">';
+    html += '<label>Facility ID *</label>';
+    html += '<input type="text" id="' + order.id + '-facilityId" placeholder="7-digit ID" maxlength="7" oninput="validateFacility(\'' + order.id + '\')">';
+    html += '<div id="' + order.id + '-facilityValidation" class="validation-message"></div>';
+    html += '</div>';
+    html += '<div class="form-group">';
+    html += '<label>Location Name *</label>';
+    html += '<input type="text" id="' + order.id + '-locationName" placeholder="Auto-filled from Facility ID" readonly>';
+    html += '</div></div>';
+    
+    html += '<div class="form-row">';
+    html += '<div class="form-group">';
+    html += '<label>Brand *</label>';
+    html += '<select id="' + order.id + '-brand">';
+    html += '<option value="Champion">Champion</option>';
+    html += '<option value="Under Armour">Under Armour</option>';
+    html += '</select></div>';
+    html += '<div class="form-group">';
+    html += '<label>Gender *</label>';
+    html += '<select id="' + order.id + '-gender">';
+    html += '<option value="Men\'s">Men\'s</option>';
+    html += '<option value="Women\'s">Women\'s</option>';
+    html += '</select></div>';
+    html += '<div class="form-group">';
+    html += '<label>Order Number *</label>';
+    html += '<input type="text" id="' + order.id + '-orderNumber" placeholder="7-8 digit number" minlength="7" maxlength="8" pattern="[0-9]{7,8}">';
+    html += '</div></div>';
+    
+    // Conditional fields
+    html += '<div class="conditional-fields" id="' + order.id + '-conditional">';
+    html += '<div class="form-row">';
+    html += '<div class="form-group">';
+    html += '<label>Date Product Shipped *</label>';
+    html += '<input type="date" id="' + order.id + '-shipDate">';
+    html += '</div></div></div>';
+    
+    // Styles section
+    html += '<div class="styles-section">';
+    html += '<h3 style="margin-top:0;">Product Styles</h3>';
+    html += '<div id="' + order.id + '-styles"></div>';
+    html += '<button class="add-style-btn" onclick="addStyle(\'' + order.id + '\')">+ Add Style</button>';
+    html += '</div>';
+    
+    // Order totals
+    html += '<div class="order-totals" id="' + order.id + '-totals">';
+    html += '<div class="total-row"><span>Order Total:</span><span id="' + order.id + '-orderTotal">$0.00</span></div>';
+    html += '<div class="total-row grand-total"><span>Markdown Amount (12.5%):</span><span id="' + order.id + '-markdownAmount">$0.00</span></div>';
+    html += '</div>';
+    
+    html += '</div>';
+    
+    $('#ordersContainer').append(html);
+}
+
+function updateOrderType(orderId) {
+    var type = $('#' + orderId + '-type').val();
+    var order = orders.find(o => o.id === orderId);
+    if(order) order.type = type;
+    
+    var conditionalHtml = '';
+    if(type === 'markdown') {
+        conditionalHtml = '<div class="form-row">';
+        conditionalHtml += '<div class="form-group">';
+        conditionalHtml += '<label>Date Product Shipped *</label>';
+        conditionalHtml += '<input type="date" id="' + orderId + '-shipDate">';
+        conditionalHtml += '</div></div>';
+        
+        $('#' + orderId + '-totals .grand-total span:first').text('Markdown Amount (12.5%):');
+    } else {
+        conditionalHtml = '<div class="form-row">';
+        conditionalHtml += '<div class="form-group">';
+        conditionalHtml += '<label>Promotion Name *</label>';
+        conditionalHtml += '<input type="text" id="' + orderId + '-promoName" placeholder="Enter promotion name">';
+        conditionalHtml += '</div>';
+        conditionalHtml += '<div class="form-group">';
+        conditionalHtml += '<label>Promotion Start Date *</label>';
+        conditionalHtml += '<input type="date" id="' + orderId + '-startDate">';
+        conditionalHtml += '</div></div>';
+        
+        $('#' + orderId + '-totals .grand-total span:first').text('Promotion Amount (10%):');
+    }
+    
+    $('#' + orderId + '-conditional').html(conditionalHtml);
+    calculateOrderTotals(orderId);
+}
+
+function validateFacility(orderId) {
+    var facilityId = $('#' + orderId + '-facilityId').val().trim();
+    var $input = $('#' + orderId + '-facilityId');
+    var $validation = $('#' + orderId + '-facilityValidation');
+    var $locationName = $('#' + orderId + '-locationName');
+    
+    if(facilityId.length === 0){
+        $input.removeClass('valid invalid');
+        $validation.html('').removeClass('success error');
+        $locationName.val('');
+    } else if(facilityId.length === 7){
+        if(facilityData[facilityId]){
+            $input.removeClass('invalid').addClass('valid');
+            $validation.html('✓ Facility found: ' + facilityData[facilityId]).removeClass('error').addClass('success');
+            $locationName.val(facilityData[facilityId]);
+        } else {
+            $input.removeClass('valid').addClass('invalid');
+            $validation.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error');
+            $locationName.val('');
+        }
+    } else {
+        $input.removeClass('valid invalid');
+        $validation.html('Enter 7-digit facility ID').removeClass('success error');
+        $locationName.val('');
+    }
+}
+
+function addStyle(orderId) {
+    var order = orders.find(o => o.id === orderId);
+    if(!order) return;
+    
+    var styleId = orderId + '-style-' + (order.styles.length + 1);
+    order.styles.push({
+        id: styleId,
+        styleNumber: '',
+        quantity: 0,
+        cost: 0
+    });
+    
+    renderStyles(orderId);
+}
+
+function renderStyles(orderId) {
+    var order = orders.find(o => o.id === orderId);
+    if(!order) return;
+    
+    var html = '';
+    
+    if(order.styles.length > 0) {
+        html += '<div class="style-row-header">';
+        html += '<div>Style Number</div>';
+        html += '<div>Quantity</div>';
+        html += '<div>Wholesale Cost/Unit</div>';
+        html += '<div>Line Total</div>';
+        html += '<div></div>';
+        html += '</div>';
+    }
+    
+    order.styles.forEach(function(style, index) {
+        html += '<div class="style-row">';
+        html += '<div class="form-group" style="margin:0;">';
+        html += '<input type="text" id="' + style.id + '-styleNumber" placeholder="Style number" oninput="updateStyleData(\'' + orderId + '\', ' + index + ')">';
+        html += '</div>';
+        html += '<div class="form-group" style="margin:0;">';
+        html += '<input type="number" id="' + style.id + '-quantity" placeholder="0" min="0" oninput="updateStyleData(\'' + orderId + '\', ' + index + ')">';
+        html += '</div>';
+        html += '<div class="form-group" style="margin:0;">';
+        html += '<input type="number" id="' + style.id + '-cost" placeholder="0.00" min="0" step="0.01" oninput="updateStyleData(\'' + orderId + '\', ' + index + ')">';
+        html += '</div>';
+        html += '<div class="style-line-total" id="' + style.id + '-total">$0.00</div>';
+        html += '<button class="remove-style-btn" onclick="removeStyle(\'' + orderId + '\', ' + index + ')">Remove</button>';
+        html += '</div>';
+    });
+    
+    $('#' + orderId + '-styles').html(html);
+}
+
+function updateStyleData(orderId, styleIndex) {
+    var order = orders.find(o => o.id === orderId);
+    if(!order || !order.styles[styleIndex]) return;
+    
+    var style = order.styles[styleIndex];
+    style.styleNumber = $('#' + style.id + '-styleNumber').val();
+    style.quantity = parseFloat($('#' + style.id + '-quantity').val()) || 0;
+    style.cost = parseFloat($('#' + style.id + '-cost').val()) || 0;
+    
+    var lineTotal = style.quantity * style.cost;
+    $('#' + style.id + '-total').text('$' + lineTotal.toFixed(2));
+    
+    calculateOrderTotals(orderId);
+}
+
+function calculateOrderTotals(orderId) {
+    var order = orders.find(o => o.id === orderId);
+    if(!order) return;
+    
+    var orderTotal = 0;
+    order.styles.forEach(function(style) {
+        orderTotal += (style.quantity * style.cost);
+    });
+    
+    var percentage = order.type === 'markdown' ? 0.125 : 0.10;
+    var markdownAmount = orderTotal * percentage;
+    
+    $('#' + orderId + '-orderTotal').text('$' + orderTotal.toFixed(2));
+    $('#' + orderId + '-markdownAmount').text('$' + markdownAmount.toFixed(2));
+}
+
+function removeStyle(orderId, styleIndex) {
+    var order = orders.find(o => o.id === orderId);
+    if(!order) return;
+    
+    if(order.styles.length <= 1) {
+        alert('Each order must have at least one style.');
+        return;
+    }
+    
+    order.styles.splice(styleIndex, 1);
+    renderStyles(orderId);
+    calculateOrderTotals(orderId);
+}
+
+function removeOrder(orderId) {
+    if(!confirm('Are you sure you want to remove this order?')) return;
+    
+    orders = orders.filter(o => o.id !== orderId);
+    $('#' + orderId).remove();
+}
+
+function submitAllOrders() {
+    if(orders.length === 0) {
+        alert('Please add at least one request before submitting.');
+        return;
+    }
+    
+    // Validate all orders
+    var valid = true;
+    var errors = [];
+    
+    orders.forEach(function(order, index) {
+        var orderNum = index + 1;
+        
+        if(!$('#' + order.id + '-facilityId').val()) {
+            errors.push('Order #' + orderNum + ': Facility ID is required');
+            valid = false;
+        }
+        
+        if(!$('#' + order.id + '-locationName').val()) {
+            errors.push('Order #' + orderNum + ': Location Name is required');
+            valid = false;
+        }
+        
+        if(!$('#' + order.id + '-orderNumber').val()) {
+            errors.push('Order #' + orderNum + ': Order Number is required');
+            valid = false;
+        }
+        
+        if(order.type === 'markdown' && !$('#' + order.id + '-shipDate').val()) {
+            errors.push('Order #' + orderNum + ': Ship Date is required for markdowns');
+            valid = false;
+        }
+        
+        if(order.type === 'custom') {
+            if(!$('#' + order.id + '-promoName').val()) {
+                errors.push('Order #' + orderNum + ': Promotion Name is required');
+                valid = false;
+            }
+            if(!$('#' + order.id + '-startDate').val()) {
+                errors.push('Order #' + orderNum + ': Start Date is required');
+                valid = false;
+            }
+        }
+        
+        if(order.styles.length === 0) {
+            errors.push('Order #' + orderNum + ': At least one style is required');
+            valid = false;
+        }
+        
+        order.styles.forEach(function(style, styleIdx) {
+            if(!style.styleNumber) {
+                errors.push('Order #' + orderNum + ', Style #' + (styleIdx + 1) + ': Style Number is required');
+                valid = false;
+            }
+            if(!style.quantity || style.quantity <= 0) {
+                errors.push('Order #' + orderNum + ', Style #' + (styleIdx + 1) + ': Quantity must be greater than 0');
+                valid = false;
+            }
+            if(!style.cost || style.cost <= 0) {
+                errors.push('Order #' + orderNum + ', Style #' + (styleIdx + 1) + ': Cost must be greater than 0');
+                valid = false;
+            }
+        });
+    });
+    
+    if(!valid) {
+        alert('Please correct the following errors:\n\n' + errors.join('\n'));
+        return;
+    }
+    
+    // Prepare submission data
+    var submissionData = {
+        repName: $('#repName').val(),
+        repEmail: $('#repEmail').val(),
+        submissionDate: new Date().toISOString(),
+        orders: orders.map(function(order) {
+            return {
+                type: $('#' + order.id + '-type').val(),
+                facilityId: $('#' + order.id + '-facilityId').val(),
+                locationName: $('#' + order.id + '-locationName').val(),
+                brand: $('#' + order.id + '-brand').val(),
+                gender: $('#' + order.id + '-gender').val(),
+                orderNumber: $('#' + order.id + '-orderNumber').val(),
+                promoName: $('#' + order.id + '-promoName').val() || '',
+                startDate: $('#' + order.id + '-startDate').val() || '',
+                shipDate: $('#' + order.id + '-shipDate').val() || '',
+                styles: order.styles
+            };
+        })
+    };
+    
+    console.log('Submitting:', submissionData);
+    
+    // Create form and submit
+    var form = $('<form>', {
+        method: 'POST',
+        action: ORDER_SUBMISSION_URL,
+        target: '_blank',
+        style: 'display:none;'
+    });
+    
+    form.append($('<input>', {
+        type: 'hidden',
+        name: 'data',
+        value: JSON.stringify(submissionData)
+    }));
+    
+    $('body').append(form);
+    form.submit();
+    
+    setTimeout(function() {
+        form.remove();
+    }, 1000);
+    
+    alert('📤 GFSI Markdown requests submitted!\n\nTotal requests: ' + orders.length);
+    
+    // Clear all orders
+    orders = [];
+    orderCounter = 0;
+    $('#ordersContainer').html('');
+}
+
+$(document).ready(function(){
+    checkAuthentication();
+    loadFacilityData();
+    addOrder(); // Start with one order
+});
+</script>
+
+</body>
+</html>
