@@ -217,7 +217,7 @@
         }
         #skuContainer {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
             gap: 20px;
             max-width: 1200px;
             margin: 0 auto;
@@ -294,72 +294,85 @@
         .thumbnail.active {
             border-color: #4CAF50;
         }
-        .size-selector {
+        
+        /* NEW: Size Grid Styles */
+        .size-grid-section {
             margin: 15px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 2px solid #e0e0e0;
         }
-        .size-selector label {
-            display: block;
+        .size-grid-header {
             font-weight: 600;
             color: #333;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-size: 14px;
-        }
-        .size-buttons {
             display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .size-btn {
-            padding: 8px 16px;
-            border: 2px solid #ddd;
-            background-color: white;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .size-btn:hover {
-            border-color: #4CAF50;
-        }
-        .size-btn.selected {
-            background-color: #4CAF50;
-            color: white;
-            border-color: #4CAF50;
-        }
-        .quantity-control {
-            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
-            margin-top: 15px;
         }
-        .quantity-control label {
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
+        .quick-fill-btns {
+            display: flex;
+            gap: 5px;
         }
-        .quantity-control button {
-            width: 35px;
-            height: 35px;
-            border: 1px solid #ddd;
-            background-color: white;
+        .quick-fill-btn {
+            padding: 4px 8px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 18px;
-            font-weight: bold;
-            transition: all 0.3s;
+            font-size: 11px;
+            transition: background-color 0.3s;
         }
-        .quantity-control button:hover {
-            background-color: #f0f0f0;
+        .quick-fill-btn:hover {
+            background-color: #1976D2;
         }
-        .quantity-control input {
-            width: 60px;
-            text-align: center;
+        .size-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 10px;
+        }
+        .size-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .size-label {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+        .size-qty-input {
+            width: 100%;
             padding: 8px;
-            border: 1px solid #ddd;
+            border: 2px solid #ddd;
             border-radius: 4px;
+            text-align: center;
             font-size: 16px;
+            font-weight: 600;
+            transition: border-color 0.3s;
         }
+        .size-qty-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+        .size-qty-input:not([value="0"]) {
+            border-color: #4CAF50;
+            background-color: #f1f8f4;
+        }
+        .total-qty-display {
+            margin-top: 12px;
+            padding: 10px;
+            background-color: #e8f5e9;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 600;
+            color: #2e7d32;
+        }
+        
         .add-to-cart-btn {
             width: 100%;
             padding: 12px;
@@ -602,9 +615,6 @@
 </div>
 
 <script>
-// ============================================
-// CONFIGURATION - ADD YOUR GOOGLE SHEET URLS HERE
-// ============================================
 var SHEET_CONFIG = {
     'men-basic-tees': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=1158681494&single=true&output=csv',
     'men-premium-tees': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=1204262144&single=true&output=csv',
@@ -618,14 +628,8 @@ var SHEET_CONFIG = {
     'women-caps': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=2069152279&single=true&output=csv'
 };
     
-// Google Apps script to process order and post to Google Sheet    
 var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
-    
-// Facility lookup sheet (Column A = Facility ID, Column C = Base Name)
 var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
-
-// Expected columns for apparel: Product_Name, Description, Image_1, Image_2, Image_3, SKU_S, SKU_M, SKU_L, SKU_XL, SKU_2XL, SKU_3XL, Keywords
-// Expected columns for caps: Product_Name, Description, Image_1, Image_2, Image_3, SKU_OS, Keywords
 
 var cart = [];
 var currentCategory = 'men-basic-tees';
@@ -634,35 +638,26 @@ var allCategoryProducts = [];
 var searchTerm = '';
 var facilityData = {};
 
-// ==========================================
-// AUTHENTICATION CHECK
-// ==========================================
 function checkAuthentication() {
     var authData = sessionStorage.getItem('salesPortalAuth');
     
     if(!authData){
-        // Not logged in, redirect to login
         window.location.href = 'login.html';
         return;
     }
     
     try {
         var auth = JSON.parse(authData);
-        
-        // Pre-fill the form with authenticated user data
         $('#repName').val(auth.name).prop('readonly', true);
         $('#repEmail').val(auth.email).prop('readonly', true);
         
-        // Add visual indicator that they're logged in
         $('#headerForm').prepend(
             '<div style="background:#d4edda;border:1px solid #c3e6cb;padding:12px;margin-bottom:15px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">' +
             '<div><strong>✓ Authenticated:</strong> ' + auth.name + ' (' + auth.email + ')</div>' +
             '<button onclick="logout()" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">Logout</button>' +
             '</div>'
         );
-        
     } catch(e){
-        // Invalid auth data, clear and redirect
         console.error('Auth parse error:', e);
         sessionStorage.removeItem('salesPortalAuth');
         window.location.href = 'login.html';
@@ -681,7 +676,6 @@ $(document).ready(function(){
     loadCategory(currentCategory);
     loadFacilityData();
     
-    // Initialize display checkbox as disabled
     $('#includeDisplay').prop('disabled', true);
     $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '0.5');
     
@@ -694,7 +688,6 @@ $(document).ready(function(){
         filterAndDisplayProducts();
     });
     
-    // Facility ID lookup with validation
     $('#facilityId').on('input', function(){
         var facilityId = $(this).val().trim();
         var $input = $(this);
@@ -758,19 +751,12 @@ function loadCategory(category) {
     
     $('#skuContainer').html('<div class="loading">Loading products...</div>');
     
-    console.log('Loading category:', category);
-    console.log('Sheet URL:', sheetUrl);
-    
     $.ajax({
         url: sheetUrl,
         method: 'GET',
         dataType: 'text',
-        success: function(data){ 
-            console.log('Data loaded successfully');
-            parseProducts(data, category); 
-        },
+        success: function(data){ parseProducts(data, category); },
         error: function(xhr, status, error){ 
-            console.error('Error:', status, error);
             $('#skuContainer').html('<div class="error">Error loading data.<br><br>Common issues:<br>1. Sheet must be published to web<br>2. Sheet must be publicly viewable<br>3. URL must be CSV export format</div>'); 
         }
     });
@@ -794,7 +780,6 @@ function loadFacilityData() {
                     }
                 }
             }
-            console.log('Facility data loaded:', Object.keys(facilityData).length, 'facilities');
         },
         error: function(){
             console.warn('Could not load facility data');
@@ -808,12 +793,11 @@ function parseProducts(csvData, category) {
     
     for(var i = 1; i < rows.length; i++){
         if(rows[i].trim()){
-            var cols = parseCSVRow(rows[i]); // Use proper CSV parser instead of split(',')
+            var cols = parseCSVRow(rows[i]);
             if(cols.length > 0 && cols[0].trim()){
-                // Skip products that start with "OUT" (case-insensitive)
                 var productName = cols[0] ? cols[0].trim() : '';
                 if(productName.toUpperCase().startsWith('OUT')){
-                    continue; // Skip this product
+                    continue;
                 }
                 
                 var product = {
@@ -828,12 +812,9 @@ function parseProducts(csvData, category) {
                 };
                 
                 if(product.isCap){
-                    // For caps, column F has the OS (One Size) SKU
                     product.sizes['OS'] = cols[5] ? cols[5].trim() : '';
                     product.keywords = cols[6] ? cols[6].trim().toLowerCase() : '';
                 } else {
-                    // For apparel: F=S, G=M, H=L, I=XL, J=2XL, K=3XL
-                    // Only add size if SKU exists
                     if(cols[5] && cols[5].trim()) product.sizes['S'] = cols[5].trim();
                     if(cols[6] && cols[6].trim()) product.sizes['M'] = cols[6].trim();
                     if(cols[7] && cols[7].trim()) product.sizes['L'] = cols[7].trim();
@@ -897,11 +878,7 @@ function getCategoryLabel(category) {
 function displayProducts() {
     var html = '';
     if(currentProducts.length === 0){
-        if(searchTerm === ''){
-            html = '<div class="error">No products available.</div>';
-        } else {
-            html = '<div class="error">No products match your search.</div>';
-        }
+        html = searchTerm === '' ? '<div class="error">No products available.</div>' : '<div class="error">No products match your search.</div>';
     } else {
         currentProducts.forEach(function(product, index){
             html += '<div class="sku-card"><div class="sku-header">';
@@ -922,29 +899,41 @@ function displayProducts() {
                 html += '</div>';
             }
             
-            // Check if this is a one-size product (caps)
             var isOneSize = (Object.keys(product.sizes).length === 1 && product.sizes['OS']);
             
-            // Only show size selector if it's NOT a one-size product
-            if(!isOneSize){
-                html += '<div class="size-selector"><label>Select Size:</label><div class="size-buttons" id="sizes-' + index + '">';
-                for(var size in product.sizes){
-                    if(product.sizes[size]) html += '<button class="size-btn" onclick="selectSize(' + index + ', \'' + size + '\')" data-size="' + size + '">' + size + '</button>';
-                }
-                html += '</div></div>';
-            }
-            
-            html += '<div class="quantity-control"><label>Qty:</label>';
-            html += '<button onclick="decrementQty(' + index + ')">-</button>';
-            html += '<input type="number" id="qty-' + index + '" value="1" min="1">';
-            html += '<button onclick="incrementQty(' + index + ')">+</button></div>';
-            
-            // Button text and state depends on whether size selection is needed
             if(isOneSize){
-                html += '<button class="add-to-cart-btn" id="add-btn-' + index + '" onclick="addToCart(' + index + ')" data-selected-size="OS">Add to Cart</button></div>';
+                html += '<div class="size-grid-section">';
+                html += '<div class="size-grid-header">One Size Fits All</div>';
+                html += '<input type="number" class="size-qty-input" id="qty-' + index + '-OS" value="0" min="0" oninput="updateProductTotal(' + index + ')">';
+                html += '<div class="total-qty-display" id="total-' + index + '">Total: 0 pieces</div>';
+                html += '</div>';
             } else {
-                html += '<button class="add-to-cart-btn" id="add-btn-' + index + '" onclick="addToCart(' + index + ')" disabled>Select Size</button></div>';
+                html += '<div class="size-grid-section">';
+                html += '<div class="size-grid-header">';
+                html += 'Select Quantities';
+                html += '<div class="quick-fill-btns">';
+                html += '<button class="quick-fill-btn" onclick="quickFill(' + index + ', \'bell\')">Bell Curve</button>';
+                html += '<button class="quick-fill-btn" onclick="quickFill(' + index + ', \'equal\')">Equal</button>';
+                html += '<button class="quick-fill-btn" onclick="clearSizes(' + index + ')">Clear</button>';
+                html += '</div></div>';
+                html += '<div class="size-grid">';
+                
+                var sizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
+                sizeOrder.forEach(function(size){
+                    if(product.sizes[size]){
+                        html += '<div class="size-item">';
+                        html += '<div class="size-label">' + size + '</div>';
+                        html += '<input type="number" class="size-qty-input" id="qty-' + index + '-' + size + '" value="0" min="0" oninput="updateProductTotal(' + index + ')">';
+                        html += '</div>';
+                    }
+                });
+                
+                html += '</div>';
+                html += '<div class="total-qty-display" id="total-' + index + '">Total: 0 pieces</div>';
+                html += '</div>';
             }
+            
+            html += '<button class="add-to-cart-btn" id="add-btn-' + index + '" onclick="addToCart(' + index + ')">Add to Cart</button></div>';
         });
     }
     $('#skuContainer').html(html);
@@ -957,64 +946,118 @@ function changeImage(productIndex, imageIndex) {
     $('#main-img-' + productIndex).closest('.image-gallery').find('.thumbnail[data-index="' + imageIndex + '"]').addClass('active');
 }
 
-function selectSize(productIndex, size) {
-    $('#sizes-' + productIndex + ' .size-btn').removeClass('selected');
-    $('#sizes-' + productIndex + ' .size-btn[data-size="' + size + '"]').addClass('selected');
-    var btn = $('#add-btn-' + productIndex);
-    btn.prop('disabled', false)
-       .text('Add to Cart')
-       .css('background-color', '')
-       .data('selected-size', size);
+function quickFill(productIndex, pattern) {
+    var product = currentProducts[productIndex];
+    var sizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
+    
+    if(pattern === 'bell'){
+        var bellCurve = {'S': 4, 'M': 6, 'L': 8, 'XL': 8, '2XL': 6, '3XL': 0};
+        sizeOrder.forEach(function(size){
+            if(product.sizes[size]){
+                $('#qty-' + productIndex + '-' + size).val(bellCurve[size] || 0);
+            }
+        });
+    } else if(pattern === 'equal'){
+        var equalQty = 6;
+        sizeOrder.forEach(function(size){
+            if(product.sizes[size]){
+                $('#qty-' + productIndex + '-' + size).val(equalQty);
+            }
+        });
+    }
+    
+    updateProductTotal(productIndex);
 }
 
-function incrementQty(index) {
-    var input = $('#qty-' + index);
-    input.val(parseInt(input.val()) + 1);
+function clearSizes(productIndex) {
+    var product = currentProducts[productIndex];
+    var sizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
+    
+    sizeOrder.forEach(function(size){
+        if(product.sizes[size]){
+            $('#qty-' + productIndex + '-' + size).val(0);
+        }
+    });
+    
+    updateProductTotal(productIndex);
 }
 
-function decrementQty(index) {
-    var input = $('#qty-' + index);
-    var val = parseInt(input.val());
-    if(val > 1) input.val(val - 1);
+function updateProductTotal(productIndex) {
+    var product = currentProducts[productIndex];
+    var total = 0;
+    
+    if(product.isCap){
+        total = parseInt($('#qty-' + productIndex + '-OS').val()) || 0;
+    } else {
+        var sizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
+        sizeOrder.forEach(function(size){
+            if(product.sizes[size]){
+                total += parseInt($('#qty-' + productIndex + '-' + size).val()) || 0;
+            }
+        });
+    }
+    
+    $('#total-' + productIndex).text('Total: ' + total + ' pieces');
 }
 
 function addToCart(index) {
-    var selectedSize = $('#add-btn-' + index).data('selected-size');
-    if(!selectedSize){ 
-        alert('Please select a size first!'); 
-        return; 
+    var product = currentProducts[index];
+    var addedAny = false;
+    
+    if(product.isCap){
+        var qty = parseInt($('#qty-' + index + '-OS').val()) || 0;
+        if(qty > 0){
+            var sku = product.sizes['OS'];
+            var existingIndex = cart.findIndex(item => item.sku === sku);
+            if(existingIndex !== -1){
+                cart[existingIndex].quantity += qty;
+            } else {
+                cart.push({ 
+                    productName: product.name, 
+                    sku: sku, 
+                    size: 'OS', 
+                    quantity: qty,
+                    category: product.category
+                });
+            }
+            addedAny = true;
+        }
+    } else {
+        var sizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
+        sizeOrder.forEach(function(size){
+            if(product.sizes[size]){
+                var qty = parseInt($('#qty-' + index + '-' + size).val()) || 0;
+                if(qty > 0){
+                    var sku = product.sizes[size];
+                    var existingIndex = cart.findIndex(item => item.sku === sku);
+                    if(existingIndex !== -1){
+                        cart[existingIndex].quantity += qty;
+                    } else {
+                        cart.push({ 
+                            productName: product.name, 
+                            sku: sku, 
+                            size: size, 
+                            quantity: qty,
+                            category: product.category
+                        });
+                    }
+                    addedAny = true;
+                }
+            }
+        });
     }
     
-    var qty = parseInt($('#qty-' + index).val());
-    var product = currentProducts[index];
-    var sku = product.sizes[selectedSize];
-    
-    if(qty > 0 && sku){
-        var existingIndex = cart.findIndex(item => item.sku === sku);
-        if(existingIndex !== -1){
-            cart[existingIndex].quantity += qty;
-        } else {
-            cart.push({ 
-                productName: product.name, 
-                sku: sku, 
-                size: selectedSize, 
-                quantity: qty,
-                category: product.category // Add category to cart item
-            });
-        }
-        
+    if(addedAny){
         updateCartBadge();
         
-        // Reset quantity
-        $('#qty-' + index).val(1);
-        
-        // Visual feedback but keep size selected
         var btn = $('#add-btn-' + index);
         var originalText = btn.text();
-        btn.text('Added!').css('background-color', '#45a049');
+        btn.text('Added to Cart!').css('background-color', '#45a049');
         setTimeout(function(){ 
             btn.text(originalText).css('background-color', ''); 
-        }, 1000);
+        }, 1500);
+    } else {
+        alert('Please enter at least one quantity before adding to cart.');
     }
 }
 
@@ -1022,7 +1065,6 @@ function updateCartBadge() {
     var totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     totalItems > 0 ? $('.cart-badge').text(totalItems).show() : $('.cart-badge').hide();
     
-    // Enable/disable display checkbox based on 72 minimum
     if(totalItems >= 72) {
         $('#includeDisplay').prop('disabled', false);
         $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '1');
@@ -1073,7 +1115,6 @@ function clearCart() {
 }
 
 function submitOrder() {
-    // Validate all required fields
     if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || 
        !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
         alert('Please fill out all required header fields before submitting.');
@@ -1081,7 +1122,6 @@ function submitOrder() {
         return;
     }
     
-    // Validate facility ID matches database
     var facilityId = $('#facilityId').val().trim();
     if(facilityId.length === 7 && !facilityData[facilityId]){
         alert('⚠ WARNING: The Facility ID you entered is not in our database.\n\nPlease verify the ID is correct before proceeding.\n\nIf this is a new facility, contact your administrator to have it added to the system.');
@@ -1091,7 +1131,8 @@ function submitOrder() {
     
     if(cart.length === 0){ alert('Your cart is empty!'); return; }
     
-    // Prepare order data
+    var authData = JSON.parse(sessionStorage.getItem('salesPortalAuth'));
+    
     var orderData = {
         repName: $('#repName').val(),
         repEmail: $('#repEmail').val(),
@@ -1101,13 +1142,12 @@ function submitOrder() {
         shipByDate: $('#shipByDate').val(),
         includeDisplay: $('#includeDisplay').is(':checked'),
         orderDate: new Date().toISOString(),
+        accessCode: authData.accessCode,
         items: cart
     };
     
-    // Show loading state
     $('.submit-order-btn').prop('disabled', true).text('Submitting...');
     
-    // Create a form and submit it
     var form = $('<form>', {
         method: 'POST',
         action: ORDER_SUBMISSION_URL,
@@ -1115,36 +1155,28 @@ function submitOrder() {
         style: 'display:none;'
     });
     
-    // Add the data as a form field
     form.append($('<input>', {
         type: 'hidden',
         name: 'data',
         value: JSON.stringify(orderData)
     }));
     
-    // Append form to body and submit
     $('body').append(form);
     form.submit();
     
-    // Clean up
     setTimeout(function() {
         form.remove();
     }, 1000);
     
-    // Show message that order is being processed
     alert('📤 Order submitted! A new window will open showing the confirmation.\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0));
     
-    // Clear cart
     cart = [];
     updateCartBadge();
     closeCart();
     
-    // Re-enable button
     $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
 </script>
 
-</body>
-</html>
 </body>
 </html>
