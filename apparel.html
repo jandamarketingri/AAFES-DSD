@@ -637,7 +637,65 @@ var currentProducts = [];
 var allCategoryProducts = [];
 var searchTerm = '';
 var facilityData = {};
+var universalPricing = {}; // Store pricing by category code
 
+// ============================================
+// UPDATE THE CATEGORY ORDER MAPPING
+// ============================================
+var categoryToPriceCode = {
+    'men-basic-tees': '762BAT',
+    'men-premium-tees': '762PREMT',
+    'men-long-sleeve': '762BALS',
+    'men-hoodies': '762PTHD',
+    'men-adjustable-caps': '762ADJCP',
+    'men-elevated-caps': '762ELCP',
+    'women-basic-tees': '762WCTEE',
+    'women-premium-tees': '762WSTEE',
+    'women-hoodies': '762WHOOD',
+    'women-caps': '762WCAP'
+};
+    
+// ============================================
+// ADD THIS NEW FUNCTION TO LOAD PRICING
+// ============================================
+function loadUniversalPricing() {
+    var csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?output=csv';
+    
+    $.ajax({
+        url: csvUrl,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){
+            var rows = data.split('\n');
+            universalPricing = {};
+            
+            for(var i = 1; i < rows.length; i++){
+                if(rows[i].trim()){
+                    var cols = parseCSVRow(rows[i]);
+                    var universalCode = cols[1] ? cols[1].trim() : ''; // Column B
+                    var cost = cols[3] ? cols[3].trim() : ''; // Column D
+                    var retail = cols[4] ? cols[4].trim() : ''; // Column E
+                    
+                    if(universalCode && retail){
+                        // Remove $ sign and convert to number
+                        var retailPrice = parseFloat(retail.replace('$', ''));
+                        var costPrice = parseFloat(cost.replace('$', ''));
+                        
+                        universalPricing[universalCode] = {
+                            cost: isNaN(costPrice) ? 0 : costPrice,
+                            retail: isNaN(retailPrice) ? 0 : retailPrice
+                        };
+                    }
+                }
+            }
+            console.log('Loaded pricing for', Object.keys(universalPricing).length, 'universal codes');
+        },
+        error: function(){
+            console.warn('Could not load pricing data');
+        }
+    });
+}
+    
 function checkAuthentication() {
     var authData = sessionStorage.getItem('salesPortalAuth');
     
@@ -675,6 +733,7 @@ $(document).ready(function(){
     checkAuthentication();
     loadCategory(currentCategory);
     loadFacilityData();
+    loadUniversalPricing();
     
     $('#includeDisplay').prop('disabled', true);
     $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '0.5');
@@ -1002,6 +1061,10 @@ function addToCart(index) {
     var product = currentProducts[index];
     var addedAny = false;
     
+    // GET PRICE FROM UNIVERSAL PRICING
+    var priceCode = categoryToPriceCode[product.category];
+    var pricing = universalPricing[priceCode] || { cost: 0, retail: 0 };
+    
     if(product.isCap){
         var qty = parseInt($('#qty-' + index + '-OS').val()) || 0;
         if(qty > 0){
@@ -1015,7 +1078,10 @@ function addToCart(index) {
                     sku: sku, 
                     size: 'OS', 
                     quantity: qty,
-                    category: product.category
+                    category: product.category,
+                    priceCode: priceCode,
+                    cost: pricing.cost,
+                    retail: pricing.retail
                 });
             }
             addedAny = true;
@@ -1036,7 +1102,10 @@ function addToCart(index) {
                             sku: sku, 
                             size: size, 
                             quantity: qty,
-                            category: product.category
+                            category: product.category,
+                            priceCode: priceCode,
+                            cost: pricing.cost,
+                            retail: pricing.retail
                         });
                     }
                     addedAny = true;
@@ -1086,14 +1155,26 @@ function displayCart() {
     if(cart.length === 0){
         html = '<div class="cart-empty">Your cart is empty</div>';
     } else {
+        var grandTotal = 0;
+        
         cart.forEach(function(item, index){
+            var itemTotal = (item.retail || 0) * item.quantity;
+            grandTotal += itemTotal;
+            
             html += '<div class="cart-item"><div class="cart-item-info">';
             html += '<div class="cart-item-name">' + item.productName + '</div>';
             html += '<div class="cart-item-sku">SKU: ' + item.sku + '</div>';
-            html += '<div class="cart-item-size">Size: ' + item.size + '</div></div>';
-            html += '<div class="cart-item-qty">Qty: ' + item.quantity + '</div>';
+            html += '<div class="cart-item-size">Size: ' + item.size + '</div>';
+            html += '<div class="cart-item-size">Price: $' + (item.retail || 0).toFixed(2) + ' ea</div>';
+            html += '</div>';
+            html += '<div class="cart-item-qty">Qty: ' + item.quantity + '<br>$' + itemTotal.toFixed(2) + '</div>';
             html += '<button class="remove-item" onclick="removeFromCart(' + index + ')">Remove</button></div>';
         });
+        
+        // Add grand total at the bottom
+        html += '<div style="text-align:right;padding:20px;border-top:2px solid #4CAF50;margin-top:10px;font-size:18px;">';
+        html += '<strong>Grand Total: $' + grandTotal.toFixed(2) + '</strong>';
+        html += '</div>';
     }
     $('#cartItems').html(html);
 }
