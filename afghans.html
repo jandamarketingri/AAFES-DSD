@@ -474,12 +474,6 @@
             <input type="date" id="shipByDate" required>
         </div>
     </div>
-    <div class="form-row">
-        <div class="checkbox-group">
-            <input type="checkbox" id="includeDisplay">
-            <label for="includeDisplay">Include Display in Order</label>
-        </div>
-    </div>
 </div>
 
 <div class="filter-section">
@@ -777,7 +771,6 @@ function submitOrder() {
         locationName: $('#locationName').val(),
         beginShipDate: $('#beginShipDate').val(),
         shipByDate: $('#shipByDate').val(),
-        includeDisplay: $('#includeDisplay').is(':checked'),
         orderDate: new Date().toISOString(),
         items: cart
     };
