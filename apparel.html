@@ -1155,25 +1155,39 @@ function displayCart() {
     if(cart.length === 0){
         html = '<div class="cart-empty">Your cart is empty</div>';
     } else {
-        var grandTotal = 0;
+        var grandTotalCost = 0;
+        var grandTotalRetail = 0;
         
         cart.forEach(function(item, index){
-            var itemTotal = (item.retail || 0) * item.quantity;
-            grandTotal += itemTotal;
+            var itemCost = (item.cost || 0) * item.quantity;
+            var itemRetail = (item.retail || 0) * item.quantity;
+            grandTotalCost += itemCost;
+            grandTotalRetail += itemRetail;
             
             html += '<div class="cart-item"><div class="cart-item-info">';
             html += '<div class="cart-item-name">' + item.productName + '</div>';
             html += '<div class="cart-item-sku">SKU: ' + item.sku + '</div>';
             html += '<div class="cart-item-size">Size: ' + item.size + '</div>';
-            html += '<div class="cart-item-size">Price: $' + (item.retail || 0).toFixed(2) + ' ea</div>';
+            html += '<div class="cart-item-size">Cost: $' + (item.cost || 0).toFixed(2) + ' | Retail: $' + (item.retail || 0).toFixed(2) + ' ea</div>';
             html += '</div>';
-            html += '<div class="cart-item-qty">Qty: ' + item.quantity + '<br>$' + itemTotal.toFixed(2) + '</div>';
+            html += '<div class="cart-item-qty">';
+            html += 'Qty: ' + item.quantity + '<br>';
+            html += 'Cost: $' + itemCost.toFixed(2) + '<br>';
+            html += 'Retail: $' + itemRetail.toFixed(2);
+            html += '</div>';
             html += '<button class="remove-item" onclick="removeFromCart(' + index + ')">Remove</button></div>';
         });
         
-        // Add grand total at the bottom
-        html += '<div style="text-align:right;padding:20px;border-top:2px solid #4CAF50;margin-top:10px;font-size:18px;">';
-        html += '<strong>Grand Total: $' + grandTotal.toFixed(2) + '</strong>';
+        // Add grand totals at the bottom
+        html += '<div style="border-top:2px solid #4CAF50;margin-top:10px;padding:15px;">';
+        html += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:16px;">';
+        html += '<strong>Total Cost:</strong>';
+        html += '<strong>$' + grandTotalCost.toFixed(2) + '</strong>';
+        html += '</div>';
+        html += '<div style="display:flex;justify-content:space-between;font-size:18px;color:#4CAF50;">';
+        html += '<strong>Total Retail:</strong>';
+        html += '<strong>$' + grandTotalRetail.toFixed(2) + '</strong>';
+        html += '</div>';
         html += '</div>';
     }
     $('#cartItems').html(html);
