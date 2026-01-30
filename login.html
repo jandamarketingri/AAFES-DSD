@@ -148,12 +148,12 @@ $(document).ready(function(){
 
 function handleLogin() {
     var email = $('#email').val().trim();
-    var passcode = $('#passcode').val().trim();
     
-    if(!email || !passcode){
-        showError('Please fill in all fields');
+    if(!email){
+        showError('Please enter your email address');
         return;
     }
+
     
     // Validate email format
     var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -169,7 +169,7 @@ function handleLogin() {
     
     // Call Apps Script to validate using JSONP to avoid CORS
     $.ajax({
-        url: AUTH_SCRIPT_URL + '?action=authenticate&email=' + encodeURIComponent(email) + '&passcode=' + encodeURIComponent(passcode),
+        url: AUTH_SCRIPT_URL + '?action=authenticate&email=' + encodeURIComponent(email),
         method: 'GET',
         dataType: 'jsonp',
         jsonpCallback: 'authCallback',
