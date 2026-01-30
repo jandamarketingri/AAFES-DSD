@@ -96,11 +96,13 @@ var REQUEST_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwyVWY5IUk_MGb
 
 function submitRequest() {
     var email = $('#email').val().trim();
+    var name = $('#name').val().trim();      // ADD THIS
+    var message = $('#message').val().trim(); // ADD THIS
+    
     if (!email) {
         alert('Email is required');
         return;
     }
-
     $.ajax({
       url: REQUEST_SCRIPT_URL +
           '?action=requestAccess' +
@@ -114,7 +116,6 @@ function submitRequest() {
           $('#successMsg').fadeIn();
       }
     });
-
 }
 </script>
 
