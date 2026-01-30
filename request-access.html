@@ -96,26 +96,30 @@ var REQUEST_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4m0auBc3veaa
 
 function submitRequest() {
     var email = $('#email').val().trim();
-    var name = $('#name').val().trim();      // ADD THIS
-    var message = $('#message').val().trim(); // ADD THIS
+    var name = $('#name').val().trim();
+    var message = $('#message').val().trim();
     
     if (!email) {
         alert('Email is required');
         return;
     }
-    $.ajax({
-      url: REQUEST_SCRIPT_URL +
+    
+    var url = REQUEST_SCRIPT_URL +
           '?action=requestAccess' +
           '&email=' + encodeURIComponent(email) +
           '&name=' + encodeURIComponent(name) +
-          '&message=' + encodeURIComponent(message),
-      dataType: 'jsonp',
-      jsonpCallback: 'requestCallback',
-      success: function () {
-          $('#form').hide();
-          $('#successMsg').fadeIn();
-      }
-    });
+          '&message=' + encodeURIComponent(message);
+    
+    // Use fetch with no-cors mode
+    fetch(url, { mode: 'no-cors' })
+        .then(function() {
+            $('#form').hide();
+            $('#successMsg').fadeIn();
+        })
+        .catch(function(error) {
+            console.error('Error:', error);
+            alert('Something went wrong. Please try again.');
+        });
 }
 </script>
 
