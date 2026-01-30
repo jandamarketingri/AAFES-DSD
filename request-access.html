@@ -63,6 +63,17 @@
             border-radius: 6px;
             text-align: center;
         }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     </style>
 </head>
 
@@ -82,7 +93,8 @@
         <label>Message (optional)</label>
         <textarea id="message" rows="3"></textarea>
 
-        <button onclick="submitRequest()">Submit Request</button>
+        <button id="submitBtn" onclick="submitRequest()">Submit Request</button>
+        <div class="loading" id="loadingMsg">⏳ Submitting your request...</div>
     </div>
 
     <div class="success" id="successMsg">
@@ -104,6 +116,10 @@ function submitRequest() {
         return;
     }
     
+    // Disable button and show loading
+    $('#submitBtn').prop('disabled', true).text('Submitting...');
+    $('#loadingMsg').fadeIn();
+    
     var url = REQUEST_SCRIPT_URL +
           '?action=requestAccess' +
           '&email=' + encodeURIComponent(email) +
@@ -113,11 +129,14 @@ function submitRequest() {
     // Use fetch with no-cors mode
     fetch(url, { mode: 'no-cors' })
         .then(function() {
+            $('#loadingMsg').hide();
             $('#form').hide();
             $('#successMsg').fadeIn();
         })
         .catch(function(error) {
             console.error('Error:', error);
+            $('#loadingMsg').hide();
+            $('#submitBtn').prop('disabled', false).text('Submit Request');
             alert('Something went wrong. Please try again.');
         });
 }
