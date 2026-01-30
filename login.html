@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Sales Portal - Login</title>
+    <title>Sales Portal – Login</title>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,6 +16,7 @@
             justify-content: center;
             align-items: center;
         }
+
         .login-container {
             background-color: white;
             border-radius: 12px;
@@ -22,32 +25,38 @@
             max-width: 400px;
             width: 90%;
         }
+
         .logo {
             display: block;
             margin: 0 auto 20px auto;
             max-width: 150px;
             max-height: 80px;
         }
+
         h1 {
             text-align: center;
             color: #333;
             margin-bottom: 10px;
         }
+
         .subtitle {
             text-align: center;
             color: #666;
             margin-bottom: 30px;
             font-size: 14px;
         }
+
         .form-group {
             margin-bottom: 20px;
         }
+
         label {
             display: block;
             font-weight: 600;
             color: #333;
             margin-bottom: 8px;
         }
+
         input {
             width: 100%;
             padding: 12px;
@@ -56,10 +65,12 @@
             font-size: 14px;
             box-sizing: border-box;
         }
+
         input:focus {
             outline: none;
             border-color: #667eea;
         }
+
         button {
             width: 100%;
             padding: 14px;
@@ -70,16 +81,30 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
             transition: opacity 0.3s;
         }
+
         button:hover {
             opacity: 0.9;
         }
+
         button:disabled {
             opacity: 0.6;
             cursor: not-allowed;
         }
+
+        .request-access-btn {
+            margin-top: 10px;
+            background: #f3f4f6;
+            color: #333;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .request-access-btn:hover {
+            background: #e5e7eb;
+        }
+
         .error {
             background-color: #ffebee;
             color: #c62828;
@@ -89,130 +114,136 @@
             text-align: center;
             display: none;
         }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 12px;
+            display: none;
+        }
+
         .help-text {
             text-align: center;
             color: #666;
             font-size: 12px;
             margin-top: 20px;
         }
-        .loading {
-            text-align: center;
-            color: #667eea;
-            margin-top: 10px;
-            display: none;
-        }
     </style>
 </head>
+
 <body>
 
 <div class="login-container">
     <img src="logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
-    
-    <h1>🔐 Sales Portal</h1>
-    <p class="subtitle">Please enter your email to continue</p>
-    
+
+    <h1>Sales Portal</h1>
+    <p class="subtitle">Enter your email to continue</p>
+
     <div id="errorMessage" class="error"></div>
-    
+
     <div class="form-group">
         <label>Email Address *</label>
-        <input type="email" id="email" placeholder="your.email@company.com" autocomplete="email">
+        <input
+            type="email"
+            id="email"
+            placeholder="your.email@company.com"
+            autocomplete="email"
+        >
     </div>
-    
+
     <button id="loginBtn" onclick="handleLogin()">Access Portal</button>
-    
-    <div class="loading" id="loadingMsg">Authenticating...</div>
-    
+
+    <button
+        class="request-access-btn"
+        onclick="window.location.href='request-access.html'"
+    >
+        Request Access
+    </button>
+
+    <div class="loading" id="loadingMsg">Checking access…</div>
+
     <p class="help-text">
-        Don't have access? Contact your administrator for the passcode.
+        Access is limited to approved email addresses.
     </p>
 </div>
 
 <script>
-// REPLACE THIS WITH YOUR ACTUAL APPS SCRIPT URL
-var AUTH_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
+    // 🔁 REPLACE WITH YOUR APPS SCRIPT WEB APP URL
+    var AUTH_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
 
-// Check if already authenticated
-$(document).ready(function(){
-    var authData = sessionStorage.getItem('salesPortalAuth');
-    if(authData){
-        try {
-            var auth = JSON.parse(authData);
-            // Already logged in, redirect to portal
-            window.location.href = 'index.html';
-        } catch(e){
-            // Invalid auth data, clear it
-            sessionStorage.removeItem('salesPortalAuth');
-        }
-    }
-});
-
-function handleLogin() {
-    var email = $('#email').val().trim();
-    
-    if(!email){
-        showError('Please enter your email address');
-        return;
-    }
-
-    
-    // Validate email format
-    var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if(!emailRegex.test(email)){
-        showError('Please enter a valid email address');
-        return;
-    }
-    
-    // Show loading state
-    $('#loginBtn').prop('disabled', true).text('Checking...');
-    $('#loadingMsg').show();
-    $('#errorMessage').hide();
-    
-    // Call Apps Script to validate using JSONP to avoid CORS
-    $.ajax({
-        url: AUTH_SCRIPT_URL + '?action=authenticate&email=' + encodeURIComponent(email),
-        method: 'GET',
-        dataType: 'jsonp',
-        jsonpCallback: 'authCallback',
-        timeout: 10000,
-        success: function(response){
-            if(response && response.success){
-                // Store auth data in sessionStorage
-                sessionStorage.setItem('salesPortalAuth', JSON.stringify({
-                    name: response.name || email.split('@')[0],
-                    email: email,
-                    timestamp: new Date().toISOString()
-                }));
-                
-                // Redirect to main portal
+    // Auto-redirect if already authenticated
+    $(document).ready(function () {
+        var authData = sessionStorage.getItem('salesPortalAuth');
+        if (authData) {
+            try {
+                JSON.parse(authData);
                 window.location.href = 'index.html';
-            } else {
-                showError(response.message || 'Invalid email or passcode');
-                resetButton();
+            } catch (e) {
+                sessionStorage.removeItem('salesPortalAuth');
             }
-        },
-        error: function(xhr, status, error){
-            console.error('Authentication error:', error);
-            showError('Authentication error. Please check your connection and try again.');
-            resetButton();
         }
     });
-}
 
-function showError(message) {
-    $('#errorMessage').text(message).fadeIn();
-}
+    function handleLogin() {
+        var email = $('#email').val().trim();
 
-function resetButton() {
-    $('#loginBtn').prop('disabled', false).text('Access Portal');
-    $('#loadingMsg').hide();
-}
+        if (!email) {
+            showError('Please enter your email address');
+            return;
+        }
 
-// Allow Enter key to submit
-$('input').keypress(function(e){
-    if(e.which === 13) {
-        handleLogin();
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showError('Please enter a valid email address');
+            return;
+        }
+
+        $('#loginBtn').prop('disabled', true).text('Checking…');
+        $('#loadingMsg').show();
+        $('#errorMessage').hide();
+
+        $.ajax({
+            url: AUTH_SCRIPT_URL +
+                '?action=authenticate&email=' + encodeURIComponent(email),
+            method: 'GET',
+            dataType: 'jsonp',
+            jsonpCallback: 'authCallback',
+            timeout: 10000,
+            success: function (response) {
+                if (response && response.success) {
+                    sessionStorage.setItem('salesPortalAuth', JSON.stringify({
+                        email: email,
+                        name: response.name || email.split('@')[0],
+                        timestamp: new Date().toISOString()
+                    }));
+
+                    window.location.href = 'index.html';
+                } else {
+                    showError(response.message || 'Email not authorized');
+                    resetButton();
+                }
+            },
+            error: function () {
+                showError('Unable to reach authentication service');
+                resetButton();
+            }
+        });
     }
-});
+
+    function showError(message) {
+        $('#errorMessage').text(message).fadeIn();
+    }
+
+    function resetButton() {
+        $('#loginBtn').prop('disabled', false).text('Access Portal');
+        $('#loadingMsg').hide();
+    }
+
+    $('input').keypress(function (e) {
+        if (e.which === 13) {
+            handleLogin();
+        }
+    });
 </script>
 
 </body>
