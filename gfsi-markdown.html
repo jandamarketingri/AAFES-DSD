@@ -537,15 +537,15 @@ function renderStyles(orderId) {
     order.styles.forEach(function(style, index) {
         html += '<div class="style-row">';
         html += '<div class="form-group" style="margin:0;">';
-        html += '<input type="text" id="' + style.id + '-styleNumber" placeholder="Style number" oninput="updateStyleData(\'' + orderId + '\', ' + index + ')">';
+        html += '<input type="text" id="' + style.id + '-styleNumber" placeholder="Style number" value="' + (style.styleNumber || '') + '" oninput="updateStyleData(\'' + orderId + '\', ' + index + ')">';
         html += '</div>';
         html += '<div class="form-group" style="margin:0;">';
-        html += '<input type="number" id="' + style.id + '-quantity" placeholder="0" min="0" oninput="updateStyleData(\'' + orderId + '\', ' + index + ')">';
+        html += '<input type="number" id="' + style.id + '-quantity" placeholder="0" min="0" value="' + (style.quantity || '') + '" oninput="updateStyleData(\'' + orderId + '\', ' + index + ')">';
         html += '</div>';
         html += '<div class="form-group" style="margin:0;">';
-        html += '<input type="number" id="' + style.id + '-cost" placeholder="0.00" min="0" step="0.01" oninput="updateStyleData(\'' + orderId + '\', ' + index + ')">';
+        html += '<input type="number" id="' + style.id + '-cost" placeholder="0.00" min="0" step="0.01" value="' + (style.cost || '') + '" oninput="updateStyleData(\'' + orderId + '\', ' + index + ')">';
         html += '</div>';
-        html += '<div class="style-line-total" id="' + style.id + '-total">$0.00</div>';
+        html += '<div class="style-line-total" id="' + style.id + '-total">$' + ((style.quantity * style.cost) || 0).toFixed(2) + '</div>';
         html += '<button class="remove-style-btn" onclick="removeStyle(\'' + orderId + '\', ' + index + ')">Remove</button>';
         html += '</div>';
     });
