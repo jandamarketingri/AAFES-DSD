@@ -70,7 +70,7 @@
         }
         .form-group textarea {
             resize: vertical;
-            min-height: 50px;
+            min-height: 60px;
         }
         .form-group input:focus,
         .form-group select:focus,
@@ -450,7 +450,14 @@ function renderOrder(order) {
     html += '<input type="date" id="' + order.id + '-shipDate">';
     html += '</div></div></div>';
     
-    // Comments section
+    // Styles section
+    html += '<div class="styles-section">';
+    html += '<h3 style="margin-top:0;">Product Styles</h3>';
+    html += '<div id="' + order.id + '-styles"></div>';
+    html += '<button class="add-style-btn" onclick="addStyle(\'' + order.id + '\')">+ Add Style</button>';
+    html += '</div>';
+    
+    // Comments section - MOVED HERE (after styles, before totals)
     html += '<div class="comments-section">';
     html += '<h3>💬 Comments / Special Instructions</h3>';
     html += '<div class="form-row">';
@@ -458,13 +465,6 @@ function renderOrder(order) {
     html += '<label>Comments (Optional)</label>';
     html += '<textarea id="' + order.id + '-comments" placeholder="Add any special notes, instructions, or context for this request..."></textarea>';
     html += '</div></div></div>';
-    
-    // Styles section
-    html += '<div class="styles-section">';
-    html += '<h3 style="margin-top:0;">Product Styles</h3>';
-    html += '<div id="' + order.id + '-styles"></div>';
-    html += '<button class="add-style-btn" onclick="addStyle(\'' + order.id + '\')">+ Add Style</button>';
-    html += '</div>';
     
     // Order totals
     html += '<div class="order-totals" id="' + order.id + '-totals">';
