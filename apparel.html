@@ -1254,43 +1254,47 @@ function submitOrder() {
         items: cart
     };
 
-    // Lock button
     $('.submit-order-btn')
         .prop('disabled', true)
         .text('Submitting...');
 
-    // ✅ BACKGROUND SUBMIT (NO NEW WINDOW)
-    fetch(ORDER_SUBMISSION_URL, {
+    // Create hidden form that opens in new window
+    var form = $('<form>', {
         method: 'POST',
-        body: new URLSearchParams({
-            data: JSON.stringify(orderData)
-        })
-    })
-    .then(res => res.text())
-    .then(() => {
-
-        alert(
-          '✅ Order submitted successfully!\n\n' +
-          'Total items: ' +
-          cart.reduce((sum, item) => sum + item.quantity, 0)
-        );
-
-        cart = [];
-        updateCartBadge();
-        closeCart();
-
-    })
-    .catch(err => {
-        console.error(err);
-        alert('❌ Error submitting order. Please try again.');
-    })
-    .finally(() => {
-        $('.submit-order-btn')
-            .prop('disabled', false)
-            .text('Submit Order');
+        action: ORDER_SUBMISSION_URL,
+        target: '_blank',
+        style: 'display:none;'
     });
 
+    form.append($('<input>', {
+        type: 'hidden',
+        name: 'data',
+        value: JSON.stringify(orderData)
+    }));
+
+    $('body').append(form);
+    form.submit();
+
+    setTimeout(function() {
+        form.remove();
+    }, 1000);
+
+    alert(
+      '📤 Order submitted! A new window will open showing the confirmation.\n\n' +
+      'Total items: ' +
+      cart.reduce((sum, item) => sum + item.quantity, 0)
+    );
+
+    cart = [];
+    updateCartBadge();
+    closeCart();
+
+    $('.submit-order-btn')
+        .prop('disabled', false)
+        .text('Submit Order');
+
 }
+
 
 </script>
 
