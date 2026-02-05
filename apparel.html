@@ -610,7 +610,7 @@
         <div id="cartItems"></div>
         <div class="cart-actions">
             <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
-            <button type="button" class="submit-order-btn" onclick="submitOrder()">
+            <button class="submit-order-btn" onclick="submitOrder()">Submit Order</button>
         </div>
     </div>
 </div>
@@ -1211,36 +1211,24 @@ function clearCart() {
 }
 
 function submitOrder() {
-
-    if(!$('#repName').val() || 
-       !$('#repEmail').val() || 
-       !$('#facilityId').val() || 
-       !$('#locationName').val() || 
-       !$('#beginShipDate').val() || 
-       !$('#shipByDate').val()){
+    if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || 
+       !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
         alert('Please fill out all required header fields before submitting.');
         closeCart();
         return;
     }
-
+    
     var facilityId = $('#facilityId').val().trim();
     if(facilityId.length === 7 && !facilityData[facilityId]){
-        alert(
-          '⚠ WARNING: The Facility ID you entered is not in our database.\n\n' +
-          'Please verify the ID is correct before proceeding.\n\n' +
-          'If this is a new facility, contact your administrator to have it added to the system.'
-        );
+        alert('⚠ WARNING: The Facility ID you entered is not in our database.\n\nPlease verify the ID is correct before proceeding.\n\nIf this is a new facility, contact your administrator to have it added to the system.');
         closeCart();
         return;
     }
-
-    if(cart.length === 0){
-        alert('Your cart is empty!');
-        return;
-    }
-
+    
+    if(cart.length === 0){ alert('Your cart is empty!'); return; }
+    
     var authData = JSON.parse(sessionStorage.getItem('salesPortalAuth'));
-
+    
     var orderData = {
         repName: $('#repName').val(),
         repEmail: $('#repEmail').val(),
@@ -1253,49 +1241,37 @@ function submitOrder() {
         accessCode: authData.accessCode,
         items: cart
     };
-
-    $('.submit-order-btn')
-        .prop('disabled', true)
-        .text('Submitting...');
-
-    // Create hidden form that opens in new window
+    
+    $('.submit-order-btn').prop('disabled', true).text('Submitting...');
+    
     var form = $('<form>', {
         method: 'POST',
         action: ORDER_SUBMISSION_URL,
         target: '_blank',
         style: 'display:none;'
     });
-
+    
     form.append($('<input>', {
         type: 'hidden',
         name: 'data',
         value: JSON.stringify(orderData)
     }));
-
+    
     $('body').append(form);
     form.submit();
-
+    
     setTimeout(function() {
         form.remove();
     }, 1000);
-
-    alert(
-      '📤 Order submitted! A new window will open showing the confirmation.\n\n' +
-      'Total items: ' +
-      cart.reduce((sum, item) => sum + item.quantity, 0)
-    );
-
+    
+    alert('📤 Order submitted! A new window will open showing the confirmation.\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0));
+    
     cart = [];
     updateCartBadge();
     closeCart();
-
-    $('.submit-order-btn')
-        .prop('disabled', false)
-        .text('Submit Order');
-
+    
+    $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
-
-
 </script>
 
 </body>
