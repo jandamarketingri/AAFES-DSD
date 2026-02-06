@@ -64,6 +64,25 @@
             outline: none;
             border-color: #2196F3;
         }
+        .form-group input.valid {
+            border-color: #4CAF50;
+            background-color: #f1f8f4;
+        }
+        .form-group input.invalid {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        .validation-message {
+            font-size: 12px;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        .validation-message.success {
+            color: #4CAF50;
+        }
+        .validation-message.error {
+            color: #f44336;
+        }
         .checkbox-group {
             display: flex;
             align-items: center;
@@ -74,6 +93,10 @@
             width: 20px;
             height: 20px;
             cursor: pointer;
+        }
+        .checkbox-group input[type="checkbox"]:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
         }
         .checkbox-group label {
             font-weight: 600;
@@ -142,12 +165,102 @@
         }
     </style>
     <script>
+        var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
+        var facilityData = {};
+
         $(document).ready(function(){
+            checkAuthentication();
             loadSKUData();
+            loadFacilityData();
+            
+            $('#facilityId').on('input', function(){
+                var facilityId = $(this).val().trim();
+                var $input = $(this);
+                var $validation = $('#facilityValidation');
+                var $locationName = $('#locationName');
+                
+                if(facilityId.length === 0){
+                    $input.removeClass('valid invalid');
+                    $validation.html('').removeClass('success error');
+                    $locationName.val('');
+                } else if(facilityId.length === 7){
+                    if(facilityData[facilityId]){
+                        $input.removeClass('invalid').addClass('valid');
+                        $validation.html('✓ Facility found: ' + facilityData[facilityId]).removeClass('error').addClass('success');
+                        $locationName.val(facilityData[facilityId]);
+                    } else {
+                        $input.removeClass('valid').addClass('invalid');
+                        $validation.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error');
+                        $locationName.val('');
+                    }
+                } else {
+                    $input.removeClass('valid invalid');
+                    $validation.html('Enter 7-digit facility ID').removeClass('success error');
+                    $locationName.val('');
+                }
+            });
         });
 
+        function checkAuthentication() {
+            var authData = sessionStorage.getItem('salesPortalAuth');
+            
+            if(!authData){
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                var auth = JSON.parse(authData);
+                $('#repName').val(auth.name).prop('readonly', true);
+                $('#repEmail').val(auth.email).prop('readonly', true);
+                
+                $('#headerForm').prepend(
+                    '<div style="background:#d4edda;border:1px solid #c3e6cb;padding:12px;margin-bottom:15px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">' +
+                    '<div><strong>✓ Authenticated:</strong> ' + auth.name + ' (' + auth.email + ')</div>' +
+                    '<button onclick="logout()" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">Logout</button>' +
+                    '</div>'
+                );
+            } catch(e){
+                console.error('Auth parse error:', e);
+                sessionStorage.removeItem('salesPortalAuth');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function logout() {
+            if(confirm('Are you sure you want to log out?')){
+                sessionStorage.removeItem('salesPortalAuth');
+                window.location.href = 'login.html';
+            }
+        }
+
+        function loadFacilityData() {
+            $.ajax({
+                url: FACILITY_LOOKUP_URL,
+                method: 'GET',
+                dataType: 'text',
+                success: function(data){
+                    var rows = data.split('\n');
+                    facilityData = {};
+                    for(var i = 1; i < rows.length; i++){
+                        if(rows[i].trim()){
+                            var cols = rows[i].split(',');
+                            var facilityId = cols[0] ? cols[0].trim() : '';
+                            var baseName = cols[2] ? cols[2].trim() : '';
+                            if(facilityId && baseName){
+                                facilityData[facilityId] = baseName;
+                            }
+                        }
+                    }
+                },
+                error: function(){
+                    console.warn('Could not load facility data');
+                }
+            });
+        }
+
         function loadSKUData() {
-            // CHANGE THIS URL TO YOUR APPAREL GOOGLE SHEET
+            // CHANGE THIS URL TO YOUR DRINKWARE GOOGLE SHEET
             var sheetUrl = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_GID';
             
             $.ajax({
@@ -238,7 +351,8 @@
     <div class="form-row">
         <div class="form-group">
             <label for="facilityId">Facility ID *</label>
-            <input type="text" id="facilityId" placeholder="7-digit ID" maxlength="7" pattern="\d{7}" required>
+            <input type="text" id="facilityId" placeholder="7-digit ID" maxlength="7" required>
+            <div id="facilityValidation" class="validation-message"></div>
         </div>
         <div class="form-group">
             <label for="locationName">Location Name *</label>
@@ -254,6 +368,13 @@
         <div class="form-group">
             <label for="shipByDate">Ship By Date *</label>
             <input type="date" id="shipByDate" required>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <div class="checkbox-group">
+            <input type="checkbox" id="includeDisplay" disabled>
+            <label for="includeDisplay">Include Display in Order (Minimum 72 pieces required)</label>
         </div>
     </div>
 </div>
