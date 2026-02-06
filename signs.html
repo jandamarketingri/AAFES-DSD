@@ -4,6 +4,7 @@
     <title>Signs Products</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
+        /* [Keep all your existing CSS styles] */
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
@@ -376,10 +377,16 @@
             color: #2196F3;
             margin-bottom: 3px;
         }
+        .cart-item-pricing {
+            font-size: 12px;
+            color: #666;
+            margin-top: 3px;
+        }
         .cart-item-qty {
             font-size: 14px;
             color: #333;
             margin-right: 15px;
+            text-align: right;
         }
         .remove-item {
             background-color: #f44336;
@@ -433,6 +440,27 @@
             color: #f44336;
             padding: 20px;
             line-height: 1.6;
+        }
+        /* NEW: Cart totals styling */
+        .cart-totals {
+            border-top: 2px solid #4CAF50;
+            margin-top: 10px;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .cart-total-row.grand-total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+            margin-top: 8px;
         }
     </style>
 </head>
@@ -522,6 +550,10 @@
 
 <script>
 var SIGNS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSSBX53-_Dj4xqRxnnoOLq_yNIF7ZK3-tpxvsulbUIYu7VbiUoIz7PRt7Eg48bYjkzOCr6-UJtIkeG_/pub?gid=2002241172&single=true&output=csv';
+
+// ✅ ADD YOUR PRICING SHEET URL HERE
+var PRICING_SHEET_URL = 'YOUR_PRICING_SHEET_CSV_URL_HERE';
+
 var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
 var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
 
@@ -532,6 +564,48 @@ var allCategoryProducts = [];
 var searchTerm = '';
 var facilityData = {};
 var allSignsData = [];
+var pricingData = {}; // ✅ NEW: Store pricing by CRC
+
+// ✅ NEW: Load pricing data
+function loadPricingData() {
+    $.ajax({
+        url: PRICING_SHEET_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){
+            var rows = data.split('\n');
+            pricingData = {};
+            
+            // Skip header row, parse data
+            for(var i = 1; i < rows.length; i++){
+                if(rows[i].trim()){
+                    var cols = parseCSVRow(rows[i]);
+                    
+                    // Column C = CRC, Column D = Cost, Column E = Retail
+                    var crc = cols[2] ? cols[2].trim() : '';
+                    var cost = cols[3] ? cols[3].trim() : '';
+                    var retail = cols[4] ? cols[4].trim() : '';
+                    
+                    if(crc){
+                        // Remove $ signs and convert to numbers
+                        var costNum = parseFloat(cost.replace('$', ''));
+                        var retailNum = parseFloat(retail.replace('$', ''));
+                        
+                        pricingData[crc] = {
+                            cost: isNaN(costNum) ? 0 : costNum,
+                            retail: isNaN(retailNum) ? 0 : retailNum
+                        };
+                    }
+                }
+            }
+            
+            console.log('Loaded pricing for', Object.keys(pricingData).length, 'CRCs');
+        },
+        error: function(){
+            console.warn('Could not load pricing data');
+        }
+    });
+}
 
 function parseCSVRow(row) {
     var cols = [];
@@ -667,10 +741,26 @@ function decrementQty(i) { var input = $('#qty-' + i); var val = parseInt(input.
 function addToCart(i) {
     var qty = parseInt($('#qty-' + i).val());
     var p = currentProducts[i];
+    
+    // ✅ GET PRICING FROM pricingData
+    var pricing = pricingData[p.crc] || { cost: 0, retail: 0 };
+    
     if(qty > 0){
         var ei = cart.findIndex(function(item){ return item.sku === p.sku; });
-        if(ei !== -1){ cart[ei].quantity += qty; }
-        else { cart.push({ productName: p.description, sku: p.sku, crc: p.crc, size: 'N/A', quantity: qty, productType: 'signs' }); }
+        if(ei !== -1){ 
+            cart[ei].quantity += qty; 
+        } else { 
+            cart.push({ 
+                productName: p.description, 
+                sku: p.sku, 
+                crc: p.crc, 
+                size: 'N/A', 
+                quantity: qty, 
+                productType: 'signs',
+                cost: pricing.cost,      // ✅ ADD COST
+                retail: pricing.retail   // ✅ ADD RETAIL
+            }); 
+        }
         updateCartBadge();
         $('#qty-' + i).val(1);
         var btn = $('#add-btn-' + i);
@@ -688,17 +778,45 @@ function openCart() { displayCart(); $('.cart-modal').fadeIn(300); }
 function closeCart() { $('.cart-modal').fadeOut(300); }
 function closeCartOnBackdrop(e) { if(e.target === e.currentTarget){ closeCart(); } }
 
+// ✅ UPDATED displayCart with pricing
 function displayCart() {
     var html = '';
-    if(cart.length === 0){ html = '<div class="cart-empty">Your cart is empty</div>'; }
-    else {
+    if(cart.length === 0){ 
+        html = '<div class="cart-empty">Your cart is empty</div>'; 
+    } else {
+        var grandTotalCost = 0;
+        var grandTotalRetail = 0;
+        
         cart.forEach(function(item, i){
+            var itemCost = (item.cost || 0) * item.quantity;
+            var itemRetail = (item.retail || 0) * item.quantity;
+            grandTotalCost += itemCost;
+            grandTotalRetail += itemRetail;
+            
             html += '<div class="cart-item"><div class="cart-item-info">';
             html += '<div class="cart-item-name">' + item.productName + '</div>';
-            html += '<div class="cart-item-sku">SKU: ' + item.sku + ' (Master: ' + item.crc + ')</div></div>';
-            html += '<div class="cart-item-qty">Qty: ' + item.quantity + '</div>';
+            html += '<div class="cart-item-sku">SKU: ' + item.sku + ' (Master: ' + item.crc + ')</div>';
+            html += '<div class="cart-item-pricing">Cost: $' + (item.cost || 0).toFixed(2) + ' | Retail: $' + (item.retail || 0).toFixed(2) + ' ea</div>';
+            html += '</div>';
+            html += '<div class="cart-item-qty">';
+            html += 'Qty: ' + item.quantity + '<br>';
+            html += 'Cost: $' + itemCost.toFixed(2) + '<br>';
+            html += 'Retail: $' + itemRetail.toFixed(2);
+            html += '</div>';
             html += '<button class="remove-item" onclick="removeFromCart(' + i + ')">Remove</button></div>';
         });
+        
+        // Add totals at bottom
+        html += '<div class="cart-totals">';
+        html += '<div class="cart-total-row">';
+        html += '<strong>Total Cost:</strong>';
+        html += '<strong>$' + grandTotalCost.toFixed(2) + '</strong>';
+        html += '</div>';
+        html += '<div class="cart-total-row grand-total">';
+        html += '<strong>Total Retail:</strong>';
+        html += '<strong>$' + grandTotalRetail.toFixed(2) + '</strong>';
+        html += '</div>';
+        html += '</div>';
     }
     $('#cartItems').html(html);
 }
@@ -727,6 +845,8 @@ function submitOrder() {
     }
     if(cart.length === 0){ alert('Your cart is empty!'); return; }
     
+    var authData = JSON.parse(sessionStorage.getItem('salesPortalAuth'));
+    
     var orderData = {
         repName: $('#repName').val(),
         repEmail: $('#repEmail').val(),
@@ -736,12 +856,12 @@ function submitOrder() {
         shipByDate: $('#shipByDate').val(),
         includeDisplay: $('#includeDisplay').is(':checked'),
         orderDate: new Date().toISOString(),
+        accessCode: authData.accessCode,
         items: cart
     };
     
     $('.submit-order-btn').prop('disabled', true).text('Submitting...');
     
-    // Create a form and submit it
     var form = $('<form>', {
         method: 'POST',
         action: ORDER_SUBMISSION_URL,
@@ -760,7 +880,6 @@ function submitOrder() {
     
     setTimeout(function(){ form.remove(); }, 1000);
     
-    // Show message that order is being processed
     alert('📤 Order submitted! A new window will open showing the confirmation.\n\nTotal items: ' + cart.reduce(function(s, item){ return s + item.quantity; }, 0));
     
     cart = [];
@@ -769,26 +888,19 @@ function submitOrder() {
     $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
 
-// ==========================================
-// AUTHENTICATION CHECK
-// ==========================================
 function checkAuthentication() {
     var authData = sessionStorage.getItem('salesPortalAuth');
     
     if(!authData){
-        // Not logged in, redirect to login
         window.location.href = 'login.html';
         return;
     }
     
     try {
         var auth = JSON.parse(authData);
-        
-        // Pre-fill the form with authenticated user data
         $('#repName').val(auth.name).prop('readonly', true);
         $('#repEmail').val(auth.email).prop('readonly', true);
         
-        // Add visual indicator that they're logged in
         $('#headerForm').prepend(
             '<div style="background:#d4edda;border:1px solid #c3e6cb;padding:12px;margin-bottom:15px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">' +
             '<div><strong>✓ Authenticated:</strong> ' + auth.name + ' (' + auth.email + ')</div>' +
@@ -797,7 +909,6 @@ function checkAuthentication() {
         );
         
     } catch(e){
-        // Invalid auth data, clear and redirect
         console.error('Auth parse error:', e);
         sessionStorage.removeItem('salesPortalAuth');
         window.location.href = 'login.html';
@@ -816,17 +927,37 @@ $(document).ready(function(){
     console.log('Document ready');
     loadAllSignsData();
     loadFacilityData();
-    $('#searchInput').on('input', function(){ searchTerm = $(this).val().toLowerCase().trim(); filterAndDisplayProducts(); });
+    loadPricingData(); // ✅ LOAD PRICING ON STARTUP
+    
+    $('#searchInput').on('input', function(){ 
+        searchTerm = $(this).val().toLowerCase().trim(); 
+        filterAndDisplayProducts(); 
+    });
+    
     $('#facilityId').on('input', function(){
         var fid = $(this).val().trim();
         var $i = $(this);
         var $v = $('#facilityValidation');
         var $l = $('#locationName');
-        if(fid.length === 0){ $i.removeClass('valid invalid'); $v.html('').removeClass('success error'); $l.val(''); }
-        else if(fid.length === 7){
-            if(facilityData[fid]){ $i.removeClass('invalid').addClass('valid'); $v.html('✓ Facility found: ' + facilityData[fid]).removeClass('error').addClass('success'); $l.val(facilityData[fid]); }
-            else { $i.removeClass('valid').addClass('invalid'); $v.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error'); $l.val(''); }
-        } else { $i.removeClass('valid invalid'); $v.html('Enter 7-digit facility ID').removeClass('success error'); $l.val(''); }
+        if(fid.length === 0){ 
+            $i.removeClass('valid invalid'); 
+            $v.html('').removeClass('success error'); 
+            $l.val(''); 
+        } else if(fid.length === 7){
+            if(facilityData[fid]){ 
+                $i.removeClass('invalid').addClass('valid'); 
+                $v.html('✓ Facility found: ' + facilityData[fid]).removeClass('error').addClass('success'); 
+                $l.val(facilityData[fid]); 
+            } else { 
+                $i.removeClass('valid').addClass('invalid'); 
+                $v.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error'); 
+                $l.val(''); 
+            }
+        } else { 
+            $i.removeClass('valid invalid'); 
+            $v.html('Enter 7-digit facility ID').removeClass('success error'); 
+            $l.val(''); 
+        }
     });
 });
 </script>
