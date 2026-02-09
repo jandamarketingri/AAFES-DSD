@@ -83,23 +83,6 @@
         .validation-message.error {
             color: #f44336;
         }
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 0;
-        }
-        .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-        .checkbox-group label {
-            font-weight: 600;
-            color: #333;
-            cursor: pointer;
-            margin: 0;
-        }
         .filter-section {
             background-color: white;
             border: 1px solid #ddd;
@@ -376,10 +359,16 @@
             color: #2196F3;
             margin-bottom: 3px;
         }
+        .cart-item-pricing {
+            font-size: 12px;
+            color: #666;
+            margin-top: 3px;
+        }
         .cart-item-qty {
             font-size: 14px;
             color: #333;
             margin-right: 15px;
+            text-align: right;
         }
         .remove-item {
             background-color: #f44336;
@@ -434,6 +423,26 @@
             padding: 20px;
             line-height: 1.6;
         }
+        .cart-totals {
+            border-top: 2px solid #4CAF50;
+            margin-top: 10px;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        .cart-total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        .cart-total-row.grand-total {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4CAF50;
+            padding-top: 8px;
+            border-top: 1px solid #ddd;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -477,28 +486,19 @@
 </div>
 
 <div class="filter-section">
-    <div class="filter-buttons">
-        <button class="filter-btn active" data-filter="stock" onclick="loadCategory('stock')">Stock Afghans</button>
-        <button class="filter-btn" data-filter="custom" onclick="loadCategory('custom')">Custom Afghans</button>
+    <div class="filter-buttons" id="filterButtons">
+        <!-- Filter buttons will be dynamically generated based on available CRCs -->
     </div>
 </div>
 
 <div class="search-section">
     <div class="search-bar">
-        <input type="text" id="searchInput" placeholder="🔍 Search by SKU, description, or branch of service...">
+        <input type="text" id="searchInput" placeholder="🔍 Search by SKU, description, or material type...">
         <button class="clear-search-btn" onclick="clearSearch()">Clear</button>
     </div>
     <div class="search-info">Showing all products</div>
 </div>
 
-<div id="customAfghanForm" style="display:none; background-color: white; border: 1px solid #ddd; border-radius: 8px; padding: 30px; max-width: 1200px; margin: 0 auto 30px auto; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-    <h3 style="margin-top:0; color:#333;">Custom Afghan Entry</h3>
-    <div id="customAfghanEntries">
-        <!-- Entries will be added here dynamically -->
-    </div>
-    <button onclick="addCustomAfghanEntry()" style="padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; margin-top: 15px;">+ Add Another Afghan</button>
-</div>
-    
 <div id="skuContainer">
     <div class="loading">Loading products...</div>
 </div>
@@ -522,19 +522,73 @@
 </div>
 
 <script>
-var AFGHANS_STOCK_SHEET_URL = 'YOUR_STOCK_AFGHANS_SHEET_URL_HERE';
+// ==========================================
+// CONFIGURATION
+// ==========================================
+var AFGHANS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRCJDjJ65CK1YueWk4PuC0tC8U3fuxQjEfzFroCGwoCb0GfgAzqrkYMWss2J-k-7nOVO7HEsGhgJNpR/pub?gid=2002241172&single=true&output=csv';
+var PRICING_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRCJDjJ65CK1YueWk4PuC0tC8U3fuxQjEfzFroCGwoCb0GfgAzqrkYMWss2J-k-7nOVO7HEsGhgJNpR/pub?gid=42986337&single=true&output=csv';
 var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
 var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTJ6i27Lw8VuJErCS4v1TUXrO6PQvoY2Dg26Esk48Lry9K0lwLab3hfchOxdeB90OCJy2jdJ1hdnnT0/pub?gid=0&single=true&output=csv';
 
+// ==========================================
+// GLOBAL VARIABLES
+// ==========================================
 var cart = [];
-var currentCategory = 'stock';
-var customAfghanCounter = 0;
+var currentCategory = 'all';
 var currentProducts = [];
 var allCategoryProducts = [];
 var searchTerm = '';
 var facilityData = {};
-var allSignsData = [];
+var allAfghansData = [];
+var pricingData = {};
+var availableCRCs = [];
 
+// ==========================================
+// PRICING DATA
+// ==========================================
+function loadPricingData() {
+    $.ajax({
+        url: PRICING_SHEET_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data){
+            var rows = data.split('\n');
+            pricingData = {};
+            
+            // Skip header row, parse data
+            // Column B = Master SKU, C = CRC, D = Cost, E = Retail, G = UPC
+            for(var i = 1; i < rows.length; i++){
+                if(rows[i].trim()){
+                    var cols = parseCSVRow(rows[i]);
+                    
+                    var crc = cols[2] ? cols[2].trim() : '';
+                    var cost = cols[3] ? cols[3].trim() : '';
+                    var retail = cols[4] ? cols[4].trim() : '';
+                    
+                    if(crc){
+                        // Remove $ signs and convert to numbers
+                        var costNum = parseFloat(cost.replace('$', ''));
+                        var retailNum = parseFloat(retail.replace('$', ''));
+                        
+                        pricingData[crc] = {
+                            cost: isNaN(costNum) ? 0 : costNum,
+                            retail: isNaN(retailNum) ? 0 : retailNum
+                        };
+                    }
+                }
+            }
+            
+            console.log('Loaded pricing for', Object.keys(pricingData).length, 'CRCs');
+        },
+        error: function(){
+            console.warn('Could not load pricing data');
+        }
+    });
+}
+
+// ==========================================
+// CSV PARSING
+// ==========================================
 function parseCSVRow(row) {
     var cols = [];
     var current = '';
@@ -549,10 +603,17 @@ function parseCSVRow(row) {
     return cols;
 }
 
-function parseAllSigns(csvData) {
+// ==========================================
+// LOAD AFGHANS DATA
+// ==========================================
+function parseAllAfghans(csvData) {
     var rows = csvData.split('\n');
-    allSignsData = [];
+    allAfghansData = [];
+    var crcSet = new Set();
+    
     console.log('Parsing CSV, total rows:', rows.length);
+    
+    // Expected format: SKU, CRC, Description, Image, Search Terms
     for(var i = 1; i < rows.length; i++){
         if(rows[i].trim()){
             var cols = parseCSVRow(rows[i]);
@@ -565,24 +626,46 @@ function parseAllSigns(csvData) {
                     tag: cols[4] ? cols[4].trim() : ''
                 };
                 product.searchText = [product.sku, product.description, product.tag].join(' ').toLowerCase();
-                allSignsData.push(product);
+                allAfghansData.push(product);
+                
+                if(product.crc){
+                    crcSet.add(product.crc);
+                }
             }
         }
     }
-    console.log('Parsed', allSignsData.length, 'signs');
+    
+    // Convert Set to sorted Array
+    availableCRCs = Array.from(crcSet).sort();
+    
+    console.log('Parsed', allAfghansData.length, 'afghans');
+    console.log('Found CRCs:', availableCRCs);
+    
+    // Create filter buttons
+    createFilterButtons();
+}
+
+function createFilterButtons() {
+    var html = '<button class="filter-btn active" data-filter="all" onclick="loadCategory(\'all\')">All Afghans</button>';
+    
+    availableCRCs.forEach(function(crc){
+        html += '<button class="filter-btn" data-filter="' + crc + '" onclick="loadCategory(\'' + crc + '\')">' + crc + '</button>';
+    });
+    
+    $('#filterButtons').html(html);
 }
 
 function loadAllAfghansData() {
-    console.log('=== LOADING SIGNS DATA ===');
+    console.log('=== LOADING AFGHANS DATA ===');
     $('#skuContainer').html('<div class="loading">Loading products...</div>');
     $.ajax({
-        url: AFGHANS_STOCK_SHEET_URL,
+        url: AFGHANS_SHEET_URL,
         method: 'GET',
         dataType: 'text',
         success: function(data){ 
             console.log('✓ Data loaded, length:', data.length);
-            parseAllSigns(data);
-            loadCategory(currentCategory);
+            parseAllAfghans(data);
+            loadCategory('all');
         },
         error: function(xhr, status, error){ 
             console.error('✗ AJAX ERROR:', status, error);
@@ -591,6 +674,9 @@ function loadAllAfghansData() {
     });
 }
 
+// ==========================================
+// CATEGORY FILTERING
+// ==========================================
 function loadCategory(category) {
     console.log('Loading category:', category);
     currentCategory = category;
@@ -599,28 +685,19 @@ function loadCategory(category) {
     $('.filter-btn').removeClass('active');
     $('[data-filter="' + category + '"]').addClass('active');
     
-    if(category === 'custom'){
-        // Show custom form, hide product grid and search
-        $('#customAfghanForm').show();
-        $('#skuContainer').hide();
-        $('.search-section').hide();
-        
-        // Initialize with one entry if empty
-        if($('#customAfghanEntries').children().length === 0){
-            addCustomAfghanEntry();
-        }
+    if(category === 'all'){
+        allCategoryProducts = allAfghansData;
     } else {
-        // Show product grid for stock afghans
-        $('#customAfghanForm').hide();
-        $('#skuContainer').show();
-        $('.search-section').show();
-        
-        allCategoryProducts = allSignsData; // All stock afghans
-        console.log('Products in category:', allCategoryProducts.length);
-        filterAndDisplayProducts();
+        allCategoryProducts = allAfghansData.filter(function(p){ return p.crc === category; });
     }
+    
+    console.log('Products in category:', allCategoryProducts.length);
+    filterAndDisplayProducts();
 }
 
+// ==========================================
+// FACILITY LOOKUP
+// ==========================================
 function loadFacilityData() {
     $.ajax({
         url: FACILITY_LOOKUP_URL,
@@ -643,6 +720,9 @@ function loadFacilityData() {
     });
 }
 
+// ==========================================
+// SEARCH AND DISPLAY
+// ==========================================
 function filterAndDisplayProducts() {
     currentProducts = searchTerm === '' ? allCategoryProducts : allCategoryProducts.filter(function(p){ return p.searchText.includes(searchTerm); });
     displayProducts();
@@ -681,36 +761,51 @@ function displayProducts() {
     $('#skuContainer').html(html);
 }
 
-function incrementQty(i) { var input = $('#qty-' + i); input.val(parseInt(input.val()) + 1); }
-function decrementQty(i) { var input = $('#qty-' + i); var val = parseInt(input.val()); if(val > 1) input.val(val - 1); }
+// ==========================================
+// QUANTITY CONTROLS
+// ==========================================
+function incrementQty(i) { 
+    var input = $('#qty-' + i); 
+    input.val(parseInt(input.val()) + 1); 
+}
 
+function decrementQty(i) { 
+    var input = $('#qty-' + i); 
+    var val = parseInt(input.val()); 
+    if(val > 1) input.val(val - 1); 
+}
+
+// ==========================================
+// CART MANAGEMENT
+// ==========================================
 function addToCart(i) {
-    
-    if(currentCategory === 'custom'){
-        var customAfghans = collectCustomAfghans();
-        if(customAfghans.length === 0){
-            alert('Please fill in all required fields for at least one afghan.');
-            return;
-        }
-        
-        customAfghans.forEach(function(afghan){
-            cart.push(afghan);
-        });
-        
-        updateCartBadge();
-        alert('Custom afghans added to cart!');
-        return;
-    }
-    
     var qty = parseInt($('#qty-' + i).val());
     var p = currentProducts[i];
+    
+    // Get pricing from pricingData
+    var pricing = pricingData[p.crc] || { cost: 0, retail: 0 };
+    
     if(qty > 0){
         var ei = cart.findIndex(function(item){ return item.sku === p.sku; });
-        if(ei !== -1){ cart[ei].quantity += qty; }
-        else { cart.push({ productName: p.description, sku: p.sku, crc: p.crc, size: 'N/A', quantity: qty, productType: 'signs' }); }
+        if(ei !== -1){ 
+            cart[ei].quantity += qty; 
+        } else { 
+            cart.push({ 
+                productName: p.description, 
+                sku: p.sku, 
+                crc: p.crc, 
+                size: 'N/A', 
+                quantity: qty, 
+                productType: 'afghans',
+                cost: pricing.cost,
+                retail: pricing.retail
+            }); 
+        }
         updateCartBadge();
         $('#qty-' + i).val(1);
-        var btn = $('#add-btn-' + i);
+        
+        // Visual feedback
+        var btn = $('.add-to-cart-btn').eq(i);
         btn.text('Added!').css('background-color', '#45a049');
         setTimeout(function(){ btn.text('Add to Cart').css('background-color', ''); }, 1000);
     }
@@ -721,26 +816,66 @@ function updateCartBadge() {
     if(total > 0){ $('.cart-badge').text(total).show(); } else { $('.cart-badge').hide(); }
 }
 
-function openCart() { displayCart(); $('.cart-modal').fadeIn(300); }
-function closeCart() { $('.cart-modal').fadeOut(300); }
-function closeCartOnBackdrop(e) { if(e.target === e.currentTarget){ closeCart(); } }
+function openCart() { 
+    displayCart(); 
+    $('.cart-modal').fadeIn(300); 
+}
+
+function closeCart() { 
+    $('.cart-modal').fadeOut(300); 
+}
+
+function closeCartOnBackdrop(e) { 
+    if(e.target === e.currentTarget){ closeCart(); } 
+}
 
 function displayCart() {
     var html = '';
-    if(cart.length === 0){ html = '<div class="cart-empty">Your cart is empty</div>'; }
-    else {
+    if(cart.length === 0){ 
+        html = '<div class="cart-empty">Your cart is empty</div>'; 
+    } else {
+        var grandTotalCost = 0;
+        var grandTotalRetail = 0;
+        
         cart.forEach(function(item, i){
+            var itemCost = (item.cost || 0) * item.quantity;
+            var itemRetail = (item.retail || 0) * item.quantity;
+            grandTotalCost += itemCost;
+            grandTotalRetail += itemRetail;
+            
             html += '<div class="cart-item"><div class="cart-item-info">';
             html += '<div class="cart-item-name">' + item.productName + '</div>';
-            html += '<div class="cart-item-sku">SKU: ' + item.sku + ' (Master: ' + item.crc + ')</div></div>';
-            html += '<div class="cart-item-qty">Qty: ' + item.quantity + '</div>';
+            html += '<div class="cart-item-sku">SKU: ' + item.sku + ' (Master: ' + item.crc + ')</div>';
+            html += '<div class="cart-item-pricing">Cost: $' + (item.cost || 0).toFixed(2) + ' | Retail: $' + (item.retail || 0).toFixed(2) + ' ea</div>';
+            html += '</div>';
+            html += '<div class="cart-item-qty">';
+            html += 'Qty: ' + item.quantity + '<br>';
+            html += 'Cost: $' + itemCost.toFixed(2) + '<br>';
+            html += 'Retail: $' + itemRetail.toFixed(2);
+            html += '</div>';
             html += '<button class="remove-item" onclick="removeFromCart(' + i + ')">Remove</button></div>';
         });
+        
+        // Add totals at bottom
+        html += '<div class="cart-totals">';
+        html += '<div class="cart-total-row">';
+        html += '<strong>Total Cost:</strong>';
+        html += '<strong>$' + grandTotalCost.toFixed(2) + '</strong>';
+        html += '</div>';
+        html += '<div class="cart-total-row grand-total">';
+        html += '<strong>Total Retail:</strong>';
+        html += '<strong>$' + grandTotalRetail.toFixed(2) + '</strong>';
+        html += '</div>';
+        html += '</div>';
     }
     $('#cartItems').html(html);
 }
 
-function removeFromCart(i) { cart.splice(i, 1); updateCartBadge(); displayCart(); }
+function removeFromCart(i) { 
+    cart.splice(i, 1); 
+    updateCartBadge(); 
+    displayCart(); 
+}
 
 function clearCart() {
     if(confirm('Are you sure you want to clear the cart?')){
@@ -750,19 +885,32 @@ function clearCart() {
     }
 }
 
+// ==========================================
+// ORDER SUBMISSION
+// ==========================================
 function submitOrder() {
+    // Validate required fields
     if(!$('#repName').val() || !$('#repEmail').val() || !$('#facilityId').val() || !$('#locationName').val() || !$('#beginShipDate').val() || !$('#shipByDate').val()){
         alert('Please fill out all required header fields before submitting.');
         closeCart();
         return;
     }
+    
+    // Validate facility ID
     var fid = $('#facilityId').val().trim();
     if(fid.length === 7 && !facilityData[fid]){
         alert('⚠ WARNING: The Facility ID you entered is not in our database.\n\nPlease verify the ID is correct before proceeding.');
         closeCart();
         return;
     }
-    if(cart.length === 0){ alert('Your cart is empty!'); return; }
+    
+    if(cart.length === 0){ 
+        alert('Your cart is empty!'); 
+        return; 
+    }
+    
+    // Get auth data
+    var authData = JSON.parse(sessionStorage.getItem('salesPortalAuth'));
     
     var orderData = {
         repName: $('#repName').val(),
@@ -772,12 +920,13 @@ function submitOrder() {
         beginShipDate: $('#beginShipDate').val(),
         shipByDate: $('#shipByDate').val(),
         orderDate: new Date().toISOString(),
+        accessCode: authData.accessCode,
         items: cart
     };
     
     $('.submit-order-btn').prop('disabled', true).text('Submitting...');
     
-    // Create a form and submit it
+    // Create form and submit
     var form = $('<form>', {
         method: 'POST',
         action: ORDER_SUBMISSION_URL,
@@ -796,7 +945,6 @@ function submitOrder() {
     
     setTimeout(function(){ form.remove(); }, 1000);
     
-    // Show message that order is being processed
     alert('📤 Order submitted! A new window will open showing the confirmation.\n\nTotal items: ' + cart.reduce(function(s, item){ return s + item.quantity; }, 0));
     
     cart = [];
@@ -806,25 +954,21 @@ function submitOrder() {
 }
 
 // ==========================================
-// AUTHENTICATION CHECK
+// AUTHENTICATION
 // ==========================================
 function checkAuthentication() {
     var authData = sessionStorage.getItem('salesPortalAuth');
     
     if(!authData){
-        // Not logged in, redirect to login
         window.location.href = 'login.html';
         return;
     }
     
     try {
         var auth = JSON.parse(authData);
-        
-        // Pre-fill the form with authenticated user data
         $('#repName').val(auth.name).prop('readonly', true);
         $('#repEmail').val(auth.email).prop('readonly', true);
         
-        // Add visual indicator that they're logged in
         $('#headerForm').prepend(
             '<div style="background:#d4edda;border:1px solid #c3e6cb;padding:12px;margin-bottom:15px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">' +
             '<div><strong>✓ Authenticated:</strong> ' + auth.name + ' (' + auth.email + ')</div>' +
@@ -833,7 +977,6 @@ function checkAuthentication() {
         );
         
     } catch(e){
-        // Invalid auth data, clear and redirect
         console.error('Auth parse error:', e);
         sessionStorage.removeItem('salesPortalAuth');
         window.location.href = 'login.html';
@@ -847,103 +990,48 @@ function logout() {
     }
 }
 
-function addCustomAfghanEntry() {
-    customAfghanCounter++;
-    var entryId = 'custom-' + customAfghanCounter;
-    
-    var html = '<div class="custom-entry" id="' + entryId + '" style="background: #f9f9f9; padding: 20px; margin-bottom: 15px; border-radius: 6px; border: 2px solid #ddd;">';
-    html += '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">';
-    html += '<h4 style="margin: 0; color: #333;">Afghan #' + customAfghanCounter + '</h4>';
-    html += '<button onclick="removeCustomAfghanEntry(\'' + entryId + '\')" style="background: #f44336; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-weight: 600;">Remove</button>';
-    html += '</div>';
-    
-    html += '<div style="display: grid; grid-template-columns: 2fr 1.5fr 1.5fr 0.8fr; gap: 15px;">';
-    
-    // Material Type dropdown
-    html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">Material Type *</label>';
-    html += '<select id="material-' + entryId + '" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">';
-    html += '<option value="">Select Material</option>';
-    html += '<option value="100WVN">WOVEN - 100WVN</option>';
-    html += '<option value="100FLC">ARCTIC FLEECE (Flat) - 100FLC</option>';
-    html += '<option value="100CRL">CORAL FLEECE (Fluffy) - 100CRL</option>';
-    html += '</select></div>';
-    
-    // J&A Art Number
-    html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">J&A Art Number</label>';
-    html += '<input type="text" id="jaart-' + entryId + '" placeholder="A00..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"></div>';
-    
-    // Vendor Art Number
-    html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">Vendor Art Number</label>';
-    html += '<input type="text" id="vendorart-' + entryId + '" placeholder="Enter Vendor Art Number" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"></div>';
-    
-    // Quantity
-    html += '<div><label style="display: block; font-weight: 600; margin-bottom: 5px;">Quantity *</label>';
-    html += '<input type="number" id="qty-' + entryId + '" value="1" min="1" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"></div>';
-    
-    html += '</div>';
-
-    html += '<div style="font-size: 12px; color: #666; margin-top: 10px; font-style: italic;">* Either J&A Art Number or Vendor Art Number is required</div>';
-    
-    // Comments (full width)
-    html += '<div style="margin-top: 15px;"><label style="display: block; font-weight: 600; margin-bottom: 5px;">Comments</label>';
-    html += '<textarea id="comments-' + entryId + '" rows="2" placeholder="Additional notes..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; resize: vertical; box-sizing: border-box;"></textarea></div>';
-    
-    html += '</div>';
-    
-    $('#customAfghanEntries').append(html);
-}
-
-function removeCustomAfghanEntry(entryId) {
-    if(confirm('Remove this afghan entry?')){
-        $('#' + entryId).remove();
-    }
-}
-
-function collectCustomAfghans() {
-    var customAfghans = [];
-    
-    $('.custom-entry').each(function(){
-        var entryId = $(this).attr('id');
-        var material = $('#material-' + entryId).val();
-        var jaArt = $('#jaart-' + entryId).val().trim();
-        var vendorArt = $('#vendorart-' + entryId).val().trim();
-        var qty = parseInt($('#qty-' + entryId).val());
-        var comments = $('#comments-' + entryId).val().trim();
-        
-        if(material && (jaArt || vendorArt) && qty > 0){
-            customAfghans.push({
-                productName: 'Custom Afghan - ' + material,
-                sku: material,
-                jaArtNumber: jaArt,
-                vendorArtNumber: vendorArt,
-                quantity: qty,
-                comments: comments,
-                size: 'N/A',
-                productType: 'custom-afghan'
-            });
-        }
-    });
-    
-    return customAfghans;
-}
-
-    
+// ==========================================
+// INITIALIZATION
+// ==========================================
 $(document).ready(function(){
     checkAuthentication();
     console.log('Document ready');
     loadAllAfghansData();
     loadFacilityData();
-    $('#searchInput').on('input', function(){ searchTerm = $(this).val().toLowerCase().trim(); filterAndDisplayProducts(); });
+    loadPricingData();
+    
+    // Search functionality
+    $('#searchInput').on('input', function(){ 
+        searchTerm = $(this).val().toLowerCase().trim(); 
+        filterAndDisplayProducts(); 
+    });
+    
+    // Facility ID validation
     $('#facilityId').on('input', function(){
         var fid = $(this).val().trim();
         var $i = $(this);
         var $v = $('#facilityValidation');
         var $l = $('#locationName');
-        if(fid.length === 0){ $i.removeClass('valid invalid'); $v.html('').removeClass('success error'); $l.val(''); }
-        else if(fid.length === 7){
-            if(facilityData[fid]){ $i.removeClass('invalid').addClass('valid'); $v.html('✓ Facility found: ' + facilityData[fid]).removeClass('error').addClass('success'); $l.val(facilityData[fid]); }
-            else { $i.removeClass('valid').addClass('invalid'); $v.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error'); $l.val(''); }
-        } else { $i.removeClass('valid invalid'); $v.html('Enter 7-digit facility ID').removeClass('success error'); $l.val(''); }
+        
+        if(fid.length === 0){ 
+            $i.removeClass('valid invalid'); 
+            $v.html('').removeClass('success error'); 
+            $l.val(''); 
+        } else if(fid.length === 7){
+            if(facilityData[fid]){ 
+                $i.removeClass('invalid').addClass('valid'); 
+                $v.html('✓ Facility found: ' + facilityData[fid]).removeClass('error').addClass('success'); 
+                $l.val(facilityData[fid]); 
+            } else { 
+                $i.removeClass('valid').addClass('invalid'); 
+                $v.html('⚠ WARNING: Facility ID not found in database').removeClass('success').addClass('error'); 
+                $l.val(''); 
+            }
+        } else { 
+            $i.removeClass('valid invalid'); 
+            $v.html('Enter 7-digit facility ID').removeClass('success error'); 
+            $l.val(''); 
+        }
     });
 });
 </script>
