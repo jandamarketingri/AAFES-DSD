@@ -901,10 +901,17 @@ function checkAuthentication() {
         $('#repName').val(auth.name).prop('readonly', true);
         $('#repEmail').val(auth.email).prop('readonly', true);
         
+        // Store original auth data globally for reset
+        window.originalAuthData = auth;
+        
         $('#headerForm').prepend(
-            '<div style="background:#d4edda;border:1px solid #c3e6cb;padding:12px;margin-bottom:15px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">' +
-            '<div><strong>✓ Authenticated:</strong> ' + auth.name + ' (' + auth.email + ')</div>' +
-            '<button onclick="logout()" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">Logout</button>' +
+            '<div class="auth-banner" style="background:#d4edda;border:1px solid #c3e6cb;padding:12px;margin-bottom:15px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;">' +
+            '<div id="authStatus"><strong>✓ Authenticated:</strong> ' + auth.name + ' (' + auth.email + ')</div>' +
+            '<div style="display:flex;gap:8px;">' +
+            '<button onclick="editUserInfo()" class="edit-info-btn" style="background:#2196F3;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">Edit Info</button>' +
+            '<button onclick="resetUserInfo()" class="reset-info-btn" style="background:#FF9800;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;display:none;">Reset</button>' +
+            '<button onclick="logout()" class="logout-btn" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">Logout</button>' +
+            '</div>' +
             '</div>'
         );
         
@@ -915,6 +922,41 @@ function checkAuthentication() {
     }
 }
 
+function editUserInfo() {
+    // Enable editing
+    $('#repName').prop('readonly', false).css('background-color', '#fffacd');
+    $('#repEmail').prop('readonly', false).css('background-color', '#fffacd');
+    
+    // Update banner
+    $('#authStatus').html('<strong>✏️ Editing Mode:</strong> You can temporarily change the name/email for this order');
+    $('.auth-banner').css('background', '#fff3cd').css('border-color', '#ffc107');
+    
+    // Show reset button, hide edit button
+    $('.edit-info-btn').hide();
+    $('.reset-info-btn').show();
+    
+    // Focus on name field
+    $('#repName').focus().select();
+}
+
+function resetUserInfo() {
+    if(!window.originalAuthData){
+        return;
+    }
+    
+    // Restore original values
+    $('#repName').val(window.originalAuthData.name).prop('readonly', true).css('background-color', '');
+    $('#repEmail').val(window.originalAuthData.email).prop('readonly', true).css('background-color', '');
+    
+    // Update banner back to authenticated state
+    $('#authStatus').html('<strong>✓ Authenticated:</strong> ' + window.originalAuthData.name + ' (' + window.originalAuthData.email + ')');
+    $('.auth-banner').css('background', '#d4edda').css('border-color', '#c3e6cb');
+    
+    // Show edit button, hide reset button
+    $('.edit-info-btn').show();
+    $('.reset-info-btn').hide();
+}
+    
 function logout() {
     if(confirm('Are you sure you want to log out?')){
         sessionStorage.removeItem('salesPortalAuth');
