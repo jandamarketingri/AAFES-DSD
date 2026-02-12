@@ -738,8 +738,8 @@ $(document).ready(function(){
     loadFacilityData();
     loadUniversalPricing();
     
-    $('#includeDisplay').prop('disabled', true);
-    $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '0.5');
+    $('#includeDisplay').prop('disabled', false);
+    $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '1');
     
     $('.cart-button').click(function(){ openCart(); });
     $('.close-cart').click(function(){ closeCart(); });
@@ -1134,14 +1134,6 @@ function addToCart(index) {
 function updateCartBadge() {
     var totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     totalItems > 0 ? $('.cart-badge').text(totalItems).show() : $('.cart-badge').hide();
-    
-    if(totalItems >= 72) {
-        $('#includeDisplay').prop('disabled', false);
-        $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '1');
-    } else {
-        $('#includeDisplay').prop('disabled', true).prop('checked', false);
-        $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '0.5');
-    }
 }
 
 function openCart() {
