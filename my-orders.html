@@ -428,7 +428,7 @@ function renderOrders(orders) {
     poOrder.forEach(function (po) {
         var g         = grouped[po];
         var meta      = g.meta;
-        var lineItems = g.items.filter(function (r) { return r.sku && r.sku !== '/C'; });
+        var lineItems = g.items.filter(function (r) { return r.sku && r.sku !== '/C' && r.explodedKit !== 'Y'; });
         var totalQty  = lineItems.reduce(function (s, r) { return s + (parseInt(r.quantity) || 0); }, 0);
 
         var statusClass = g.source === 'active' ? 'status-pending' : 'status-imported';
