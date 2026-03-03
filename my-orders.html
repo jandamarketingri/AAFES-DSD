@@ -15,10 +15,10 @@
             --text-muted: #7a7870;
             --accent: #667eea;
             --accent2: #764ba2;
-            --active-badge: #e8f5e9;
-            --active-text: #2e7d32;
-            --archived-badge: #ede7f6;
-            --archived-text: #5e35b1;
+            --pending-badge: #fff8e1;
+            --pending-text: #e65100;
+            --imported-badge: #e8f5e9;
+            --imported-text: #2e7d32;
             --shadow: 0 2px 12px rgba(0,0,0,0.07);
             --radius: 10px;
         }
@@ -183,10 +183,7 @@
             user-select: none;
         }
         @media (max-width: 760px) {
-            .order-summary {
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
-            }
+            .order-summary { grid-template-columns: 1fr 1fr; gap: 10px; }
         }
 
         .summary-field label {
@@ -217,14 +214,8 @@
             letter-spacing: 0.3px;
             white-space: nowrap;
         }
-        .status-active {
-            background: var(--active-badge);
-            color: var(--active-text);
-        }
-        .status-archived {
-            background: var(--archived-badge);
-            color: var(--archived-text);
-        }
+        .status-pending  { background: var(--pending-badge);  color: var(--pending-text); }
+        .status-imported { background: var(--imported-badge); color: var(--imported-text); }
 
         .expand-btn {
             width: 30px; height: 30px;
@@ -253,7 +244,7 @@
         }
         @keyframes slideDown {
             from { opacity: 0; transform: translateY(-6px); }
-            to { opacity: 1; transform: translateY(0); }
+            to   { opacity: 1; transform: translateY(0); }
         }
         .order-detail.open { display: block; }
 
@@ -274,10 +265,7 @@
             color: var(--text-muted);
             margin-bottom: 2px;
         }
-        .detail-meta-item span {
-            font-size: 13px;
-            font-weight: 500;
-        }
+        .detail-meta-item span { font-size: 13px; font-weight: 500; }
 
         /* ── Line items table ── */
         .items-table {
@@ -313,16 +301,12 @@
             padding-top: 14px;
             border-top: 1px solid var(--border);
         }
-        .total-items {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
+        .total-items { font-size: 13px; color: var(--text-muted); }
         .total-items strong { color: var(--text); }
     </style>
 </head>
 <body>
 
-<!-- ── Header ── -->
 <div class="portal-header">
     <div class="logo-area">
         <img src="logo.png" class="logo" alt="Logo" onerror="this.style.display='none'">
@@ -334,21 +318,19 @@
     </div>
 </div>
 
-<!-- ── Page body ── -->
 <div class="page-body">
     <div class="page-title">My Orders</div>
     <div class="page-subtitle" id="pageSubtitle">Loading your order history…</div>
 
-    <!-- Filter bar -->
     <div class="filter-bar" id="filterBar" style="display:none;">
-        <button class="filter-btn active" data-filter="all" onclick="applyFilter('all', this)">All Orders</button>
-        <button class="filter-btn" data-filter="active" onclick="applyFilter('active', this)">Active</button>
-        <button class="filter-btn" data-filter="archived" onclick="applyFilter('archived', this)">Archived</button>
+        <button class="filter-btn active" data-filter="30"  onclick="applyFilter('30',  this)">Last 30 Days</button>
+        <button class="filter-btn"        data-filter="90"  onclick="applyFilter('90',  this)">Last 90 Days</button>
+        <button class="filter-btn"        data-filter="365" onclick="applyFilter('365', this)">Last Year</button>
+        <button class="filter-btn"        data-filter="all" onclick="applyFilter('all', this)">All Time</button>
         <div class="filter-divider"></div>
         <span class="order-count" id="orderCount"></span>
     </div>
 
-    <!-- Content area -->
     <div id="contentArea">
         <div class="state-box">
             <div class="spinner"></div>
@@ -358,21 +340,15 @@
 </div>
 
 <script>
-// ─────────────────────────────────────────────
-//  CONFIG — replace with your Apps Script URL
-// ─────────────────────────────────────────────
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
+// ── CONFIG — replace with your deployed Apps Script URL ──
+var APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 
 var allOrders = [];
-var currentFilter = 'all';
 
 // ── Auth check ──
 $(document).ready(function () {
     var raw = sessionStorage.getItem('salesPortalAuth');
-    if (!raw) {
-        window.location.href = 'login.html';
-        return;
-    }
+    if (!raw) { window.location.href = 'login.html'; return; }
     try {
         var auth = JSON.parse(raw);
         $('#repBadge').text(auth.name || auth.email);
@@ -392,14 +368,9 @@ function fetchOrders(email) {
         success: function (response) {
             if (response.success) {
                 allOrders = response.orders || [];
-                renderOrders(allOrders);
                 $('#filterBar').show();
-                var total = allOrders.length;
-                $('#pageSubtitle').text(
-                    total === 0
-                        ? 'No orders found for your account.'
-                        : 'Showing orders placed under your account.'
-                );
+                $('#pageSubtitle').text('Showing orders placed under your account.');
+                applyFilter('30', $('.filter-btn[data-filter="30"]')[0]);
             } else {
                 showError(response.message || 'Could not load orders.');
             }
@@ -410,17 +381,20 @@ function fetchOrders(email) {
     });
 }
 
-// ── Filter ──
+// ── Filter by date range ──
 function applyFilter(filter, btn) {
-    currentFilter = filter;
     $('.filter-btn').removeClass('active');
     $(btn).addClass('active');
 
+    var now = new Date();
     var filtered = allOrders.filter(function (o) {
         if (filter === 'all') return true;
-        if (filter === 'active') return o.source === 'active';
-        if (filter === 'archived') return o.source === 'archived';
-        return true;
+        var days = parseInt(filter);
+        if (!o.timestamp) return false;
+        var orderDate = new Date(o.timestamp);
+        if (isNaN(orderDate.getTime())) return false;
+        var cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+        return orderDate >= cutoff;
     });
     renderOrders(filtered);
 }
@@ -429,15 +403,13 @@ function applyFilter(filter, btn) {
 function renderOrders(orders) {
     if (orders.length === 0) {
         $('#contentArea').html(
-            '<div class="state-box"><div class="icon">📋</div><p>No orders found.</p></div>'
+            '<div class="state-box"><div class="icon">📋</div><p>No orders found for this time period.</p></div>'
         );
         $('#orderCount').text('');
         return;
     }
 
-    $('#orderCount').text(orders.length + ' order' + (orders.length !== 1 ? 's' : ''));
-
-    // Group rows by PO number
+    // Group rows by PO number — count of unique POs = true order count
     var grouped = {};
     var poOrder = [];
     orders.forEach(function (row) {
@@ -449,54 +421,52 @@ function renderOrders(orders) {
         grouped[po].items.push(row);
     });
 
+    var poCount = poOrder.length;
+    $('#orderCount').text(poCount + ' order' + (poCount !== 1 ? 's' : ''));
+
     var html = '<div class="orders-list">';
     poOrder.forEach(function (po) {
-        var g = grouped[po];
-        var meta = g.meta;
-        var totalQty = g.items.reduce(function (s, r) {
-            return s + (parseInt(r.quantity) || 0);
-        }, 0);
-        var itemCount = g.items.filter(function (r) {
-            return r.sku && r.sku !== '/C';
-        }).length;
+        var g         = grouped[po];
+        var meta      = g.meta;
+        var lineItems = g.items.filter(function (r) { return r.sku && r.sku !== '/C'; });
+        var totalQty  = lineItems.reduce(function (s, r) { return s + (parseInt(r.quantity) || 0); }, 0);
 
-        var statusClass = g.source === 'active' ? 'status-active' : 'status-archived';
-        var statusLabel = g.source === 'active' ? 'Active' : 'Archived';
+        var statusClass = g.source === 'active' ? 'status-pending' : 'status-imported';
+        var statusLabel = g.source === 'active' ? 'Pending Import' : 'Imported to ERP';
 
         html += '<div class="order-card">';
 
         // Summary row
         html += '<div class="order-summary" onclick="toggleDetail(\'' + escId(po) + '\')">';
         html += '<div class="summary-field"><label>PO Number</label><div class="val mono">' + esc(po) + '</div></div>';
-        html += '<div class="summary-field"><label>Order Date</label><div class="val">' + esc(formatDate(meta.timestamp)) + '</div></div>';
-        html += '<div class="summary-field"><label>Facility</label><div class="val">' + esc(meta.locationName || meta.facilityId || '—') + '</div></div>';
-        html += '<div class="summary-field"><label>Ship Window</label><div class="val">' + esc(formatDate(meta.beginShip)) + ' → ' + esc(formatDate(meta.shipBy)) + '</div></div>';
-        html += '<div class="summary-field"><label>Items / Qty</label><div class="val">' + itemCount + ' SKUs &nbsp;·&nbsp; ' + totalQty + ' units</div></div>';
+        html += '<div class="summary-field"><label>Order Date</label><div class="val">'     + esc(formatDate(meta.timestamp)) + '</div></div>';
+        html += '<div class="summary-field"><label>Facility</label><div class="val">'       + esc(meta.locationName || meta.facilityId || '—') + '</div></div>';
+        html += '<div class="summary-field"><label>Ship Window</label><div class="val">'    + esc(formatDate(meta.beginShip)) + ' → ' + esc(formatDate(meta.shipBy)) + '</div></div>';
+        html += '<div class="summary-field"><label>Items / Qty</label><div class="val">'    + lineItems.length + ' SKUs &nbsp;·&nbsp; ' + totalQty + ' units</div></div>';
         html += '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>';
         html += '<button class="expand-btn" id="btn-' + escId(po) + '">▾</button>';
-        html += '</div>'; // end summary
+        html += '</div>';
 
         // Detail panel
         html += '<div class="order-detail" id="detail-' + escId(po) + '">';
-
-        // Meta row
         html += '<div class="detail-meta">';
-        html += '<div class="detail-meta-item"><label>Rep Name</label><span>' + esc(meta.repName || '—') + '</span></div>';
-        html += '<div class="detail-meta-item"><label>Rep Email</label><span>' + esc(meta.repEmail || '—') + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Rep Name</label><span>'    + esc(meta.repName   || '—') + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Rep Email</label><span>'   + esc(meta.repEmail  || '—') + '</span></div>';
         html += '<div class="detail-meta-item"><label>Facility ID</label><span>' + esc(meta.facilityId || '—') + '</span></div>';
-        html += '<div class="detail-meta-item"><label>Begin Ship</label><span>' + esc(formatDate(meta.beginShip)) + '</span></div>';
-        html += '<div class="detail-meta-item"><label>Ship By</label><span>' + esc(formatDate(meta.shipBy)) + '</span></div>';
-        if (meta.brand) html += '<div class="detail-meta-item"><label>Brand</label><span>' + esc(meta.brand) + '</span></div>';
-        if (g.source === 'archived' && meta.exportDate) {
-            html += '<div class="detail-meta-item"><label>Export Date</label><span>' + esc(formatDate(meta.exportDate)) + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Begin Ship</label><span>'  + esc(formatDate(meta.beginShip)) + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Ship By</label><span>'     + esc(formatDate(meta.shipBy)) + '</span></div>';
+        if (meta.brand) {
+            html += '<div class="detail-meta-item"><label>Brand</label><span>' + esc(meta.brand) + '</span></div>';
         }
-        html += '</div>'; // end detail-meta
+        if (g.source === 'archived' && meta.exportDate) {
+            html += '<div class="detail-meta-item"><label>Imported Date</label><span>' + esc(formatDate(meta.exportDate)) + '</span></div>';
+        }
+        html += '</div>';
 
-        // Line items table
-        var lineItems = g.items.filter(function (r) { return r.sku && r.sku !== '/C'; });
         if (lineItems.length > 0) {
-            html += '<table class="items-table">';
-            html += '<thead><tr><th>SKU</th><th>Description / Comments</th><th>Qty</th><th>Retail Price</th><th>UPC</th></tr></thead><tbody>';
+            html += '<table class="items-table"><thead><tr>';
+            html += '<th>SKU</th><th>Description / Comments</th><th>Qty</th><th>Retail Price</th><th>UPC</th>';
+            html += '</tr></thead><tbody>';
             lineItems.forEach(function (item) {
                 html += '<tr>';
                 html += '<td class="sku-col">' + esc(item.sku) + '</td>';
@@ -511,14 +481,9 @@ function renderOrders(orders) {
             html += '<p style="color:var(--text-muted);font-size:13px;">No line item details available.</p>';
         }
 
-        // Footer
-        var totalQtyFiltered = lineItems.reduce(function (s, r) { return s + (parseInt(r.quantity) || 0); }, 0);
-        html += '<div class="detail-footer">';
-        html += '<span class="total-items"><strong>' + lineItems.length + '</strong> SKU(s) &nbsp;·&nbsp; <strong>' + totalQtyFiltered + '</strong> total units</span>';
-        html += '</div>';
-
-        html += '</div>'; // end detail
-        html += '</div>'; // end card
+        html += '<div class="detail-footer"><span class="total-items"><strong>' + lineItems.length + '</strong> SKU(s) &nbsp;·&nbsp; <strong>' + totalQty + '</strong> total units</span></div>';
+        html += '</div>'; // detail
+        html += '</div>'; // card
     });
     html += '</div>';
 
@@ -528,7 +493,7 @@ function renderOrders(orders) {
 // ── Toggle detail ──
 function toggleDetail(poId) {
     var $detail = $('#detail-' + poId);
-    var $btn = $('#btn-' + poId);
+    var $btn    = $('#btn-'    + poId);
     if ($detail.hasClass('open')) {
         $detail.removeClass('open');
         $btn.removeClass('open');
@@ -540,9 +505,7 @@ function toggleDetail(poId) {
 
 // ── Helpers ──
 function showError(msg) {
-    $('#contentArea').html(
-        '<div class="state-box"><div class="icon">⚠️</div><p>' + esc(msg) + '</p></div>'
-    );
+    $('#contentArea').html('<div class="state-box"><div class="icon">⚠️</div><p>' + esc(msg) + '</p></div>');
     $('#pageSubtitle').text('Something went wrong.');
 }
 
@@ -555,11 +518,7 @@ function formatDate(val) {
 
 function esc(str) {
     if (str === null || str === undefined) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function escId(str) {
