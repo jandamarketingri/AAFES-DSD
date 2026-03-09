@@ -571,6 +571,7 @@
 
 <div class="filter-section">
     <div class="filter-buttons">
+        <button class="filter-btn all-category active" data-filter="all" onclick="loadAllCategories()">All Styles</button>
         <button class="filter-btn men-category active" data-filter="men-basic-tees" onclick="loadCategory('men-basic-tees')">Men's Basic Tees</button>
         <button class="filter-btn men-category" data-filter="men-premium-tees" onclick="loadCategory('men-premium-tees')">Men's Premium Tees</button>
         <button class="filter-btn men-category" data-filter="men-long-sleeve" onclick="loadCategory('men-long-sleeve')">Long-Sleeve</button>
@@ -866,6 +867,79 @@ function loadCategory(category) {
         }
     });
 }
+
+function loadAllCategories() {
+    searchTerm = '';
+    $('#searchInput').val('');
+    $('.filter-btn').removeClass('active');
+    $('[data-filter="all"]').addClass('active');
+    $('#skuContainer').html('<div class="loading">Loading all products...</div>');
+    $('.search-info').text('Loading...');
+
+    var categories = Object.keys(SHEET_CONFIG);
+    var accumulated = [];
+    var loaded = 0;
+
+    categories.forEach(function(category) {
+        var sheetUrl = SHEET_CONFIG[category];
+        $.ajax({
+            url: sheetUrl,
+            method: 'GET',
+            dataType: 'text',
+            success: function(data) {
+                var rows = data.split('\n');
+                for (var i = 1; i < rows.length; i++) {
+                    if (rows[i].trim()) {
+                        var cols = parseCSVRow(rows[i]);
+                        if (cols.length > 0 && cols[0].trim()) {
+                            var productName = cols[0].trim();
+                            if (productName.toUpperCase().startsWith('OUT')) continue;
+
+                            var product = {
+                                name: productName,
+                                description: cols[1] ? cols[1].trim() : '',
+                                images: [cols[2] ? cols[2].trim() : '', cols[3] ? cols[3].trim() : '', cols[4] ? cols[4].trim() : ''].filter(function(img) { return img; }),
+                                category: category,
+                                isCap: category.includes('caps'),
+                                baseSKU: productName,
+                                sizes: {},
+                                keywords: ''
+                            };
+
+                            if (product.isCap) {
+                                product.sizes['OS'] = cols[5] ? cols[5].trim() : '';
+                                product.keywords = cols[6] ? cols[6].trim().toLowerCase() : '';
+                            } else {
+                                if (cols[5] && cols[5].trim()) product.sizes['S'] = cols[5].trim();
+                                if (cols[6] && cols[6].trim()) product.sizes['M'] = cols[6].trim();
+                                if (cols[7] && cols[7].trim()) product.sizes['L'] = cols[7].trim();
+                                if (cols[8] && cols[8].trim()) product.sizes['XL'] = cols[8].trim();
+                                if (cols[9] && cols[9].trim()) product.sizes['2XL'] = cols[9].trim();
+                                if (cols[10] && cols[10].trim()) product.sizes['3XL'] = cols[10].trim();
+                                product.keywords = cols[11] ? cols[11].trim().toLowerCase() : '';
+                            }
+
+                            accumulated.push(product);
+                        }
+                    }
+                }
+            },
+            error: function() {
+                console.warn('Could not load category: ' + category);
+            },
+            complete: function() {
+                loaded++;
+                if (loaded === categories.length) {
+                    // All sheets done — set as the active product pool
+                    allCategoryProducts = accumulated;
+                    currentProducts = accumulated;
+                    filterAndRender();
+                    $('.search-info').text('Showing all ' + currentProducts.length + ' products across all styles');
+                }
+            }
+        });
+    });
+}    
 
 function loadFacilityData() {
     $.ajax({
