@@ -874,18 +874,27 @@ function loadAllCategories() {
     $('.filter-btn').removeClass('active');
     $('[data-filter="all"]').addClass('active');
     $('#skuContainer').html('<div class="loading">Loading all products...</div>');
-    $('.search-info').text('Loading...');
 
     var categories = Object.keys(SHEET_CONFIG);
     var accumulated = [];
     var loaded = 0;
+    var total = categories.length;
+
+    function checkDone() {
+        loaded++;
+        $('.loading').text('Loading all products... (' + loaded + '/' + total + ')');
+        if (loaded === total) {
+            allCategoryProducts = accumulated;
+            filterAndDisplayProducts();
+        }
+    }
 
     categories.forEach(function(category) {
-        var sheetUrl = SHEET_CONFIG[category];
         $.ajax({
-            url: sheetUrl,
+            url: SHEET_CONFIG[category],
             method: 'GET',
             dataType: 'text',
+            timeout: 15000,
             success: function(data) {
                 var rows = data.split('\n');
                 for (var i = 1; i < rows.length; i++) {
@@ -919,27 +928,25 @@ function loadAllCategories() {
                                 product.keywords = cols[11] ? cols[11].trim().toLowerCase() : '';
                             }
 
+                            product.searchText = [
+                                product.name,
+                                product.description,
+                                product.keywords,
+                                Object.values(product.sizes).join(' ')
+                            ].join(' ').toLowerCase();
+
                             accumulated.push(product);
                         }
                     }
                 }
             },
-            error: function() {
-                console.warn('Could not load category: ' + category);
+            error: function(xhr, status, error) {
+                console.warn('Failed to load category: ' + category + ' — ' + status);
             },
-            complete: function() {
-                loaded++;
-                if (loaded === categories.length) {
-                    // All sheets done — set as the active product pool
-                    allCategoryProducts = accumulated;
-                    currentProducts = accumulated;
-                    filterAndRender();
-                    $('.search-info').text('Showing all ' + currentProducts.length + ' products across all styles');
-                }
-            }
+            complete: checkDone
         });
     });
-}    
+}
 
 function loadFacilityData() {
     $.ajax({
