@@ -75,7 +75,7 @@
         }
         .btn-back:hover { background: rgba(255,255,255,0.25); }
 
-        /* Page body */
+        /* Page */
         .page-body { max-width: 1100px; margin: 0 auto; padding: 36px 24px 100px; }
         .page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 6px; }
         .page-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
@@ -130,44 +130,27 @@
 
         .meta-pill { display: flex; flex-direction: column; }
         .meta-pill label {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-            color: var(--text-muted);
-            margin-bottom: 2px;
+            font-size: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.7px;
+            color: var(--text-muted); margin-bottom: 2px;
         }
         .meta-pill .val { font-size: 14px; font-weight: 500; }
         .meta-pill .val.mono { font-family: 'DM Mono', monospace; font-size: 13px; }
 
         .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            white-space: nowrap;
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 12px;
+            font-size: 11px; font-weight: 600; letter-spacing: 0.3px; white-space: nowrap;
         }
         .status-pending   { background: var(--pending-badge);  color: var(--pending-text); }
         .status-submitted { background: var(--submitted-badge); color: var(--submitted-text); }
         .status-partial   { background: var(--partial-badge);  color: var(--partial-text); }
 
         .expand-btn {
-            width: 30px; height: 30px;
-            border-radius: 50%;
-            border: 1.5px solid var(--border);
-            background: var(--bg);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: var(--text-muted);
-            transition: all 0.2s;
-            flex-shrink: 0;
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 1.5px solid var(--border); background: var(--bg);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: var(--text-muted); transition: all 0.2s; flex-shrink: 0;
         }
         .expand-btn:hover { border-color: var(--accent); color: var(--accent); }
         .expand-btn.open  { transform: rotate(180deg); border-color: var(--accent); color: var(--accent); }
@@ -193,149 +176,207 @@
 
         .line-item {
             border: 1.5px solid var(--border);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: border-color 0.2s;
+            border-radius: 8px; overflow: hidden; transition: border-color 0.2s;
         }
         .line-item.is-selected  { border-color: var(--teal); }
+        .line-item.is-over      { border-color: #e53935; }
         .line-item.is-submitted { border-color: #81c784; opacity: 0.82; }
 
         .line-item-header {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            padding: 12px 18px;
-            background: #f7f7f5;
-            flex-wrap: wrap;
+            display: flex; align-items: center; gap: 20px;
+            padding: 12px 18px; background: #f7f7f5; flex-wrap: wrap;
         }
         .li-field { display: flex; flex-direction: column; }
         .li-field label {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--text-muted);
-            margin-bottom: 2px;
+            font-size: 10px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.6px;
+            color: var(--text-muted); margin-bottom: 2px;
         }
-        .li-field span       { font-size: 13px; font-weight: 500; }
-        .li-field span.mono  { font-family: 'DM Mono', monospace; font-size: 12px; }
+        .li-field span      { font-size: 13px; font-weight: 500; }
+        .li-field span.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
         .li-qty-badge {
             margin-left: auto;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border-radius: 20px;
-            padding: 4px 14px;
-            font-size: 13px;
-            font-weight: 600;
-            white-space: nowrap;
+            color: white; border-radius: 20px;
+            padding: 4px 14px; font-size: 13px; font-weight: 600; white-space: nowrap;
         }
 
         /* Selection area */
         .selection-area { padding: 16px 18px; }
         .selection-label {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-            color: var(--text-muted);
-            margin-bottom: 10px;
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.7px;
+            color: var(--text-muted); margin-bottom: 10px;
         }
-        .single-desc {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 10px;
-        }
+        .single-desc { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
 
-        /* Variant & color buttons */
-        .variant-grid, .color-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-
-        .variant-btn, .color-btn {
+        /* Variant buttons */
+        .variant-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+        .variant-btn {
             padding: 8px 16px;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            background: var(--surface);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            color: var(--text);
+            border: 2px solid var(--border); border-radius: 8px;
+            background: var(--surface); font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text);
             transition: all 0.18s;
         }
-        .variant-btn:hover, .color-btn:hover { border-color: var(--accent); color: var(--accent); }
-        .variant-btn.selected, .color-btn.selected {
-            border-color: var(--teal);
-            background: var(--teal-light);
-            color: var(--teal);
-            font-weight: 600;
+        .variant-btn:hover   { border-color: var(--accent); color: var(--accent); }
+        .variant-btn.selected {
+            border-color: var(--teal); background: var(--teal-light);
+            color: var(--teal); font-weight: 600;
         }
 
-        /* Step 2 hidden until variant chosen */
-        .color-step         { display: none; margin-top: 14px; }
+        /* Color qty grid */
+        .color-step         { display: none; margin-top: 16px; }
         .color-step.visible { display: block; }
 
         .step-divider {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-            color: var(--text-muted);
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.7px;
+            color: var(--text-muted); margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
         }
         .step-divider::before, .step-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border);
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        .color-qty-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: flex-end;
+            margin-bottom: 12px;
+        }
+        .color-qty-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            min-width: 80px;
+        }
+        .color-qty-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            text-align: center;
+            line-height: 1.3;
+        }
+        .color-qty-input {
+            width: 72px;
+            padding: 8px 6px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            text-align: center;
+            font-family: 'DM Mono', monospace;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            background: var(--surface);
+            transition: border-color 0.18s, background 0.18s;
+            -moz-appearance: textfield;
+        }
+        .color-qty-input::-webkit-inner-spin-button,
+        .color-qty-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+        .color-qty-input:focus  { outline: none; border-color: var(--accent); }
+        .color-qty-input.has-qty {
+            border-color: var(--teal);
+            background: var(--teal-light);
+            color: var(--teal);
+        }
+
+        /* Allocation tally */
+        .alloc-tally {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            background: #f3f3f0;
+            border: 1.5px solid var(--border);
+            transition: all 0.2s;
+        }
+        .alloc-tally.exact  { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
+        .alloc-tally.over   { background: #ffebee; border-color: #e53935; color: #c62828; }
+        .alloc-tally.under  { color: var(--text-muted); }
+        .alloc-tally .check { font-size: 14px; }
+
+        /* Art number */
+        .art-number-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .art-number-label {
+            font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.7px;
+            color: var(--text-muted); white-space: nowrap;
+        }
+        .art-number-input {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-family: 'DM Mono', monospace;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+            background: var(--surface);
+            width: 200px;
+            transition: border-color 0.18s;
+        }
+        .art-number-input:focus  { outline: none; border-color: var(--accent); }
+        .art-number-input.has-art { border-color: var(--teal); background: var(--teal-light); }
+        .art-number-input.invalid { border-color: #e53935; background: #ffebee; }
+        .art-hint {
+            font-size: 12px; color: var(--text-muted);
+            font-family: 'DM Mono', monospace;
         }
 
         /* Submitted display */
         .submitted-display {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
             background: var(--submitted-badge);
             border-radius: 6px;
+            padding: 12px 14px;
             font-size: 13px;
             color: var(--submitted-text);
+        }
+        .submitted-display .sub-header {
+            font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+        }
+        .submitted-breakdown {
+            display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;
+        }
+        .sub-chip {
+            background: white;
+            border: 1px solid #a5d6a7;
+            border-radius: 12px;
+            padding: 3px 10px;
+            font-size: 12px;
             font-weight: 500;
+            color: var(--submitted-text);
         }
 
         /* Submit bar */
         .submit-bar {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: white;
-            border-top: 1px solid var(--border);
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; border-top: 1px solid var(--border);
             padding: 14px 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
-            z-index: 50;
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 50;
         }
         .submit-bar-info { font-size: 13px; color: var(--text-muted); }
         .submit-bar-info strong { color: var(--text); }
         .btn-submit {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 32px;
-            border-radius: 8px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s;
-            white-space: nowrap;
+            color: white; border: none; padding: 12px 32px;
+            border-radius: 8px; font-family: 'DM Sans', sans-serif;
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s; white-space: nowrap;
         }
         .btn-submit:hover    { opacity: 0.92; transform: translateY(-1px); }
-        .btn-submit:disabled { opacity: 0.4;  cursor: not-allowed; transform: none; }
+        .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
         @media (max-width: 600px) {
             .submit-bar { flex-direction: column; align-items: stretch; }
@@ -376,29 +417,30 @@
 // ── CONFIG ───────────────────────────────────────────────────────────────────
 var ORDERS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7uNYew2smPQWTZRff7v-70y1jrRYViSu-buckNngS2m16e3GoqUuueaEQqsTn09PmoyGQOvleYBpG/pub?gid=0&single=true&output=csv';
 var CATALOG_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVJhbWNNbNFEAmApy98mjMJpJeb30LVAIrFoEkVkNeCFa5QRFQj0WsKI9IdWr-Cx1c-6EdS7v_SfP4/pub?output=csv';
-var SUBMISSION_URL  = 'YOUR_APPS_SCRIPT_URL_HERE'; // ← Replace with your Apps Script URL
+var SUBMISSION_URL  = 'YOUR_APPS_SCRIPT_URL_HERE'; // ← Replace with your Apps Script URL when ready
 
 // ── Column indices (0-based) ──────────────────────────────────────────────────
 var COL = {
-    salesOrderNo:      0,  // A
-    orderDate:         1,  // B
-    salespersonEmail:  3,  // D
-    salespersonName:   4,  // E
-    shipToName:        5,  // F
-    requestedDelivery: 7,  // H
-    quantityOrdered:   10, // K
-    unitPrice:         11, // L
-    upc:               12, // M
-    retailPrice:       13  // N
+    salesOrderNo:      0,   // A
+    orderDate:         1,   // B
+    salespersonEmail:  3,   // D
+    salespersonName:   4,   // E
+    shipToName:        5,   // F
+    requestedDelivery: 7,   // H
+    quantityOrdered:   10,  // K
+    unitPrice:         11,  // L
+    upc:               12,  // M
+    retailPrice:       13   // N
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
 var repEmail      = '';
 var repName       = '';
-var ordersGrouped = {};   // salesOrderNo → { meta, lines[] }
+var ordersGrouped = {};  // salesOrderNo → { meta, lines[] }
 var orderKeys     = [];
-var catalogData   = {};   // upc → [ { crc, sku, description, colors[] }, … ]
-var selections    = {};   // lineKey → { variantIndex?, color?, submitted? }
+var catalogData   = {};  // upc → [ { crc, sku, description, colors[] }, … ]
+// selections[lineKey] = { variantIndex?, colorQtys: { colorName: qty }, artNumber?, submitted? }
+var selections    = {};
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 $(document).ready(function () {
@@ -410,19 +452,16 @@ $(document).ready(function () {
         repName  = auth.name || repEmail;
         $('#repBadge').text(repName);
         loadData();
-    } catch (e) {
-        window.location.href = 'login.html';
-    }
+    } catch (e) { window.location.href = 'login.html'; }
 });
 
-// ── Load both CSVs ────────────────────────────────────────────────────────────
+// ── Load both CSVs in parallel ────────────────────────────────────────────────
 function loadData() {
     var done = 0;
     function tick() { if (++done === 2) renderAll(); }
-
     $.ajax({ url: ORDERS_CSV_URL,  method: 'GET', dataType: 'text',
         success: function (csv) { parseOrders(csv);  tick(); },
-        error:   function ()    { showError('Could not load orders sheet. Please try again.'); }
+        error:   function ()    { showError('Could not load orders. Please try again.'); }
     });
     $.ajax({ url: CATALOG_CSV_URL, method: 'GET', dataType: 'text',
         success: function (csv) { parseCatalog(csv); tick(); },
@@ -430,18 +469,16 @@ function loadData() {
     });
 }
 
-// ── Parse orders ──────────────────────────────────────────────────────────────
+// ── Parse orders CSV ──────────────────────────────────────────────────────────
 function parseOrders(csv) {
     var rows = csv.split('\n');
     ordersGrouped = {};
     orderKeys     = [];
-
     for (var i = 1; i < rows.length; i++) {
         if (!rows[i].trim()) continue;
         var cols  = parseCSVRow(rows[i]);
         var email = (cols[COL.salespersonEmail] || '').toLowerCase().trim();
         if (email !== repEmail) continue;
-
         var row = {
             salesOrderNo:      col(cols, COL.salesOrderNo),
             orderDate:         col(cols, COL.orderDate),
@@ -454,17 +491,13 @@ function parseOrders(csv) {
             upc:               col(cols, COL.upc),
             retailPrice:       col(cols, COL.retailPrice)
         };
-
         var so = row.salesOrderNo;
-        if (!ordersGrouped[so]) {
-            ordersGrouped[so] = { meta: row, lines: [] };
-            orderKeys.push(so);
-        }
+        if (!ordersGrouped[so]) { ordersGrouped[so] = { meta: row, lines: [] }; orderKeys.push(so); }
         ordersGrouped[so].lines.push(row);
     }
 }
 
-// ── Parse catalog ─────────────────────────────────────────────────────────────
+// ── Parse catalog CSV ─────────────────────────────────────────────────────────
 function parseCatalog(csv) {
     var rows = csv.split('\n');
     catalogData = {};
@@ -473,40 +506,28 @@ function parseCatalog(csv) {
         var cols = parseCSVRow(rows[i]);
         var upc  = (cols[0] || '').trim();
         if (!upc) continue;
-
-        // Colors start at column E (index 4) and continue until empty
         var colors = [];
         for (var c = 4; c < cols.length; c++) {
             var color = (cols[c] || '').trim();
             if (color) colors.push(color);
         }
-
         if (!catalogData[upc]) catalogData[upc] = [];
         catalogData[upc].push({
-            crc:         (cols[1] || '').trim(),
-            sku:         (cols[2] || '').trim(),
-            description: (cols[3] || '').trim(),
-            colors:      colors
+            crc: (cols[1] || '').trim(), sku: (cols[2] || '').trim(),
+            description: (cols[3] || '').trim(), colors: colors
         });
     }
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
 function renderAll() {
-    $('#pageSubtitle').text('Select colors and styles for each item below, then submit when ready.');
-
+    $('#pageSubtitle').text('Enter quantities by color for each item, then submit when ready.');
     if (orderKeys.length === 0) {
-        $('#contentArea').html(
-            '<div class="state-box"><div class="icon">☕</div>' +
-            '<p>No drinkware orders are currently assigned to your account.</p></div>'
-        );
+        $('#contentArea').html('<div class="state-box"><div class="icon">☕</div><p>No drinkware orders are currently assigned to your account.</p></div>');
         return;
     }
-
-    // Restore saved selections from this session
     var saved = sessionStorage.getItem('drinkwareSelections_' + repEmail);
     if (saved) { try { selections = JSON.parse(saved); } catch(e) {} }
-
     rebuildPage();
 }
 
@@ -518,66 +539,61 @@ function rebuildPage() {
     updateSubmitBar();
 }
 
+// ── Helpers: check if a line has any allocation entered ───────────────────────
+function totalAllocated(sel) {
+    if (!sel || !sel.colorQtys) return 0;
+    return Object.values(sel.colorQtys).reduce(function (s, v) { return s + (parseInt(v) || 0); }, 0);
+}
+function lineIsReady(sel) {
+    if (!sel || sel.submitted) return false;
+    if (totalAllocated(sel) <= 0) return false;
+    var art = (sel.artNumber || '').trim();
+    return /^.+_[A-Za-z]{2}$/.test(art);
+}
+
 // ── Order card ────────────────────────────────────────────────────────────────
 function buildOrderCard(so) {
-    var g     = ordersGrouped[so];
-    var meta  = g.meta;
-    var lines = g.lines;
-    var total = lines.length;
-
-    var selectedCount  = 0;
-    var submittedCount = 0;
+    var g = ordersGrouped[so], meta = g.meta, lines = g.lines, total = lines.length;
+    var readyCount = 0, submittedCount = 0;
     lines.forEach(function (l, idx) {
         var s = selections[lk(so, idx)] || {};
-        if (s.submitted)        submittedCount++;
-        else if (s.color)       selectedCount++;
+        if (s.submitted) submittedCount++;
+        else if (lineIsReady(s)) readyCount++;
     });
-
-    var readyCount = selectedCount + submittedCount; // for progress bar
-    var pct        = total > 0 ? Math.round((readyCount / total) * 100) : 0;
+    var doneCount = readyCount + submittedCount;
+    var pct       = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
     var statusClass, statusLabel;
     if (submittedCount === total) {
         statusClass = 'status-submitted'; statusLabel = '✓ All Submitted';
-    } else if (submittedCount > 0 && selectedCount === 0) {
-        statusClass = 'status-partial'; statusLabel = submittedCount + '/' + total + ' Submitted';
-    } else if (readyCount > 0) {
-        statusClass = 'status-partial'; statusLabel = readyCount + '/' + total + ' Ready';
+    } else if (doneCount > 0) {
+        statusClass = 'status-partial';
+        statusLabel = (submittedCount > 0)
+            ? submittedCount + ' submitted, ' + readyCount + ' ready'
+            : doneCount + '/' + total + ' Ready';
     } else {
         statusClass = 'status-pending'; statusLabel = 'Needs Selection';
     }
 
     var soId = escId(so);
-    var html = '<div class="order-card" id="card-' + soId + '">';
-
-    // Clickable header
+    var html  = '<div class="order-card" id="card-' + soId + '">';
     html += '<div class="order-header" onclick="toggleOrder(\'' + soId + '\')">';
     html += '<div class="order-header-left">';
     html += pill('Sales Order', so, true);
-    html += pill('Order Date',  formatDate(meta.orderDate), false);
-    html += pill('Ship To',     meta.shipToName || '—', false);
+    html += pill('Order Date', formatDate(meta.orderDate), false);
+    html += pill('Ship To', meta.shipToName || '—', false);
     html += pill('Req. Delivery', formatDate(meta.requestedDelivery), false);
     html += pill('Lines', total + ' item' + (total !== 1 ? 's' : ''), false);
     html += '</div>';
     html += '<div class="order-header-right">';
     html += '<span class="status-badge ' + statusClass + '" id="badge-' + soId + '">' + statusLabel + '</span>';
     html += '<button class="expand-btn" id="ebtn-' + soId + '">▾</button>';
-    html += '</div>';
-    html += '</div>';
-
-    // Progress bar
-    html += '<div class="progress-bar-wrap">';
-    html += '<div class="progress-bar-fill" id="prog-' + soId + '" style="width:' + pct + '%"></div>';
-    html += '</div>';
-
-    // Expandable body
+    html += '</div></div>';
+    html += '<div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-' + soId + '" style="width:' + pct + '%"></div></div>';
     html += '<div class="order-body" id="body-' + soId + '">';
     html += '<div class="line-items">';
     lines.forEach(function (line, idx) { html += buildLineItem(so, line, idx); });
-    html += '</div>';
-    html += '</div>';
-
-    html += '</div>';
+    html += '</div></div></div>';
     return html;
 }
 
@@ -585,44 +601,51 @@ function pill(label, val, mono) {
     return '<div class="meta-pill"><label>' + esc(label) + '</label><div class="val' + (mono ? ' mono' : '') + '">' + esc(val) + '</div></div>';
 }
 
-// ── Line item ──────────────────────────────────────────────────────────────────
+// ── Line item ─────────────────────────────────────────────────────────────────
 function buildLineItem(so, line, idx) {
     var key     = lk(so, idx);
     var sel     = selections[key] || {};
     var upc     = line.upc;
     var catalog = catalogData[upc] || [];
-    var qty     = line.quantityOrdered || '—';
+    var qty     = parseInt(line.quantityOrdered) || 0;
     var retail  = line.retailPrice ? '$' + fmtMoney(line.retailPrice) : '—';
     var cost    = line.unitPrice   ? '$' + fmtMoney(line.unitPrice)   : '—';
-
-    var cardCls = sel.submitted ? 'line-item is-submitted' :
-                  (sel.color    ? 'line-item is-selected'  : 'line-item');
     var keyId   = escId(key);
 
-    var html = '<div class="' + cardCls + '" id="li-' + keyId + '">';
+    var alloced  = totalAllocated(sel);
+    var cardCls  = sel.submitted ? 'line-item is-submitted'
+                 : (alloced > qty ? 'line-item is-over'
+                 : (alloced > 0  ? 'line-item is-selected' : 'line-item'));
 
-    // Header row
+    var html = '<div class="' + cardCls + '" id="li-' + keyId + '">';
     html += '<div class="line-item-header">';
     html += '<div class="li-field"><label>UPC</label><span class="mono">' + esc(upc) + '</span></div>';
     html += '<div class="li-field"><label>Retail</label><span>' + esc(retail) + '</span></div>';
     html += '<div class="li-field"><label>Cost</label><span>' + esc(cost) + '</span></div>';
-    html += '<div class="li-qty-badge">Qty: ' + esc(qty) + '</div>';
+    html += '<div class="li-qty-badge">Order Qty: ' + esc(qty || line.quantityOrdered || '—') + '</div>';
     html += '</div>';
 
-    // Selection area
     html += '<div class="selection-area">';
 
     if (catalog.length === 0) {
         html += '<div style="color:var(--text-muted);font-size:13px;padding:6px 0;">⚠ UPC ' + esc(upc) + ' not found in product catalog. Contact your administrator.</div>';
 
     } else if (sel.submitted) {
-        // Already submitted — show summary
+        // Show submitted breakdown
         var vIdx  = sel.variantIndex !== undefined ? sel.variantIndex : 0;
         var vDesc = catalog[vIdx] ? catalog[vIdx].description : '';
-        html += '<div class="submitted-display">✓ Submitted: <strong>' + esc(vDesc) + ' — ' + esc(sel.color || '') + '</strong></div>';
+        var chips = '';
+        var cqtys = sel.colorQtys || {};
+        Object.keys(cqtys).forEach(function (c) {
+            if (parseInt(cqtys[c]) > 0) chips += '<span class="sub-chip">' + esc(c) + ': ' + esc(cqtys[c]) + '</span>';
+        });
+        html += '<div class="submitted-display">';
+        html += '<div class="sub-header">✓ Submitted — ' + esc(vDesc) + ' &nbsp;·&nbsp; Art: ' + esc(sel.artNumber || '—') + '</div>';
+        html += '<div class="submitted-breakdown">' + chips + '</div>';
+        html += '</div>';
 
     } else if (catalog.length > 1) {
-        // Multi-variant: step 1 = style, step 2 = color
+        // Step 1: pick style
         html += '<div class="selection-label">Step 1 — Choose Style</div>';
         html += '<div class="variant-grid">';
         catalog.forEach(function (v, vIdx) {
@@ -631,76 +654,140 @@ function buildLineItem(so, line, idx) {
         });
         html += '</div>';
 
-        // Color step — visible only after variant chosen
+        // Step 2: color qtys + art number — visible after variant chosen
         var variantPicked = sel.variantIndex !== undefined;
-        var colors        = variantPicked ? (catalog[sel.variantIndex] || {colors:[]}).colors : [];
+        var colors = variantPicked ? (catalog[sel.variantIndex] || {colors:[]}).colors : [];
         html += '<div class="color-step' + (variantPicked ? ' visible' : '') + '" id="colorstep-' + keyId + '">';
-        html += '<div class="step-divider">Step 2 — Choose Color</div>';
-        html += '<div class="color-grid" id="colorgrid-' + keyId + '">';
-        colors.forEach(function (color) {
-            var cls = sel.color === color ? ' selected' : '';
-            html += '<button class="color-btn' + cls + '" onclick="selectColor(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',\'' + escAttr(color) + '\')">' + esc(color) + '</button>';
-        });
-        html += '</div></div>';
+        html += '<div class="step-divider">Step 2 — Enter Quantities by Color</div>';
+        html += buildColorQtyGrid(keyId, so, idx, colors, sel.colorQtys || {}, qty);
+        html += buildArtNumberInput(keyId, so, idx, sel.artNumber || '');
+        html += '</div>';
 
     } else {
-        // Single variant — just pick color
+        // Single variant — go straight to colors + art number
         html += '<div class="single-desc">' + esc(catalog[0].description) + '</div>';
-        html += '<div class="selection-label">Choose Color</div>';
-        html += '<div class="color-grid">';
-        catalog[0].colors.forEach(function (color) {
-            var cls = sel.color === color ? ' selected' : '';
-            html += '<button class="color-btn' + cls + '" onclick="selectColor(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',\'' + escAttr(color) + '\')">' + esc(color) + '</button>';
-        });
-        html += '</div>';
+        html += '<div class="selection-label">Enter Quantities by Color</div>';
+        html += buildColorQtyGrid(keyId, so, idx, catalog[0].colors, sel.colorQtys || {}, qty);
+        html += buildArtNumberInput(keyId, so, idx, sel.artNumber || '');
     }
 
     html += '</div></div>';
     return html;
 }
 
-// ── Interaction ───────────────────────────────────────────────────────────────
-function selectVariant(keyId, so, idx, vIdx) {
-    var key     = lkFromId(keyId);
+// ── Build art number input ────────────────────────────────────────────────────
+function buildArtNumberInput(keyId, so, idx, currentVal) {
+    var hasCls  = currentVal ? ' has-art' : '';
+    var isValid = /^.+_[A-Za-z]{2}$/.test(currentVal);
+    if (currentVal && !isValid) hasCls = ' invalid';
+    return '<div class="art-number-row" style="margin-top:12px;">'
+        + '<span class="art-number-label">Art Number</span>'
+        + '<input type="text" class="art-number-input' + hasCls + '" id="art-' + keyId + '"'
+        + ' value="' + esc(currentVal) + '" placeholder="e.g. MYART_AB"'
+        + ' oninput="onArtInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',this.value)">'
+        + '<span class="art-hint">must end with _XX</span>'
+        + '</div>';
+}
+
+
+function buildColorQtyGrid(keyId, so, idx, colors, colorQtys, orderedQty) {
+    var allocated = Object.values(colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var tallyClass = allocated === 0 ? 'under' : (allocated === orderedQty ? 'exact' : (allocated > orderedQty ? 'over' : 'under'));
+    var tallyIcon  = allocated === orderedQty && orderedQty > 0 ? '<span class="check">✓</span> ' : '';
+
+    var html = '<div class="color-qty-grid" id="cqgrid-' + keyId + '">';
+    colors.forEach(function (color) {
+        var cId  = 'cq-' + keyId + '-' + escId(color);
+        var qVal = parseInt(colorQtys[color]) || 0;
+        var hasCls = qVal > 0 ? ' has-qty' : '';
+        html += '<div class="color-qty-item">';
+        html += '<div class="color-qty-label">' + esc(color) + '</div>';
+        html += '<input type="number" class="color-qty-input' + hasCls + '" id="' + cId + '"'
+              + ' value="' + qVal + '" min="0" placeholder="0"'
+              + ' oninput="onQtyInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',\'' + escAttr(color) + '\',this.value)">';
+        html += '</div>';
+    });
+    html += '</div>';
+    html += '<div class="alloc-tally ' + tallyClass + '" id="tally-' + keyId + '">'
+          + tallyIcon + '<span id="tally-num-' + keyId + '">' + allocated + '</span> / ' + orderedQty + ' allocated</div>';
+    return html;
+}
+
+// ── Interaction: art number input ─────────────────────────────────────────────
+function onArtInput(keyId, so, idx, val) {
+    var key = lkFromId(keyId);
     if (!selections[key]) selections[key] = {};
-    // Clear color if switching variant
+    selections[key].artNumber = val.trim();
+    saveSelections();
+
+    var $input  = $('#art-' + keyId);
+    var isValid = /^.+_[A-Za-z]{2}$/.test(val.trim());
+    $input.removeClass('has-art invalid');
+    if (val.trim() === '')   { /* no class */ }
+    else if (isValid)        { $input.addClass('has-art'); }
+    else                     { $input.addClass('invalid'); }
+
+    updateSubmitBar();
+}
+
+// ── Interaction: variant ──────────────────────────────────────────────────────
+function selectVariant(keyId, so, idx, vIdx) {
+    var key = lkFromId(keyId);
+    if (!selections[key]) selections[key] = {};
     if (selections[key].variantIndex !== vIdx) {
         selections[key].variantIndex = vIdx;
-        delete selections[key].color;
-    } else {
-        selections[key].variantIndex = vIdx;
+        selections[key].colorQtys   = {};  // reset color qtys when switching variant
     }
     saveSelections();
 
-    // Highlight selected variant button
     $('#li-' + keyId + ' .variant-btn').removeClass('selected').each(function (i) {
         if (i === vIdx) $(this).addClass('selected');
     });
 
-    // Populate and show color step
+    // Rebuild color qty grid + art number for the chosen variant
     var upc     = ordersGrouped[so].lines[idx].upc;
     var catalog = catalogData[upc] || [];
     var colors  = catalog[vIdx] ? catalog[vIdx].colors : [];
-    var colorHtml = '';
-    colors.forEach(function (color) {
-        colorHtml += '<button class="color-btn" onclick="selectColor(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',\'' + escAttr(color) + '\')">' + esc(color) + '</button>';
-    });
-    $('#colorgrid-' + keyId).html(colorHtml);
-    $('#colorstep-' + keyId).addClass('visible');
+    var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
+    var artVal  = (selections[lkFromId(keyId)] || {}).artNumber || '';
+    $('#colorstep-' + keyId).html(
+        '<div class="step-divider">Step 2 — Enter Quantities by Color</div>'
+        + buildColorQtyGrid(keyId, so, idx, colors, {}, qty)
+        + buildArtNumberInput(keyId, so, idx, artVal)
+    ).addClass('visible');
+
     refreshOrderStatus(so);
 }
 
-function selectColor(keyId, so, idx, color) {
+// ── Interaction: qty input ────────────────────────────────────────────────────
+function onQtyInput(keyId, so, idx, color, rawVal) {
     var key = lkFromId(keyId);
-    if (!selections[key]) selections[key] = {};
-    selections[key].color = color;
+    if (!selections[key])           selections[key]           = {};
+    if (!selections[key].colorQtys) selections[key].colorQtys = {};
+
+    var val = parseInt(rawVal) || 0;
+    if (val < 0) val = 0;
+    selections[key].colorQtys[color] = val;
     saveSelections();
 
-    // Highlight selected color button
-    $('#li-' + keyId + ' .color-btn').each(function () {
-        $(this).toggleClass('selected', $(this).text().trim() === color);
-    });
-    $('#li-' + keyId).addClass('is-selected').removeClass('is-submitted');
+    // Update input styling
+    var cId = '#cq-' + keyId + '-' + escId(color);
+    $(cId).toggleClass('has-qty', val > 0);
+
+    // Update tally
+    var orderedQty = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
+    var allocated  = totalAllocated(selections[key]);
+    var tallyClass = allocated === 0 ? 'under' : (allocated === orderedQty ? 'exact' : (allocated > orderedQty ? 'over' : 'under'));
+    var tallyIcon  = (allocated === orderedQty && orderedQty > 0) ? '✓ ' : '';
+    $('#tally-' + keyId)
+        .attr('class', 'alloc-tally ' + tallyClass)
+        .html(tallyIcon + '<span id="tally-num-' + keyId + '">' + allocated + '</span> / ' + orderedQty + ' allocated');
+
+    // Update card border
+    var $li = $('#li-' + keyId);
+    $li.removeClass('is-selected is-over');
+    if (allocated > orderedQty) $li.addClass('is-over');
+    else if (allocated > 0)     $li.addClass('is-selected');
 
     refreshOrderStatus(so);
     updateSubmitBar();
@@ -711,63 +798,56 @@ function toggleOrder(soId) {
     $('#ebtn-' + soId).toggleClass('open');
 }
 
-// ── Refresh a single order's badge + progress bar ─────────────────────────────
+// ── Refresh order badge + progress ───────────────────────────────────────────
 function refreshOrderStatus(so) {
-    var lines          = ordersGrouped[so].lines;
-    var total          = lines.length;
-    var selectedCount  = 0;
-    var submittedCount = 0;
+    var lines = ordersGrouped[so].lines, total = lines.length;
+    var readyCount = 0, submittedCount = 0;
     lines.forEach(function (l, idx) {
         var s = selections[lk(so, idx)] || {};
         if (s.submitted) submittedCount++;
-        else if (s.color) selectedCount++;
+        else if (lineIsReady(s)) readyCount++;
     });
-
-    var readyCount = selectedCount + submittedCount;
-    var pct        = total > 0 ? Math.round((readyCount / total) * 100) : 0;
-    var soId       = escId(so);
-
+    var doneCount = readyCount + submittedCount;
+    var pct       = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+    var soId      = escId(so);
     $('#prog-' + soId).css('width', pct + '%');
 
     var statusClass, statusLabel;
     if (submittedCount === total) {
         statusClass = 'status-submitted'; statusLabel = '✓ All Submitted';
-    } else if (submittedCount > 0 && selectedCount === 0) {
-        statusClass = 'status-partial'; statusLabel = submittedCount + '/' + total + ' Submitted';
-    } else if (readyCount > 0) {
-        statusClass = 'status-partial'; statusLabel = readyCount + '/' + total + ' Ready';
+    } else if (doneCount > 0) {
+        statusClass = 'status-partial';
+        statusLabel = (submittedCount > 0)
+            ? submittedCount + ' submitted, ' + readyCount + ' ready'
+            : doneCount + '/' + total + ' Ready';
     } else {
         statusClass = 'status-pending'; statusLabel = 'Needs Selection';
     }
     $('#badge-' + soId).attr('class', 'status-badge ' + statusClass).text(statusLabel);
 }
 
-// ── Submit bar ─────────────────────────────────────────────────────────────────
+// ── Submit bar ────────────────────────────────────────────────────────────────
 function updateSubmitBar() {
-    var pendingTotal   = 0;
-    var selectedCount  = 0;
-
+    var pendingTotal = 0, readyCount = 0;
     orderKeys.forEach(function (so) {
         ordersGrouped[so].lines.forEach(function (l, idx) {
             var s = selections[lk(so, idx)] || {};
             if (!s.submitted) {
                 pendingTotal++;
-                if (s.color) selectedCount++;
+                if (lineIsReady(s)) readyCount++;
             }
         });
     });
-
     if (pendingTotal === 0) { $('#submitBar').hide(); return; }
-
     $('#submitBar').show();
     $('#submitBarInfo').html(
-        '<strong>' + selectedCount + '</strong> of <strong>' + pendingTotal +
-        '</strong> pending line' + (pendingTotal !== 1 ? 's' : '') + ' have a selection'
+        '<strong>' + readyCount + '</strong> of <strong>' + pendingTotal +
+        '</strong> pending line' + (pendingTotal !== 1 ? 's' : '') + ' have quantities entered'
     );
-    $('#submitBtn').prop('disabled', selectedCount === 0);
+    $('#submitBtn').prop('disabled', readyCount === 0);
 }
 
-// ── Submit ─────────────────────────────────────────────────────────────────────
+// ── Submit ────────────────────────────────────────────────────────────────────
 function submitSelections() {
     if (SUBMISSION_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
         alert('⚠ Submission endpoint not yet configured.\n\nReplace SUBMISSION_URL in drinkware-orders.html with your Apps Script URL to enable submissions.');
@@ -780,28 +860,36 @@ function submitSelections() {
         g.lines.forEach(function (line, idx) {
             var key = lk(so, idx);
             var sel = selections[key] || {};
-            if (!sel.color || sel.submitted) return;
+            if (sel.submitted || !lineIsReady(sel)) return;
 
             var upc     = line.upc;
             var catalog = catalogData[upc] || [];
-            var vIdx    = (sel.variantIndex !== undefined) ? sel.variantIndex : 0;
+            var vIdx    = sel.variantIndex !== undefined ? sel.variantIndex : 0;
             var variant = catalog[vIdx] || {};
 
-            payload.push({
-                salesOrderNo:      so,
-                orderDate:         g.meta.orderDate,
-                shipToName:        g.meta.shipToName,
-                requestedDelivery: g.meta.requestedDelivery,
-                repEmail:          repEmail,
-                repName:           repName,
-                upc:               upc,
-                quantityOrdered:   line.quantityOrdered,
-                unitPrice:         line.unitPrice,
-                retailPrice:       line.retailPrice,
-                selectedSKU:       variant.sku   || '',
-                selectedCRC:       variant.crc   || '',
-                selectedDesc:      variant.description || '',
-                selectedColor:     sel.color
+            // Build one payload row per color that has a qty > 0
+            var cqtys = sel.colorQtys || {};
+            Object.keys(cqtys).forEach(function (color) {
+                var qty = parseInt(cqtys[color]) || 0;
+                if (qty <= 0) return;
+                payload.push({
+                    salesOrderNo:      so,
+                    orderDate:         g.meta.orderDate,
+                    shipToName:        g.meta.shipToName,
+                    requestedDelivery: g.meta.requestedDelivery,
+                    repEmail:          repEmail,
+                    repName:           repName,
+                    upc:               upc,
+                    totalQtyOrdered:   line.quantityOrdered,
+                    unitPrice:         line.unitPrice,
+                    retailPrice:       line.retailPrice,
+                    selectedSKU:       variant.sku         || '',
+                    selectedCRC:       variant.crc         || '',
+                    selectedDesc:      variant.description || '',
+                    artNumber:         sel.artNumber       || '',
+                    selectedColor:     color,
+                    colorQty:          qty
+                });
             });
         });
     });
@@ -810,40 +898,38 @@ function submitSelections() {
 
     $('#submitBtn').prop('disabled', true).text('Submitting…');
 
-    // POST via hidden form so it works cross-origin with Apps Script
     var form = $('<form>', { method: 'POST', action: SUBMISSION_URL, target: '_blank', style: 'display:none;' });
     form.append($('<input>', { type: 'hidden', name: 'data', value: JSON.stringify(payload) }));
     $('body').append(form);
     form.submit();
     setTimeout(function () { form.remove(); }, 1000);
 
-    // Mark as submitted in local state
+    // Mark submitted
     orderKeys.forEach(function (so) {
         ordersGrouped[so].lines.forEach(function (l, idx) {
             var key = lk(so, idx);
             var sel = selections[key] || {};
-            if (sel.color && !sel.submitted) sel.submitted = true;
+            if (!sel.submitted && lineIsReady(sel)) sel.submitted = true;
         });
     });
     saveSelections();
-
-    // Rebuild to show submitted state
     rebuildPage();
-    alert('✅ ' + payload.length + ' selection' + (payload.length !== 1 ? 's' : '') + ' submitted successfully!');
+
+    var lineCount = orderKeys.reduce(function(s, so) {
+        return s + ordersGrouped[so].lines.filter(function(l,idx){ return (selections[lk(so,idx)]||{}).submitted; }).length;
+    }, 0);
+    alert('✅ Submitted ' + payload.length + ' color/qty row' + (payload.length !== 1 ? 's' : '') + ' across your selections!');
 }
 
-// ── Persistence ────────────────────────────────────────────────────────────────
+// ── Persistence ───────────────────────────────────────────────────────────────
 function saveSelections() {
     sessionStorage.setItem('drinkwareSelections_' + repEmail, JSON.stringify(selections));
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
-// Line key: stable identifier per order+line index
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function lk(so, idx)      { return escId(so) + '__' + idx; }
-function lkFromId(keyId)  { return keyId; }  // keyId IS the lk
-
-function col(cols, i) { return (cols[i] || '').trim(); }
-
+function lkFromId(keyId)  { return keyId; }
+function col(cols, i)     { return (cols[i] || '').trim(); }
 function fmtMoney(val) {
     var n = parseFloat(String(val).replace(/[^0-9.-]/g, ''));
     return isNaN(n) ? val : n.toFixed(2);
@@ -868,8 +954,8 @@ function esc(str) {
     return String(str == null ? '' : str)
         .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-function escAttr(str) { return String(str || '').replace(/'/g,"\\'"); }
-function escId(str)   { return String(str).replace(/[^a-zA-Z0-9]/g,'_'); }
+function escAttr(str) { return String(str || '').replace(/'/g, "\\'"); }
+function escId(str)   { return String(str).replace(/[^a-zA-Z0-9]/g, '_'); }
 function showError(msg) {
     $('#contentArea').html('<div class="state-box"><div class="icon">⚠️</div><p>' + esc(msg) + '</p></div>');
     $('#pageSubtitle').text('Something went wrong.');
