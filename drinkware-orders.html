@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Drinkware Orders - Sales Portal</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f5f4f0;
+            --surface: #ffffff;
+            --border: #e2e0d8;
+            --text: #1a1a18;
+            --text-muted: #7a7870;
+            --accent: #667eea;
+            --accent2: #764ba2;
+            --pending-badge: #fff8e1;
+            --pending-text: #e65100;
+            --submitted-badge: #e8f5e9;
+            --submitted-text: #2e7d32;
+            --partial-badge: #e3f2fd;
+            --partial-text: #1565c0;
+            --teal: #00897b;
+            --teal-light: #e0f2f1;
+            --shadow: 0 2px 12px rgba(0,0,0,0.07);
+            --radius: 10px;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .portal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 16px rgba(102,126,234,0.3);
+        }
+        .portal-header .logo-area { display: flex; align-items: center; gap: 14px; }
+        .portal-header img.logo { max-height: 38px; max-width: 120px; object-fit: contain; }
+        .portal-header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+        .header-right { display: flex; align-items: center; gap: 18px; }
+        .rep-badge {
+            background: rgba(255,255,255,0.18);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            padding: 5px 14px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .btn-back {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.35);
+            color: white;
+            padding: 7px 16px;
+            border-radius: 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.25); }
+
+        /* Page body */
+        .page-body { max-width: 1100px; margin: 0 auto; padding: 36px 24px 100px; }
+        .page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .page-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
+
+        /* State boxes */
+        .state-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 60px 20px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .state-box .icon { font-size: 40px; margin-bottom: 14px; }
+        .state-box p { font-size: 15px; }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 14px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Order cards */
+        .orders-list { display: flex; flex-direction: column; gap: 16px; }
+
+        .order-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: box-shadow 0.2s;
+        }
+        .order-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+
+        .order-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 22px;
+            cursor: pointer;
+            user-select: none;
+            background: #fafaf8;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .order-header-left  { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .order-header-right { display: flex; align-items: center; gap: 12px; }
+
+        .meta-pill { display: flex; flex-direction: column; }
+        .meta-pill label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        .meta-pill .val { font-size: 14px; font-weight: 500; }
+        .meta-pill .val.mono { font-family: 'DM Mono', monospace; font-size: 13px; }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .status-pending   { background: var(--pending-badge);  color: var(--pending-text); }
+        .status-submitted { background: var(--submitted-badge); color: var(--submitted-text); }
+        .status-partial   { background: var(--partial-badge);  color: var(--partial-text); }
+
+        .expand-btn {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: var(--bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .expand-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .expand-btn.open  { transform: rotate(180deg); border-color: var(--accent); color: var(--accent); }
+
+        /* Progress bar */
+        .progress-bar-wrap { height: 3px; background: var(--border); overflow: hidden; }
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.4s ease;
+        }
+
+        /* Order body */
+        .order-body { display: none; padding: 22px; }
+        .order-body.open { display: block; animation: slideDown 0.2s ease; }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Line items */
+        .line-items { display: flex; flex-direction: column; gap: 14px; }
+
+        .line-item {
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: border-color 0.2s;
+        }
+        .line-item.is-selected  { border-color: var(--teal); }
+        .line-item.is-submitted { border-color: #81c784; opacity: 0.82; }
+
+        .line-item-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 12px 18px;
+            background: #f7f7f5;
+            flex-wrap: wrap;
+        }
+        .li-field { display: flex; flex-direction: column; }
+        .li-field label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+        }
+        .li-field span       { font-size: 13px; font-weight: 500; }
+        .li-field span.mono  { font-family: 'DM Mono', monospace; font-size: 12px; }
+        .li-qty-badge {
+            margin-left: auto;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Selection area */
+        .selection-area { padding: 16px 18px; }
+        .selection-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+        .single-desc {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 10px;
+        }
+
+        /* Variant & color buttons */
+        .variant-grid, .color-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+        .variant-btn, .color-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text);
+            transition: all 0.18s;
+        }
+        .variant-btn:hover, .color-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .variant-btn.selected, .color-btn.selected {
+            border-color: var(--teal);
+            background: var(--teal-light);
+            color: var(--teal);
+            font-weight: 600;
+        }
+
+        /* Step 2 hidden until variant chosen */
+        .color-step         { display: none; margin-top: 14px; }
+        .color-step.visible { display: block; }
+
+        .step-divider {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .step-divider::before, .step-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Submitted display */
+        .submitted-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--submitted-badge);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--submitted-text);
+            font-weight: 500;
+        }
+
+        /* Submit bar */
+        .submit-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: white;
+            border-top: 1px solid var(--border);
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+            z-index: 50;
+        }
+        .submit-bar-info { font-size: 13px; color: var(--text-muted); }
+        .submit-bar-info strong { color: var(--text); }
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            white-space: nowrap;
+        }
+        .btn-submit:hover    { opacity: 0.92; transform: translateY(-1px); }
+        .btn-submit:disabled { opacity: 0.4;  cursor: not-allowed; transform: none; }
+
+        @media (max-width: 600px) {
+            .submit-bar { flex-direction: column; align-items: stretch; }
+            .order-header-left { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="portal-header">
+    <div class="logo-area">
+        <img src="logo.png" class="logo" alt="Logo" onerror="this.style.display='none'">
+        <h1>Sales Portal</h1>
+    </div>
+    <div class="header-right">
+        <span class="rep-badge" id="repBadge">Loading…</span>
+        <a href="index.html" class="btn-back">← Back to Portal</a>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="page-title">☕ Drinkware Orders</div>
+    <div class="page-subtitle" id="pageSubtitle">Loading your pending drinkware selections…</div>
+    <div id="contentArea">
+        <div class="state-box">
+            <div class="spinner"></div>
+            <p>Fetching orders and product catalog…</p>
+        </div>
+    </div>
+</div>
+
+<div class="submit-bar" id="submitBar" style="display:none;">
+    <div class="submit-bar-info" id="submitBarInfo"></div>
+    <button class="btn-submit" id="submitBtn" onclick="submitSelections()">Submit Selections</button>
+</div>
+
+<script>
+// ── CONFIG ───────────────────────────────────────────────────────────────────
+var ORDERS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7uNYew2smPQWTZRff7v-70y1jrRYViSu-buckNngS2m16e3GoqUuueaEQqsTn09PmoyGQOvleYBpG/pub?gid=0&single=true&output=csv';
+var CATALOG_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVJhbWNNbNFEAmApy98mjMJpJeb30LVAIrFoEkVkNeCFa5QRFQj0WsKI9IdWr-Cx1c-6EdS7v_SfP4/pub?output=csv';
+var SUBMISSION_URL  = 'YOUR_APPS_SCRIPT_URL_HERE'; // ← Replace with your Apps Script URL
+
+// ── Column indices (0-based) ──────────────────────────────────────────────────
+var COL = {
+    salesOrderNo:      0,  // A
+    orderDate:         1,  // B
+    salespersonEmail:  3,  // D
+    salespersonName:   4,  // E
+    shipToName:        5,  // F
+    requestedDelivery: 7,  // H
+    quantityOrdered:   10, // K
+    unitPrice:         11, // L
+    upc:               12, // M
+    retailPrice:       13  // N
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+var repEmail      = '';
+var repName       = '';
+var ordersGrouped = {};   // salesOrderNo → { meta, lines[] }
+var orderKeys     = [];
+var catalogData   = {};   // upc → [ { crc, sku, description, colors[] }, … ]
+var selections    = {};   // lineKey → { variantIndex?, color?, submitted? }
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+$(document).ready(function () {
+    var raw = sessionStorage.getItem('salesPortalAuth');
+    if (!raw) { window.location.href = 'login.html'; return; }
+    try {
+        var auth = JSON.parse(raw);
+        repEmail = (auth.email || '').toLowerCase().trim();
+        repName  = auth.name || repEmail;
+        $('#repBadge').text(repName);
+        loadData();
+    } catch (e) {
+        window.location.href = 'login.html';
+    }
+});
+
+// ── Load both CSVs ────────────────────────────────────────────────────────────
+function loadData() {
+    var done = 0;
+    function tick() { if (++done === 2) renderAll(); }
+
+    $.ajax({ url: ORDERS_CSV_URL,  method: 'GET', dataType: 'text',
+        success: function (csv) { parseOrders(csv);  tick(); },
+        error:   function ()    { showError('Could not load orders sheet. Please try again.'); }
+    });
+    $.ajax({ url: CATALOG_CSV_URL, method: 'GET', dataType: 'text',
+        success: function (csv) { parseCatalog(csv); tick(); },
+        error:   function ()    { showError('Could not load product catalog. Please try again.'); }
+    });
+}
+
+// ── Parse orders ──────────────────────────────────────────────────────────────
+function parseOrders(csv) {
+    var rows = csv.split('\n');
+    ordersGrouped = {};
+    orderKeys     = [];
+
+    for (var i = 1; i < rows.length; i++) {
+        if (!rows[i].trim()) continue;
+        var cols  = parseCSVRow(rows[i]);
+        var email = (cols[COL.salespersonEmail] || '').toLowerCase().trim();
+        if (email !== repEmail) continue;
+
+        var row = {
+            salesOrderNo:      col(cols, COL.salesOrderNo),
+            orderDate:         col(cols, COL.orderDate),
+            salespersonEmail:  email,
+            salespersonName:   col(cols, COL.salespersonName),
+            shipToName:        col(cols, COL.shipToName),
+            requestedDelivery: col(cols, COL.requestedDelivery),
+            quantityOrdered:   col(cols, COL.quantityOrdered),
+            unitPrice:         col(cols, COL.unitPrice),
+            upc:               col(cols, COL.upc),
+            retailPrice:       col(cols, COL.retailPrice)
+        };
+
+        var so = row.salesOrderNo;
+        if (!ordersGrouped[so]) {
+            ordersGrouped[so] = { meta: row, lines: [] };
+            orderKeys.push(so);
+        }
+        ordersGrouped[so].lines.push(row);
+    }
+}
+
+// ── Parse catalog ─────────────────────────────────────────────────────────────
+function parseCatalog(csv) {
+    var rows = csv.split('\n');
+    catalogData = {};
+    for (var i = 1; i < rows.length; i++) {
+        if (!rows[i].trim()) continue;
+        var cols = parseCSVRow(rows[i]);
+        var upc  = (cols[0] || '').trim();
+        if (!upc) continue;
+
+        // Colors start at column E (index 4) and continue until empty
+        var colors = [];
+        for (var c = 4; c < cols.length; c++) {
+            var color = (cols[c] || '').trim();
+            if (color) colors.push(color);
+        }
+
+        if (!catalogData[upc]) catalogData[upc] = [];
+        catalogData[upc].push({
+            crc:         (cols[1] || '').trim(),
+            sku:         (cols[2] || '').trim(),
+            description: (cols[3] || '').trim(),
+            colors:      colors
+        });
+    }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderAll() {
+    $('#pageSubtitle').text('Select colors and styles for each item below, then submit when ready.');
+
+    if (orderKeys.length === 0) {
+        $('#contentArea').html(
+            '<div class="state-box"><div class="icon">☕</div>' +
+            '<p>No drinkware orders are currently assigned to your account.</p></div>'
+        );
+        return;
+    }
+
+    // Restore saved selections from this session
+    var saved = sessionStorage.getItem('drinkwareSelections_' + repEmail);
+    if (saved) { try { selections = JSON.parse(saved); } catch(e) {} }
+
+    rebuildPage();
+}
+
+function rebuildPage() {
+    var html = '<div class="orders-list">';
+    orderKeys.forEach(function (so) { html += buildOrderCard(so); });
+    html += '</div>';
+    $('#contentArea').html(html);
+    updateSubmitBar();
+}
+
+// ── Order card ────────────────────────────────────────────────────────────────
+function buildOrderCard(so) {
+    var g     = ordersGrouped[so];
+    var meta  = g.meta;
+    var lines = g.lines;
+    var total = lines.length;
+
+    var selectedCount  = 0;
+    var submittedCount = 0;
+    lines.forEach(function (l, idx) {
+        var s = selections[lk(so, idx)] || {};
+        if (s.submitted)        submittedCount++;
+        else if (s.color)       selectedCount++;
+    });
+
+    var readyCount = selectedCount + submittedCount; // for progress bar
+    var pct        = total > 0 ? Math.round((readyCount / total) * 100) : 0;
+
+    var statusClass, statusLabel;
+    if (submittedCount === total) {
+        statusClass = 'status-submitted'; statusLabel = '✓ All Submitted';
+    } else if (submittedCount > 0 && selectedCount === 0) {
+        statusClass = 'status-partial'; statusLabel = submittedCount + '/' + total + ' Submitted';
+    } else if (readyCount > 0) {
+        statusClass = 'status-partial'; statusLabel = readyCount + '/' + total + ' Ready';
+    } else {
+        statusClass = 'status-pending'; statusLabel = 'Needs Selection';
+    }
+
+    var soId = escId(so);
+    var html = '<div class="order-card" id="card-' + soId + '">';
+
+    // Clickable header
+    html += '<div class="order-header" onclick="toggleOrder(\'' + soId + '\')">';
+    html += '<div class="order-header-left">';
+    html += pill('Sales Order', so, true);
+    html += pill('Order Date',  formatDate(meta.orderDate), false);
+    html += pill('Ship To',     meta.shipToName || '—', false);
+    html += pill('Req. Delivery', formatDate(meta.requestedDelivery), false);
+    html += pill('Lines', total + ' item' + (total !== 1 ? 's' : ''), false);
+    html += '</div>';
+    html += '<div class="order-header-right">';
+    html += '<span class="status-badge ' + statusClass + '" id="badge-' + soId + '">' + statusLabel + '</span>';
+    html += '<button class="expand-btn" id="ebtn-' + soId + '">▾</button>';
+    html += '</div>';
+    html += '</div>';
+
+    // Progress bar
+    html += '<div class="progress-bar-wrap">';
+    html += '<div class="progress-bar-fill" id="prog-' + soId + '" style="width:' + pct + '%"></div>';
+    html += '</div>';
+
+    // Expandable body
+    html += '<div class="order-body" id="body-' + soId + '">';
+    html += '<div class="line-items">';
+    lines.forEach(function (line, idx) { html += buildLineItem(so, line, idx); });
+    html += '</div>';
+    html += '</div>';
+
+    html += '</div>';
+    return html;
+}
+
+function pill(label, val, mono) {
+    return '<div class="meta-pill"><label>' + esc(label) + '</label><div class="val' + (mono ? ' mono' : '') + '">' + esc(val) + '</div></div>';
+}
+
+// ── Line item ──────────────────────────────────────────────────────────────────
+function buildLineItem(so, line, idx) {
+    var key     = lk(so, idx);
+    var sel     = selections[key] || {};
+    var upc     = line.upc;
+    var catalog = catalogData[upc] || [];
+    var qty     = line.quantityOrdered || '—';
+    var retail  = line.retailPrice ? '$' + fmtMoney(line.retailPrice) : '—';
+    var cost    = line.unitPrice   ? '$' + fmtMoney(line.unitPrice)   : '—';
+
+    var cardCls = sel.submitted ? 'line-item is-submitted' :
+                  (sel.color    ? 'line-item is-selected'  : 'line-item');
+    var keyId   = escId(key);
+
+    var html = '<div class="' + cardCls + '" id="li-' + keyId + '">';
+
+    // Header row
+    html += '<div class="line-item-header">';
+    html += '<div class="li-field"><label>UPC</label><span class="mono">' + esc(upc) + '</span></div>';
+    html += '<div class="li-field"><label>Retail</label><span>' + esc(retail) + '</span></div>';
+    html += '<div class="li-field"><label>Cost</label><span>' + esc(cost) + '</span></div>';
+    html += '<div class="li-qty-badge">Qty: ' + esc(qty) + '</div>';
+    html += '</div>';
+
+    // Selection area
+    html += '<div class="selection-area">';
+
+    if (catalog.length === 0) {
+        html += '<div style="color:var(--text-muted);font-size:13px;padding:6px 0;">⚠ UPC ' + esc(upc) + ' not found in product catalog. Contact your administrator.</div>';
+
+    } else if (sel.submitted) {
+        // Already submitted — show summary
+        var vIdx  = sel.variantIndex !== undefined ? sel.variantIndex : 0;
+        var vDesc = catalog[vIdx] ? catalog[vIdx].description : '';
+        html += '<div class="submitted-display">✓ Submitted: <strong>' + esc(vDesc) + ' — ' + esc(sel.color || '') + '</strong></div>';
+
+    } else if (catalog.length > 1) {
+        // Multi-variant: step 1 = style, step 2 = color
+        html += '<div class="selection-label">Step 1 — Choose Style</div>';
+        html += '<div class="variant-grid">';
+        catalog.forEach(function (v, vIdx) {
+            var cls = sel.variantIndex === vIdx ? ' selected' : '';
+            html += '<button class="variant-btn' + cls + '" onclick="selectVariant(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + vIdx + ')">' + esc(v.description) + '</button>';
+        });
+        html += '</div>';
+
+        // Color step — visible only after variant chosen
+        var variantPicked = sel.variantIndex !== undefined;
+        var colors        = variantPicked ? (catalog[sel.variantIndex] || {colors:[]}).colors : [];
+        html += '<div class="color-step' + (variantPicked ? ' visible' : '') + '" id="colorstep-' + keyId + '">';
+        html += '<div class="step-divider">Step 2 — Choose Color</div>';
+        html += '<div class="color-grid" id="colorgrid-' + keyId + '">';
+        colors.forEach(function (color) {
+            var cls = sel.color === color ? ' selected' : '';
+            html += '<button class="color-btn' + cls + '" onclick="selectColor(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',\'' + escAttr(color) + '\')">' + esc(color) + '</button>';
+        });
+        html += '</div></div>';
+
+    } else {
+        // Single variant — just pick color
+        html += '<div class="single-desc">' + esc(catalog[0].description) + '</div>';
+        html += '<div class="selection-label">Choose Color</div>';
+        html += '<div class="color-grid">';
+        catalog[0].colors.forEach(function (color) {
+            var cls = sel.color === color ? ' selected' : '';
+            html += '<button class="color-btn' + cls + '" onclick="selectColor(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',\'' + escAttr(color) + '\')">' + esc(color) + '</button>';
+        });
+        html += '</div>';
+    }
+
+    html += '</div></div>';
+    return html;
+}
+
+// ── Interaction ───────────────────────────────────────────────────────────────
+function selectVariant(keyId, so, idx, vIdx) {
+    var key     = lkFromId(keyId);
+    if (!selections[key]) selections[key] = {};
+    // Clear color if switching variant
+    if (selections[key].variantIndex !== vIdx) {
+        selections[key].variantIndex = vIdx;
+        delete selections[key].color;
+    } else {
+        selections[key].variantIndex = vIdx;
+    }
+    saveSelections();
+
+    // Highlight selected variant button
+    $('#li-' + keyId + ' .variant-btn').removeClass('selected').each(function (i) {
+        if (i === vIdx) $(this).addClass('selected');
+    });
+
+    // Populate and show color step
+    var upc     = ordersGrouped[so].lines[idx].upc;
+    var catalog = catalogData[upc] || [];
+    var colors  = catalog[vIdx] ? catalog[vIdx].colors : [];
+    var colorHtml = '';
+    colors.forEach(function (color) {
+        colorHtml += '<button class="color-btn" onclick="selectColor(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',\'' + escAttr(color) + '\')">' + esc(color) + '</button>';
+    });
+    $('#colorgrid-' + keyId).html(colorHtml);
+    $('#colorstep-' + keyId).addClass('visible');
+    refreshOrderStatus(so);
+}
+
+function selectColor(keyId, so, idx, color) {
+    var key = lkFromId(keyId);
+    if (!selections[key]) selections[key] = {};
+    selections[key].color = color;
+    saveSelections();
+
+    // Highlight selected color button
+    $('#li-' + keyId + ' .color-btn').each(function () {
+        $(this).toggleClass('selected', $(this).text().trim() === color);
+    });
+    $('#li-' + keyId).addClass('is-selected').removeClass('is-submitted');
+
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+
+function toggleOrder(soId) {
+    $('#body-' + soId).toggleClass('open');
+    $('#ebtn-' + soId).toggleClass('open');
+}
+
+// ── Refresh a single order's badge + progress bar ─────────────────────────────
+function refreshOrderStatus(so) {
+    var lines          = ordersGrouped[so].lines;
+    var total          = lines.length;
+    var selectedCount  = 0;
+    var submittedCount = 0;
+    lines.forEach(function (l, idx) {
+        var s = selections[lk(so, idx)] || {};
+        if (s.submitted) submittedCount++;
+        else if (s.color) selectedCount++;
+    });
+
+    var readyCount = selectedCount + submittedCount;
+    var pct        = total > 0 ? Math.round((readyCount / total) * 100) : 0;
+    var soId       = escId(so);
+
+    $('#prog-' + soId).css('width', pct + '%');
+
+    var statusClass, statusLabel;
+    if (submittedCount === total) {
+        statusClass = 'status-submitted'; statusLabel = '✓ All Submitted';
+    } else if (submittedCount > 0 && selectedCount === 0) {
+        statusClass = 'status-partial'; statusLabel = submittedCount + '/' + total + ' Submitted';
+    } else if (readyCount > 0) {
+        statusClass = 'status-partial'; statusLabel = readyCount + '/' + total + ' Ready';
+    } else {
+        statusClass = 'status-pending'; statusLabel = 'Needs Selection';
+    }
+    $('#badge-' + soId).attr('class', 'status-badge ' + statusClass).text(statusLabel);
+}
+
+// ── Submit bar ─────────────────────────────────────────────────────────────────
+function updateSubmitBar() {
+    var pendingTotal   = 0;
+    var selectedCount  = 0;
+
+    orderKeys.forEach(function (so) {
+        ordersGrouped[so].lines.forEach(function (l, idx) {
+            var s = selections[lk(so, idx)] || {};
+            if (!s.submitted) {
+                pendingTotal++;
+                if (s.color) selectedCount++;
+            }
+        });
+    });
+
+    if (pendingTotal === 0) { $('#submitBar').hide(); return; }
+
+    $('#submitBar').show();
+    $('#submitBarInfo').html(
+        '<strong>' + selectedCount + '</strong> of <strong>' + pendingTotal +
+        '</strong> pending line' + (pendingTotal !== 1 ? 's' : '') + ' have a selection'
+    );
+    $('#submitBtn').prop('disabled', selectedCount === 0);
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────────────
+function submitSelections() {
+    if (SUBMISSION_URL === 'YOUR_APPS_SCRIPT_URL_HERE') {
+        alert('⚠ Submission endpoint not yet configured.\n\nReplace SUBMISSION_URL in drinkware-orders.html with your Apps Script URL to enable submissions.');
+        return;
+    }
+
+    var payload = [];
+    orderKeys.forEach(function (so) {
+        var g = ordersGrouped[so];
+        g.lines.forEach(function (line, idx) {
+            var key = lk(so, idx);
+            var sel = selections[key] || {};
+            if (!sel.color || sel.submitted) return;
+
+            var upc     = line.upc;
+            var catalog = catalogData[upc] || [];
+            var vIdx    = (sel.variantIndex !== undefined) ? sel.variantIndex : 0;
+            var variant = catalog[vIdx] || {};
+
+            payload.push({
+                salesOrderNo:      so,
+                orderDate:         g.meta.orderDate,
+                shipToName:        g.meta.shipToName,
+                requestedDelivery: g.meta.requestedDelivery,
+                repEmail:          repEmail,
+                repName:           repName,
+                upc:               upc,
+                quantityOrdered:   line.quantityOrdered,
+                unitPrice:         line.unitPrice,
+                retailPrice:       line.retailPrice,
+                selectedSKU:       variant.sku   || '',
+                selectedCRC:       variant.crc   || '',
+                selectedDesc:      variant.description || '',
+                selectedColor:     sel.color
+            });
+        });
+    });
+
+    if (payload.length === 0) { alert('No new selections to submit.'); return; }
+
+    $('#submitBtn').prop('disabled', true).text('Submitting…');
+
+    // POST via hidden form so it works cross-origin with Apps Script
+    var form = $('<form>', { method: 'POST', action: SUBMISSION_URL, target: '_blank', style: 'display:none;' });
+    form.append($('<input>', { type: 'hidden', name: 'data', value: JSON.stringify(payload) }));
+    $('body').append(form);
+    form.submit();
+    setTimeout(function () { form.remove(); }, 1000);
+
+    // Mark as submitted in local state
+    orderKeys.forEach(function (so) {
+        ordersGrouped[so].lines.forEach(function (l, idx) {
+            var key = lk(so, idx);
+            var sel = selections[key] || {};
+            if (sel.color && !sel.submitted) sel.submitted = true;
+        });
+    });
+    saveSelections();
+
+    // Rebuild to show submitted state
+    rebuildPage();
+    alert('✅ ' + payload.length + ' selection' + (payload.length !== 1 ? 's' : '') + ' submitted successfully!');
+}
+
+// ── Persistence ────────────────────────────────────────────────────────────────
+function saveSelections() {
+    sessionStorage.setItem('drinkwareSelections_' + repEmail, JSON.stringify(selections));
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+// Line key: stable identifier per order+line index
+function lk(so, idx)      { return escId(so) + '__' + idx; }
+function lkFromId(keyId)  { return keyId; }  // keyId IS the lk
+
+function col(cols, i) { return (cols[i] || '').trim(); }
+
+function fmtMoney(val) {
+    var n = parseFloat(String(val).replace(/[^0-9.-]/g, ''));
+    return isNaN(n) ? val : n.toFixed(2);
+}
+function formatDate(val) {
+    if (!val) return '—';
+    var d = new Date(val);
+    return isNaN(d.getTime()) ? val : (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+}
+function parseCSVRow(row) {
+    var cols = [], cur = '', inQ = false;
+    for (var i = 0; i < row.length; i++) {
+        var ch = row[i];
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+        else { cur += ch; }
+    }
+    cols.push(cur.trim());
+    return cols;
+}
+function esc(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(str) { return String(str || '').replace(/'/g,"\\'"); }
+function escId(str)   { return String(str).replace(/[^a-zA-Z0-9]/g,'_'); }
+function showError(msg) {
+    $('#contentArea').html('<div class="state-box"><div class="icon">⚠️</div><p>' + esc(msg) + '</p></div>');
+    $('#pageSubtitle').text('Something went wrong.');
+}
+</script>
+</body>
+</html>
