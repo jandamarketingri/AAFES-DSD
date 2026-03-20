@@ -27,114 +27,75 @@
             --radius: 10px;
         }
 
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-        }
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-        /* Header */
+        /* ── Header ── */
         .portal-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 0 32px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 64px;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            color: white; padding: 0 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 64px; position: sticky; top: 0; z-index: 100;
             box-shadow: 0 2px 16px rgba(102,126,234,0.3);
         }
         .portal-header .logo-area { display: flex; align-items: center; gap: 14px; }
-        .portal-header img.logo { max-height: 38px; max-width: 120px; object-fit: contain; }
-        .portal-header h1 { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
-        .header-right { display: flex; align-items: center; gap: 18px; }
+        .portal-header img.logo   { max-height: 38px; max-width: 120px; object-fit: contain; }
+        .portal-header h1         { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+        .header-right             { display: flex; align-items: center; gap: 18px; }
         .rep-badge {
-            background: rgba(255,255,255,0.18);
-            border: 1px solid rgba(255,255,255,0.3);
-            border-radius: 20px;
-            padding: 5px 14px;
-            font-size: 13px;
-            font-weight: 500;
+            background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px; padding: 5px 14px; font-size: 13px; font-weight: 500;
         }
         .btn-back {
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.35);
-            color: white;
-            padding: 7px 16px;
-            border-radius: 6px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            text-decoration: none;
-            transition: background 0.2s;
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35);
+            color: white; padding: 7px 16px; border-radius: 6px;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+            cursor: pointer; text-decoration: none; transition: background 0.2s;
         }
         .btn-back:hover { background: rgba(255,255,255,0.25); }
 
-        /* Page */
+        /* ── Page ── */
         .page-body { max-width: 1100px; margin: 0 auto; padding: 36px 24px 100px; }
-        .page-title { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .page-title    { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 6px; }
         .page-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
 
-        /* State boxes */
+        /* ── State boxes ── */
         .state-box {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 60px 20px;
-            text-align: center;
-            color: var(--text-muted);
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 60px 20px;
+            text-align: center; color: var(--text-muted);
         }
         .state-box .icon { font-size: 40px; margin-bottom: 14px; }
         .state-box p { font-size: 15px; }
         .spinner {
-            width: 36px; height: 36px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 14px;
+            width: 36px; height: 36px; border: 3px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 0 auto 14px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Order cards */
+        /* ── Order cards ── */
         .orders-list { display: flex; flex-direction: column; gap: 16px; }
-
         .order-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: box-shadow 0.2s;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); overflow: hidden;
+            box-shadow: var(--shadow); transition: box-shadow 0.2s;
         }
         .order-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
 
         .order-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 22px;
-            cursor: pointer;
-            user-select: none;
-            background: #fafaf8;
-            flex-wrap: wrap;
-            gap: 12px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 22px; cursor: pointer; user-select: none;
+            background: #fafaf8; flex-wrap: wrap; gap: 12px;
         }
         .order-header-left  { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
         .order-header-right { display: flex; align-items: center; gap: 12px; }
 
         .meta-pill { display: flex; flex-direction: column; }
         .meta-pill label {
-            font-size: 10px; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 0.7px;
-            color: var(--text-muted); margin-bottom: 2px;
+            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 2px;
         }
-        .meta-pill .val { font-size: 14px; font-weight: 500; }
+        .meta-pill .val      { font-size: 14px; font-weight: 500; }
         .meta-pill .val.mono { font-family: 'DM Mono', monospace; font-size: 13px; }
 
         .status-badge {
@@ -155,15 +116,14 @@
         .expand-btn:hover { border-color: var(--accent); color: var(--accent); }
         .expand-btn.open  { transform: rotate(180deg); border-color: var(--accent); color: var(--accent); }
 
-        /* Progress bar */
+        /* ── Progress bar ── */
         .progress-bar-wrap { height: 3px; background: var(--border); overflow: hidden; }
         .progress-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%; background: linear-gradient(90deg, #667eea, #764ba2);
             transition: width 0.4s ease;
         }
 
-        /* Order body */
+        /* ── Order body ── */
         .order-body { display: none; padding: 22px; }
         .order-body.open { display: block; animation: slideDown 0.2s ease; }
         @keyframes slideDown {
@@ -171,14 +131,14 @@
             to   { opacity: 1; transform: translateY(0); }
         }
 
-        /* Line items */
+        /* ── Line items ── */
         .line-items { display: flex; flex-direction: column; gap: 14px; }
 
         .line-item {
-            border: 1.5px solid var(--border);
-            border-radius: 8px; overflow: hidden; transition: border-color 0.2s;
+            border: 1.5px solid var(--border); border-radius: 8px;
+            overflow: hidden; transition: border-color 0.2s;
         }
-        .line-item.is-selected  { border-color: var(--teal); }
+        .line-item.is-ready     { border-color: var(--teal); }
         .line-item.is-over      { border-color: #e53935; }
         .line-item.is-submitted { border-color: #81c784; opacity: 0.82; }
 
@@ -188,9 +148,8 @@
         }
         .li-field { display: flex; flex-direction: column; }
         .li-field label {
-            font-size: 10px; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 0.6px;
-            color: var(--text-muted); margin-bottom: 2px;
+            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 2px;
         }
         .li-field span      { font-size: 13px; font-weight: 500; }
         .li-field span.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
@@ -201,179 +160,159 @@
             padding: 4px 14px; font-size: 13px; font-weight: 600; white-space: nowrap;
         }
 
-        /* Selection area */
+        /* ── Selection area ── */
         .selection-area { padding: 16px 18px; }
         .selection-label {
-            font-size: 11px; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 0.7px;
-            color: var(--text-muted); margin-bottom: 10px;
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 10px;
         }
         .single-desc { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
 
-        /* Variant buttons */
+        /* ── Variant buttons ── */
         .variant-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
         .variant-btn {
-            padding: 8px 16px;
-            border: 2px solid var(--border); border-radius: 8px;
+            padding: 8px 16px; border: 2px solid var(--border); border-radius: 8px;
             background: var(--surface); font-family: 'DM Sans', sans-serif;
             font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text);
             transition: all 0.18s;
         }
-        .variant-btn:hover   { border-color: var(--accent); color: var(--accent); }
+        .variant-btn:hover    { border-color: var(--accent); color: var(--accent); }
         .variant-btn.selected {
             border-color: var(--teal); background: var(--teal-light);
             color: var(--teal); font-weight: 600;
         }
 
-        /* Color qty grid */
+        /* ── Color step ── */
         .color-step         { display: none; margin-top: 16px; }
         .color-step.visible { display: block; }
 
         .step-divider {
-            font-size: 11px; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 0.7px;
-            color: var(--text-muted); margin-bottom: 12px;
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 14px;
             display: flex; align-items: center; gap: 8px;
         }
         .step-divider::before, .step-divider::after {
             content: ''; flex: 1; height: 1px; background: var(--border);
         }
 
-        .color-qty-grid {
-            display: flex;
+        /* ── Art groups ── */
+        .art-groups { display: flex; flex-direction: column; gap: 12px; }
+
+        .art-group {
+            border: 1.5px solid var(--border); border-radius: 8px;
+            overflow: hidden; transition: border-color 0.2s;
+        }
+        .art-group.group-valid { border-color: var(--teal); }
+        .art-group.group-error { border-color: #e53935; }
+
+        .art-group-header {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; background: #f7f7f5;
+            border-bottom: 1px solid var(--border);
             flex-wrap: wrap;
-            gap: 10px;
-            align-items: flex-end;
-            margin-bottom: 12px;
         }
-        .color-qty-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            min-width: 80px;
+        .art-group-label {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.6px; color: var(--text-muted); white-space: nowrap;
         }
-        .color-qty-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text);
-            text-align: center;
-            line-height: 1.3;
+        .art-number-input {
+            padding: 7px 10px; border: 2px solid var(--border); border-radius: 6px;
+            font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+            color: var(--text); background: var(--surface); width: 190px;
+            transition: border-color 0.18s, background 0.18s;
         }
+        .art-number-input:focus   { outline: none; border-color: var(--accent); }
+        .art-number-input.valid   { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+        .art-number-input.invalid { border-color: #e53935; background: #ffebee; }
+        .art-hint { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+        .btn-remove-art {
+            margin-left: auto; padding: 5px 10px; border-radius: 5px;
+            border: 1.5px solid #ffcdd2; background: #fff5f5;
+            color: #c62828; font-family: 'DM Sans', sans-serif;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.18s; white-space: nowrap;
+        }
+        .btn-remove-art:hover { background: #ffebee; border-color: #e53935; }
+
+        .art-group-body { padding: 12px 14px; }
+
+        /* ── Color qty grid ── */
+        .color-qty-grid {
+            display: flex; flex-wrap: wrap; gap: 10px;
+            align-items: flex-end; margin-bottom: 10px;
+        }
+        .color-qty-item { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 76px; }
+        .color-qty-label { font-size: 12px; font-weight: 600; color: var(--text); text-align: center; line-height: 1.3; }
         .color-qty-input {
-            width: 72px;
-            padding: 8px 6px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            text-align: center;
-            font-family: 'DM Mono', monospace;
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text);
-            background: var(--surface);
+            width: 70px; padding: 8px 4px; border: 2px solid var(--border); border-radius: 6px;
+            text-align: center; font-family: 'DM Mono', monospace;
+            font-size: 16px; font-weight: 600; color: var(--text); background: var(--surface);
             transition: border-color 0.18s, background 0.18s;
             -moz-appearance: textfield;
         }
         .color-qty-input::-webkit-inner-spin-button,
         .color-qty-input::-webkit-outer-spin-button { -webkit-appearance: none; }
-        .color-qty-input:focus  { outline: none; border-color: var(--accent); }
-        .color-qty-input.has-qty {
-            border-color: var(--teal);
-            background: var(--teal-light);
-            color: var(--teal);
-        }
+        .color-qty-input:focus   { outline: none; border-color: var(--accent); }
+        .color-qty-input.has-qty { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
 
-        /* Allocation tally */
+        /* ── Allocation tally (per-group and overall) ── */
         .alloc-tally {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 7px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            background: #f3f3f0;
-            border: 1.5px solid var(--border);
-            transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            background: #f3f3f0; border: 1.5px solid var(--border); transition: all 0.2s;
         }
-        .alloc-tally.exact  { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
-        .alloc-tally.over   { background: #ffebee; border-color: #e53935; color: #c62828; }
-        .alloc-tally.under  { color: var(--text-muted); }
-        .alloc-tally .check { font-size: 14px; }
+        .alloc-tally.exact { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
+        .alloc-tally.over  { background: #ffebee; border-color: #e53935; color: #c62828; }
+        .alloc-tally.under { color: var(--text-muted); }
 
-        /* Art number */
-        .art-number-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
+        .overall-tally-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+            flex-wrap: wrap; gap: 10px;
         }
-        .art-number-label {
-            font-size: 11px; font-weight: 600;
-            text-transform: uppercase; letter-spacing: 0.7px;
-            color: var(--text-muted); white-space: nowrap;
-        }
-        .art-number-input {
-            padding: 8px 12px;
-            border: 2px solid var(--border);
-            border-radius: 6px;
-            font-family: 'DM Mono', monospace;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text);
-            background: var(--surface);
-            width: 200px;
-            transition: border-color 0.18s;
-        }
-        .art-number-input:focus  { outline: none; border-color: var(--accent); }
-        .art-number-input.has-art { border-color: var(--teal); background: var(--teal-light); }
-        .art-number-input.invalid { border-color: #e53935; background: #ffebee; }
-        .art-hint {
-            font-size: 12px; color: var(--text-muted);
-            font-family: 'DM Mono', monospace;
-        }
+        .overall-tally-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
 
-        /* Submitted display */
+        /* ── Add art button ── */
+        .btn-add-art {
+            margin-top: 10px; padding: 9px 18px; border-radius: 7px;
+            border: 2px dashed var(--border); background: transparent;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+            color: var(--text-muted); cursor: pointer; width: 100%;
+            transition: all 0.18s; text-align: center;
+        }
+        .btn-add-art:hover { border-color: var(--accent); color: var(--accent); background: rgba(102,126,234,0.04); }
+
+        /* ── Submitted display ── */
         .submitted-display {
-            background: var(--submitted-badge);
-            border-radius: 6px;
-            padding: 12px 14px;
-            font-size: 13px;
-            color: var(--submitted-text);
+            background: var(--submitted-badge); border-radius: 6px;
+            padding: 12px 14px; font-size: 13px; color: var(--submitted-text);
         }
-        .submitted-display .sub-header {
-            font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
-        }
-        .submitted-breakdown {
-            display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;
-        }
+        .submitted-variant { font-weight: 600; margin-bottom: 8px; }
+        .submitted-art-group { margin-bottom: 8px; }
+        .submitted-art-group:last-child { margin-bottom: 0; }
+        .submitted-art-label { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+        .submitted-breakdown { display: flex; flex-wrap: wrap; gap: 5px; }
         .sub-chip {
-            background: white;
-            border: 1px solid #a5d6a7;
-            border-radius: 12px;
-            padding: 3px 10px;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--submitted-text);
+            background: white; border: 1px solid #a5d6a7; border-radius: 12px;
+            padding: 3px 10px; font-size: 12px; font-weight: 500; color: var(--submitted-text);
         }
 
-        /* Submit bar */
+        /* ── Submit bar ── */
         .submit-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: white; border-top: 1px solid var(--border);
-            padding: 14px 32px;
-            display: flex; align-items: center; justify-content: space-between;
-            gap: 16px; box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 50;
+            padding: 14px 32px; display: flex; align-items: center;
+            justify-content: space-between; gap: 16px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 50;
         }
-        .submit-bar-info { font-size: 13px; color: var(--text-muted); }
-        .submit-bar-info strong { color: var(--text); }
+        .submit-bar-info         { font-size: 13px; color: var(--text-muted); }
+        .submit-bar-info strong  { color: var(--text); }
         .btn-submit {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white; border: none; padding: 12px 32px;
-            border-radius: 8px; font-family: 'DM Sans', sans-serif;
-            font-size: 14px; font-weight: 600; cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s; white-space: nowrap;
+            color: white; border: none; padding: 12px 32px; border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: opacity 0.2s, transform 0.1s; white-space: nowrap;
         }
         .btn-submit:hover    { opacity: 0.92; transform: translateY(-1px); }
         .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
@@ -414,10 +353,10 @@
 </div>
 
 <script>
-// ── CONFIG ───────────────────────────────────────────────────────────────────
+// ── CONFIG ────────────────────────────────────────────────────────────────────
 var ORDERS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7uNYew2smPQWTZRff7v-70y1jrRYViSu-buckNngS2m16e3GoqUuueaEQqsTn09PmoyGQOvleYBpG/pub?gid=0&single=true&output=csv';
 var CATALOG_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVJhbWNNbNFEAmApy98mjMJpJeb30LVAIrFoEkVkNeCFa5QRFQj0WsKI9IdWr-Cx1c-6EdS7v_SfP4/pub?output=csv';
-var SUBMISSION_URL  = 'YOUR_APPS_SCRIPT_URL_HERE'; // ← Replace with your Apps Script URL when ready
+var SUBMISSION_URL  = 'YOUR_APPS_SCRIPT_URL_HERE'; // ← Replace when ready
 
 // ── Column indices (0-based) ──────────────────────────────────────────────────
 var COL = {
@@ -439,8 +378,13 @@ var repName       = '';
 var ordersGrouped = {};  // salesOrderNo → { meta, lines[] }
 var orderKeys     = [];
 var catalogData   = {};  // upc → [ { crc, sku, description, colors[] }, … ]
-// selections[lineKey] = { variantIndex?, colorQtys: { colorName: qty }, artNumber?, submitted? }
-var selections    = {};
+
+// selections[lineKey] = {
+//   variantIndex?: number,
+//   artGroups: [ { artNumber: string, colorQtys: { colorName: qty } }, … ],
+//   submitted?: bool
+// }
+var selections = {};
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 $(document).ready(function () {
@@ -472,8 +416,7 @@ function loadData() {
 // ── Parse orders CSV ──────────────────────────────────────────────────────────
 function parseOrders(csv) {
     var rows = csv.split('\n');
-    ordersGrouped = {};
-    orderKeys     = [];
+    ordersGrouped = {}; orderKeys = [];
     for (var i = 1; i < rows.length; i++) {
         if (!rows[i].trim()) continue;
         var cols  = parseCSVRow(rows[i]);
@@ -521,7 +464,7 @@ function parseCatalog(csv) {
 
 // ── Render ────────────────────────────────────────────────────────────────────
 function renderAll() {
-    $('#pageSubtitle').text('Enter quantities by color for each item, then submit when ready.');
+    $('#pageSubtitle').text('Enter quantities by color and art number for each item, then submit when ready.');
     if (orderKeys.length === 0) {
         $('#contentArea').html('<div class="state-box"><div class="icon">☕</div><p>No drinkware orders are currently assigned to your account.</p></div>');
         return;
@@ -539,16 +482,36 @@ function rebuildPage() {
     updateSubmitBar();
 }
 
-// ── Helpers: check if a line has any allocation entered ───────────────────────
+// ── Selection helpers ─────────────────────────────────────────────────────────
+
+// Total units allocated across all art groups for a line
 function totalAllocated(sel) {
-    if (!sel || !sel.colorQtys) return 0;
-    return Object.values(sel.colorQtys).reduce(function (s, v) { return s + (parseInt(v) || 0); }, 0);
+    if (!sel || !sel.artGroups) return 0;
+    return sel.artGroups.reduce(function (sum, ag) {
+        return sum + Object.values(ag.colorQtys || {}).reduce(function (s, v) { return s + (parseInt(v) || 0); }, 0);
+    }, 0);
 }
+
+// A line is ready if: at least one art group has a valid art number AND at least 1 qty
 function lineIsReady(sel) {
     if (!sel || sel.submitted) return false;
-    if (totalAllocated(sel) <= 0) return false;
-    var art = (sel.artNumber || '').trim();
-    return /^.+_[A-Za-z]{2}$/.test(art);
+    if (!sel.artGroups || sel.artGroups.length === 0) return false;
+    return sel.artGroups.some(function (ag) {
+        var artOk = /^.+_[A-Za-z]{2}$/.test((ag.artNumber || '').trim());
+        var qtyOk = Object.values(ag.colorQtys || {}).some(function (v) { return (parseInt(v) || 0) > 0; });
+        return artOk && qtyOk;
+    });
+}
+
+// Default new empty art group
+function newArtGroup() { return { artNumber: '', colorQtys: {} }; }
+
+// Ensure sel has artGroups array
+function ensureArtGroups(key) {
+    if (!selections[key]) selections[key] = {};
+    if (!selections[key].artGroups || selections[key].artGroups.length === 0) {
+        selections[key].artGroups = [newArtGroup()];
+    }
 }
 
 // ── Order card ────────────────────────────────────────────────────────────────
@@ -561,14 +524,14 @@ function buildOrderCard(so) {
         else if (lineIsReady(s)) readyCount++;
     });
     var doneCount = readyCount + submittedCount;
-    var pct       = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+    var pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
     var statusClass, statusLabel;
     if (submittedCount === total) {
         statusClass = 'status-submitted'; statusLabel = '✓ All Submitted';
     } else if (doneCount > 0) {
         statusClass = 'status-partial';
-        statusLabel = (submittedCount > 0)
+        statusLabel = submittedCount > 0
             ? submittedCount + ' submitted, ' + readyCount + ' ready'
             : doneCount + '/' + total + ' Ready';
     } else {
@@ -576,7 +539,7 @@ function buildOrderCard(so) {
     }
 
     var soId = escId(so);
-    var html  = '<div class="order-card" id="card-' + soId + '">';
+    var html = '<div class="order-card" id="card-' + soId + '">';
     html += '<div class="order-header" onclick="toggleOrder(\'' + soId + '\')">';
     html += '<div class="order-header-left">';
     html += pill('Sales Order', so, true);
@@ -612,10 +575,10 @@ function buildLineItem(so, line, idx) {
     var cost    = line.unitPrice   ? '$' + fmtMoney(line.unitPrice)   : '—';
     var keyId   = escId(key);
 
-    var alloced  = totalAllocated(sel);
-    var cardCls  = sel.submitted ? 'line-item is-submitted'
-                 : (alloced > qty ? 'line-item is-over'
-                 : (alloced > 0  ? 'line-item is-selected' : 'line-item'));
+    var alloced = totalAllocated(sel);
+    var cardCls = sel.submitted   ? 'line-item is-submitted'
+                : (alloced > qty  ? 'line-item is-over'
+                : (lineIsReady(sel) ? 'line-item is-ready' : 'line-item'));
 
     var html = '<div class="' + cardCls + '" id="li-' + keyId + '">';
     html += '<div class="line-item-header">';
@@ -631,21 +594,10 @@ function buildLineItem(so, line, idx) {
         html += '<div style="color:var(--text-muted);font-size:13px;padding:6px 0;">⚠ UPC ' + esc(upc) + ' not found in product catalog. Contact your administrator.</div>';
 
     } else if (sel.submitted) {
-        // Show submitted breakdown
-        var vIdx  = sel.variantIndex !== undefined ? sel.variantIndex : 0;
-        var vDesc = catalog[vIdx] ? catalog[vIdx].description : '';
-        var chips = '';
-        var cqtys = sel.colorQtys || {};
-        Object.keys(cqtys).forEach(function (c) {
-            if (parseInt(cqtys[c]) > 0) chips += '<span class="sub-chip">' + esc(c) + ': ' + esc(cqtys[c]) + '</span>';
-        });
-        html += '<div class="submitted-display">';
-        html += '<div class="sub-header">✓ Submitted — ' + esc(vDesc) + ' &nbsp;·&nbsp; Art: ' + esc(sel.artNumber || '—') + '</div>';
-        html += '<div class="submitted-breakdown">' + chips + '</div>';
-        html += '</div>';
+        html += buildSubmittedDisplay(sel, catalog);
 
     } else if (catalog.length > 1) {
-        // Step 1: pick style
+        // Step 1: variant
         html += '<div class="selection-label">Step 1 — Choose Style</div>';
         html += '<div class="variant-grid">';
         catalog.forEach(function (v, vIdx) {
@@ -654,80 +606,117 @@ function buildLineItem(so, line, idx) {
         });
         html += '</div>';
 
-        // Step 2: color qtys + art number — visible after variant chosen
         var variantPicked = sel.variantIndex !== undefined;
-        var colors = variantPicked ? (catalog[sel.variantIndex] || {colors:[]}).colors : [];
+        var colors = variantPicked ? (catalog[sel.variantIndex] || { colors: [] }).colors : [];
         html += '<div class="color-step' + (variantPicked ? ' visible' : '') + '" id="colorstep-' + keyId + '">';
-        html += '<div class="step-divider">Step 2 — Enter Quantities by Color</div>';
-        html += buildColorQtyGrid(keyId, so, idx, colors, sel.colorQtys || {}, qty);
-        html += buildArtNumberInput(keyId, so, idx, sel.artNumber || '');
+        html += '<div class="step-divider">Step 2 — Enter Quantities by Art &amp; Color</div>';
+        html += buildArtGroupsSection(keyId, so, idx, colors, sel, qty);
         html += '</div>';
 
     } else {
-        // Single variant — go straight to colors + art number
+        // Single variant — straight to art groups
         html += '<div class="single-desc">' + esc(catalog[0].description) + '</div>';
-        html += '<div class="selection-label">Enter Quantities by Color</div>';
-        html += buildColorQtyGrid(keyId, so, idx, catalog[0].colors, sel.colorQtys || {}, qty);
-        html += buildArtNumberInput(keyId, so, idx, sel.artNumber || '');
+        html += '<div class="selection-label">Enter Quantities by Art &amp; Color</div>';
+        html += buildArtGroupsSection(keyId, so, idx, catalog[0].colors, sel, qty);
     }
 
     html += '</div></div>';
     return html;
 }
 
-// ── Build art number input ────────────────────────────────────────────────────
-function buildArtNumberInput(keyId, so, idx, currentVal) {
-    var hasCls  = currentVal ? ' has-art' : '';
-    var isValid = /^.+_[A-Za-z]{2}$/.test(currentVal);
-    if (currentVal && !isValid) hasCls = ' invalid';
-    return '<div class="art-number-row" style="margin-top:12px;">'
-        + '<span class="art-number-label">Art Number</span>'
-        + '<input type="text" class="art-number-input' + hasCls + '" id="art-' + keyId + '"'
-        + ' value="' + esc(currentVal) + '" placeholder="e.g. MYART_AB"'
-        + ' oninput="onArtInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',this.value)">'
-        + '<span class="art-hint">must end with _XX</span>'
-        + '</div>';
-}
-
-
-function buildColorQtyGrid(keyId, so, idx, colors, colorQtys, orderedQty) {
-    var allocated = Object.values(colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+// ── Build all art groups for a line ──────────────────────────────────────────
+function buildArtGroupsSection(keyId, so, idx, colors, sel, orderedQty) {
+    var groups = (sel.artGroups && sel.artGroups.length) ? sel.artGroups : [newArtGroup()];
+    var allocated = totalAllocated(sel);
     var tallyClass = allocated === 0 ? 'under' : (allocated === orderedQty ? 'exact' : (allocated > orderedQty ? 'over' : 'under'));
-    var tallyIcon  = allocated === orderedQty && orderedQty > 0 ? '<span class="check">✓</span> ' : '';
+    var tallyIcon  = (allocated === orderedQty && orderedQty > 0) ? '✓ ' : '';
 
-    var html = '<div class="color-qty-grid" id="cqgrid-' + keyId + '">';
-    colors.forEach(function (color) {
-        var cId  = 'cq-' + keyId + '-' + escId(color);
-        var qVal = parseInt(colorQtys[color]) || 0;
-        var hasCls = qVal > 0 ? ' has-qty' : '';
-        html += '<div class="color-qty-item">';
-        html += '<div class="color-qty-label">' + esc(color) + '</div>';
-        html += '<input type="number" class="color-qty-input' + hasCls + '" id="' + cId + '"'
-              + ' value="' + qVal + '" min="0" placeholder="0"'
-              + ' oninput="onQtyInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',\'' + escAttr(color) + '\',this.value)">';
-        html += '</div>';
+    var html = '<div class="art-groups" id="artgroups-' + keyId + '">';
+    groups.forEach(function (ag, gIdx) {
+        html += buildArtGroup(keyId, so, idx, colors, ag, gIdx, groups.length);
     });
     html += '</div>';
-    html += '<div class="alloc-tally ' + tallyClass + '" id="tally-' + keyId + '">'
-          + tallyIcon + '<span id="tally-num-' + keyId + '">' + allocated + '</span> / ' + orderedQty + ' allocated</div>';
+    html += '<button class="btn-add-art" onclick="addArtGroup(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ')">+ Add Another Art Number</button>';
+    html += '<div class="overall-tally-row">';
+    html += '<span class="overall-tally-label">Total across all arts:</span>';
+    html += '<span class="alloc-tally ' + tallyClass + '" id="overtally-' + keyId + '">'
+          + tallyIcon + '<span id="overtally-num-' + keyId + '">' + allocated + '</span> / ' + orderedQty + ' allocated</span>';
+    html += '</div>';
     return html;
 }
 
-// ── Interaction: art number input ─────────────────────────────────────────────
-function onArtInput(keyId, so, idx, val) {
-    var key = lkFromId(keyId);
-    if (!selections[key]) selections[key] = {};
-    selections[key].artNumber = val.trim();
-    saveSelections();
+// ── Build a single art group ──────────────────────────────────────────────────
+function buildArtGroup(keyId, so, idx, colors, ag, gIdx, totalGroups) {
+    var artVal   = ag.artNumber || '';
+    var isValid  = /^.+_[A-Za-z]{2}$/.test(artVal.trim());
+    var artCls   = artVal === '' ? '' : (isValid ? ' valid' : ' invalid');
+    var groupCls = artVal === '' ? '' : (isValid ? ' group-valid' : ' group-error');
+    var gId      = keyId + '_g' + gIdx;
 
-    var $input  = $('#art-' + keyId);
-    var isValid = /^.+_[A-Za-z]{2}$/.test(val.trim());
-    $input.removeClass('has-art invalid');
-    if (val.trim() === '')   { /* no class */ }
-    else if (isValid)        { $input.addClass('has-art'); }
-    else                     { $input.addClass('invalid'); }
+    var html = '<div class="art-group' + groupCls + '" id="ag-' + gId + '">';
 
-    updateSubmitBar();
+    // Group header: art number input + remove button
+    html += '<div class="art-group-header">';
+    html += '<span class="art-group-label">Art #' + (gIdx + 1) + '</span>';
+    html += '<input type="text" class="art-number-input' + artCls + '" id="art-' + gId + '"'
+          + ' value="' + esc(artVal) + '" placeholder="e.g. MYART_AB"'
+          + ' oninput="onArtInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',this.value)">';
+    html += '<span class="art-hint">ends with _XX</span>';
+    if (totalGroups > 1) {
+        html += '<button class="btn-remove-art" onclick="removeArtGroup(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ')">✕ Remove</button>';
+    }
+    html += '</div>';
+
+    // Group body: color qty inputs
+    html += '<div class="art-group-body">';
+    html += buildColorQtyInputs(gId, keyId, so, idx, colors, ag.colorQtys || {}, gIdx);
+    html += '</div>';
+
+    html += '</div>';
+    return html;
+}
+
+// ── Build color qty inputs for one art group ──────────────────────────────────
+function buildColorQtyInputs(gId, keyId, so, idx, colors, colorQtys, gIdx) {
+    var groupTotal = Object.values(colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var html = '<div class="color-qty-grid">';
+    colors.forEach(function (color) {
+        var cId  = 'cq-' + gId + '-' + escId(color);
+        var qVal = parseInt(colorQtys[color]) || 0;
+        html += '<div class="color-qty-item">';
+        html += '<div class="color-qty-label">' + esc(color) + '</div>';
+        html += '<input type="number" class="color-qty-input' + (qVal > 0 ? ' has-qty' : '') + '"'
+              + ' id="' + cId + '" value="' + qVal + '" min="0" placeholder="0"'
+              + ' oninput="onQtyInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',\'' + escAttr(color) + '\',this.value)">';
+        html += '</div>';
+    });
+    html += '</div>';
+    html += '<span class="alloc-tally under" id="gtally-' + gId + '">'
+          + '<span id="gtally-num-' + gId + '">' + groupTotal + '</span> units in this art</span>';
+    return html;
+}
+
+// ── Submitted display ─────────────────────────────────────────────────────────
+function buildSubmittedDisplay(sel, catalog) {
+    var vIdx  = sel.variantIndex !== undefined ? sel.variantIndex : 0;
+    var vDesc = catalog[vIdx] ? catalog[vIdx].description : '';
+    var groups = sel.artGroups || [];
+
+    var html = '<div class="submitted-display">';
+    html += '<div class="submitted-variant">✓ Submitted — ' + esc(vDesc) + '</div>';
+    groups.forEach(function (ag, i) {
+        if (!ag.artNumber && !Object.values(ag.colorQtys || {}).some(function(v){ return (parseInt(v)||0) > 0; })) return;
+        html += '<div class="submitted-art-group">';
+        html += '<div class="submitted-art-label">Art ' + (i+1) + ': ' + esc(ag.artNumber || '—') + '</div>';
+        html += '<div class="submitted-breakdown">';
+        Object.keys(ag.colorQtys || {}).forEach(function (c) {
+            var q = parseInt(ag.colorQtys[c]) || 0;
+            if (q > 0) html += '<span class="sub-chip">' + esc(c) + ': ' + q + '</span>';
+        });
+        html += '</div></div>';
+    });
+    html += '</div>';
+    return html;
 }
 
 // ── Interaction: variant ──────────────────────────────────────────────────────
@@ -736,7 +725,7 @@ function selectVariant(keyId, so, idx, vIdx) {
     if (!selections[key]) selections[key] = {};
     if (selections[key].variantIndex !== vIdx) {
         selections[key].variantIndex = vIdx;
-        selections[key].colorQtys   = {};  // reset color qtys when switching variant
+        selections[key].artGroups    = [newArtGroup()];  // reset on variant switch
     }
     saveSelections();
 
@@ -744,53 +733,152 @@ function selectVariant(keyId, so, idx, vIdx) {
         if (i === vIdx) $(this).addClass('selected');
     });
 
-    // Rebuild color qty grid + art number for the chosen variant
     var upc     = ordersGrouped[so].lines[idx].upc;
     var catalog = catalogData[upc] || [];
     var colors  = catalog[vIdx] ? catalog[vIdx].colors : [];
     var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
-    var artVal  = (selections[lkFromId(keyId)] || {}).artNumber || '';
-    $('#colorstep-' + keyId).html(
-        '<div class="step-divider">Step 2 — Enter Quantities by Color</div>'
-        + buildColorQtyGrid(keyId, so, idx, colors, {}, qty)
-        + buildArtNumberInput(keyId, so, idx, artVal)
-    ).addClass('visible');
+    $('#colorstep-' + keyId)
+        .html('<div class="step-divider">Step 2 — Enter Quantities by Art &amp; Color</div>'
+            + buildArtGroupsSection(keyId, so, idx, colors, selections[key], qty))
+        .addClass('visible');
 
     refreshOrderStatus(so);
 }
 
-// ── Interaction: qty input ────────────────────────────────────────────────────
-function onQtyInput(keyId, so, idx, color, rawVal) {
+// ── Interaction: add art group ────────────────────────────────────────────────
+function addArtGroup(keyId, so, idx) {
     var key = lkFromId(keyId);
-    if (!selections[key])           selections[key]           = {};
-    if (!selections[key].colorQtys) selections[key].colorQtys = {};
-
-    var val = parseInt(rawVal) || 0;
-    if (val < 0) val = 0;
-    selections[key].colorQtys[color] = val;
+    ensureArtGroups(key);
+    selections[key].artGroups.push(newArtGroup());
     saveSelections();
 
-    // Update input styling
-    var cId = '#cq-' + keyId + '-' + escId(color);
+    var upc     = ordersGrouped[so].lines[idx].upc;
+    var catalog = catalogData[upc] || [];
+    var vIdx    = selections[key].variantIndex !== undefined ? selections[key].variantIndex : 0;
+    var colors  = catalog[vIdx] ? catalog[vIdx].colors : (catalog[0] ? catalog[0].colors : []);
+    var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
+    var newIdx  = selections[key].artGroups.length - 1;
+    var gId     = keyId + '_g' + newIdx;
+
+    // Append new group before the Add button
+    var groupHtml = buildArtGroup(keyId, so, idx, colors, newArtGroup(), newIdx, selections[key].artGroups.length);
+    $('#artgroups-' + keyId).append(groupHtml);
+
+    // Update all remove buttons (show them now that there are multiple groups)
+    refreshRemoveButtons(keyId, so, idx, colors);
+}
+
+// ── Interaction: remove art group ─────────────────────────────────────────────
+function removeArtGroup(keyId, so, idx, gIdx) {
+    var key = lkFromId(keyId);
+    if (!selections[key] || !selections[key].artGroups) return;
+    selections[key].artGroups.splice(gIdx, 1);
+    saveSelections();
+
+    // Full re-render of the art groups section
+    var upc     = ordersGrouped[so].lines[idx].upc;
+    var catalog = catalogData[upc] || [];
+    var vIdx    = selections[key].variantIndex !== undefined ? selections[key].variantIndex : 0;
+    var colors  = catalog[vIdx] ? catalog[vIdx].colors : (catalog[0] ? catalog[0].colors : []);
+    var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
+
+    var $colorStep = $('#colorstep-' + keyId);
+    if ($colorStep.length) {
+        // Multi-variant path
+        $colorStep.html('<div class="step-divider">Step 2 — Enter Quantities by Art &amp; Color</div>'
+            + buildArtGroupsSection(keyId, so, idx, colors, selections[key], qty));
+    } else {
+        // Single-variant path: re-render from selection-area downward
+        redrawSelectionArea(keyId, so, idx);
+    }
+
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+
+// ── Interaction: art number input ─────────────────────────────────────────────
+function onArtInput(keyId, so, idx, gIdx, val) {
+    var key = lkFromId(keyId);
+    ensureArtGroups(key);
+    selections[key].artGroups[gIdx].artNumber = val.trim();
+    saveSelections();
+
+    var gId     = keyId + '_g' + gIdx;
+    var isValid = /^.+_[A-Za-z]{2}$/.test(val.trim());
+    var $input  = $('#art-' + gId);
+    $input.removeClass('valid invalid');
+    if (val.trim() !== '') $input.addClass(isValid ? 'valid' : 'invalid');
+    $('#ag-' + gId).removeClass('group-valid group-error');
+    if (val.trim() !== '') $('#ag-' + gId).addClass(isValid ? 'group-valid' : 'group-error');
+
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+
+// ── Interaction: qty input ────────────────────────────────────────────────────
+function onQtyInput(keyId, so, idx, gIdx, color, rawVal) {
+    var key = lkFromId(keyId);
+    ensureArtGroups(key);
+    var ag  = selections[key].artGroups[gIdx];
+    if (!ag.colorQtys) ag.colorQtys = {};
+    var val = Math.max(0, parseInt(rawVal) || 0);
+    ag.colorQtys[color] = val;
+    saveSelections();
+
+    var gId  = keyId + '_g' + gIdx;
+    var cId  = '#cq-' + gId + '-' + escId(color);
     $(cId).toggleClass('has-qty', val > 0);
 
-    // Update tally
+    // Update group tally
+    var groupTotal = Object.values(ag.colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    $('#gtally-num-' + gId).text(groupTotal);
+
+    // Update overall tally
     var orderedQty = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
     var allocated  = totalAllocated(selections[key]);
     var tallyClass = allocated === 0 ? 'under' : (allocated === orderedQty ? 'exact' : (allocated > orderedQty ? 'over' : 'under'));
     var tallyIcon  = (allocated === orderedQty && orderedQty > 0) ? '✓ ' : '';
-    $('#tally-' + keyId)
+    $('#overtally-' + keyId)
         .attr('class', 'alloc-tally ' + tallyClass)
-        .html(tallyIcon + '<span id="tally-num-' + keyId + '">' + allocated + '</span> / ' + orderedQty + ' allocated');
+        .html(tallyIcon + '<span id="overtally-num-' + keyId + '">' + allocated + '</span> / ' + orderedQty + ' allocated');
 
-    // Update card border
+    // Card border
     var $li = $('#li-' + keyId);
-    $li.removeClass('is-selected is-over');
-    if (allocated > orderedQty) $li.addClass('is-over');
-    else if (allocated > 0)     $li.addClass('is-selected');
+    $li.removeClass('is-ready is-over');
+    if (allocated > orderedQty)       $li.addClass('is-over');
+    else if (lineIsReady(selections[key])) $li.addClass('is-ready');
 
     refreshOrderStatus(so);
     updateSubmitBar();
+}
+
+// ── Refresh remove buttons when group count changes ───────────────────────────
+function refreshRemoveButtons(keyId, so, idx, colors) {
+    var key    = lkFromId(keyId);
+    var groups = (selections[key] && selections[key].artGroups) || [];
+    groups.forEach(function (ag, gIdx) {
+        var gId = keyId + '_g' + gIdx;
+        var $hdr = $('#ag-' + gId + ' .art-group-header');
+        $hdr.find('.btn-remove-art').remove();
+        if (groups.length > 1) {
+            $hdr.append('<button class="btn-remove-art" onclick="removeArtGroup(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ')">✕ Remove</button>');
+        }
+    });
+}
+
+// ── Redraw selection area for single-variant lines ────────────────────────────
+function redrawSelectionArea(keyId, so, idx) {
+    var key     = lkFromId(keyId);
+    var upc     = ordersGrouped[so].lines[idx].upc;
+    var catalog = catalogData[upc] || [];
+    var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
+    var sel     = selections[key] || {};
+    var $sa     = $('#li-' + keyId + ' .selection-area');
+    $sa.html(
+        '<div class="single-desc">' + esc(catalog[0].description) + '</div>'
+        + '<div class="selection-label">Enter Quantities by Art &amp; Color</div>'
+        + buildArtGroupsSection(keyId, so, idx, catalog[0].colors, sel, qty)
+    );
 }
 
 function toggleOrder(soId) {
@@ -798,7 +886,7 @@ function toggleOrder(soId) {
     $('#ebtn-' + soId).toggleClass('open');
 }
 
-// ── Refresh order badge + progress ───────────────────────────────────────────
+// ── Refresh order badge + progress ────────────────────────────────────────────
 function refreshOrderStatus(so) {
     var lines = ordersGrouped[so].lines, total = lines.length;
     var readyCount = 0, submittedCount = 0;
@@ -808,8 +896,8 @@ function refreshOrderStatus(so) {
         else if (lineIsReady(s)) readyCount++;
     });
     var doneCount = readyCount + submittedCount;
-    var pct       = total > 0 ? Math.round((doneCount / total) * 100) : 0;
-    var soId      = escId(so);
+    var pct  = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+    var soId = escId(so);
     $('#prog-' + soId).css('width', pct + '%');
 
     var statusClass, statusLabel;
@@ -817,7 +905,7 @@ function refreshOrderStatus(so) {
         statusClass = 'status-submitted'; statusLabel = '✓ All Submitted';
     } else if (doneCount > 0) {
         statusClass = 'status-partial';
-        statusLabel = (submittedCount > 0)
+        statusLabel = submittedCount > 0
             ? submittedCount + ' submitted, ' + readyCount + ' ready'
             : doneCount + '/' + total + ' Ready';
     } else {
@@ -832,17 +920,14 @@ function updateSubmitBar() {
     orderKeys.forEach(function (so) {
         ordersGrouped[so].lines.forEach(function (l, idx) {
             var s = selections[lk(so, idx)] || {};
-            if (!s.submitted) {
-                pendingTotal++;
-                if (lineIsReady(s)) readyCount++;
-            }
+            if (!s.submitted) { pendingTotal++; if (lineIsReady(s)) readyCount++; }
         });
     });
     if (pendingTotal === 0) { $('#submitBar').hide(); return; }
     $('#submitBar').show();
     $('#submitBarInfo').html(
         '<strong>' + readyCount + '</strong> of <strong>' + pendingTotal +
-        '</strong> pending line' + (pendingTotal !== 1 ? 's' : '') + ' have quantities entered'
+        '</strong> pending line' + (pendingTotal !== 1 ? 's' : '') + ' ready to submit'
     );
     $('#submitBtn').prop('disabled', readyCount === 0);
 }
@@ -867,34 +952,37 @@ function submitSelections() {
             var vIdx    = sel.variantIndex !== undefined ? sel.variantIndex : 0;
             var variant = catalog[vIdx] || {};
 
-            // Build one payload row per color that has a qty > 0
-            var cqtys = sel.colorQtys || {};
-            Object.keys(cqtys).forEach(function (color) {
-                var qty = parseInt(cqtys[color]) || 0;
-                if (qty <= 0) return;
-                payload.push({
-                    salesOrderNo:      so,
-                    orderDate:         g.meta.orderDate,
-                    shipToName:        g.meta.shipToName,
-                    requestedDelivery: g.meta.requestedDelivery,
-                    repEmail:          repEmail,
-                    repName:           repName,
-                    upc:               upc,
-                    totalQtyOrdered:   line.quantityOrdered,
-                    unitPrice:         line.unitPrice,
-                    retailPrice:       line.retailPrice,
-                    selectedSKU:       variant.sku         || '',
-                    selectedCRC:       variant.crc         || '',
-                    selectedDesc:      variant.description || '',
-                    artNumber:         sel.artNumber       || '',
-                    selectedColor:     color,
-                    colorQty:          qty
+            // One payload row per art group × color × qty > 0
+            (sel.artGroups || []).forEach(function (ag) {
+                var artOk = /^.+_[A-Za-z]{2}$/.test((ag.artNumber || '').trim());
+                if (!artOk) return;
+                Object.keys(ag.colorQtys || {}).forEach(function (color) {
+                    var qty = parseInt(ag.colorQtys[color]) || 0;
+                    if (qty <= 0) return;
+                    payload.push({
+                        salesOrderNo:      so,
+                        orderDate:         g.meta.orderDate,
+                        shipToName:        g.meta.shipToName,
+                        requestedDelivery: g.meta.requestedDelivery,
+                        repEmail:          repEmail,
+                        repName:           repName,
+                        upc:               upc,
+                        totalQtyOrdered:   line.quantityOrdered,
+                        unitPrice:         line.unitPrice,
+                        retailPrice:       line.retailPrice,
+                        selectedSKU:       variant.sku         || '',
+                        selectedCRC:       variant.crc         || '',
+                        selectedDesc:      variant.description || '',
+                        artNumber:         ag.artNumber,
+                        selectedColor:     color,
+                        colorQty:          qty
+                    });
                 });
             });
         });
     });
 
-    if (payload.length === 0) { alert('No new selections to submit.'); return; }
+    if (payload.length === 0) { alert('No ready selections to submit.'); return; }
 
     $('#submitBtn').prop('disabled', true).text('Submitting…');
 
@@ -908,17 +996,13 @@ function submitSelections() {
     orderKeys.forEach(function (so) {
         ordersGrouped[so].lines.forEach(function (l, idx) {
             var key = lk(so, idx);
-            var sel = selections[key] || {};
-            if (!sel.submitted && lineIsReady(sel)) sel.submitted = true;
+            if (selections[key] && !selections[key].submitted && lineIsReady(selections[key]))
+                selections[key].submitted = true;
         });
     });
     saveSelections();
     rebuildPage();
-
-    var lineCount = orderKeys.reduce(function(s, so) {
-        return s + ordersGrouped[so].lines.filter(function(l,idx){ return (selections[lk(so,idx)]||{}).submitted; }).length;
-    }, 0);
-    alert('✅ Submitted ' + payload.length + ' color/qty row' + (payload.length !== 1 ? 's' : '') + ' across your selections!');
+    alert('✅ Submitted ' + payload.length + ' row' + (payload.length !== 1 ? 's' : '') + ' (art × color × qty)!');
 }
 
 // ── Persistence ───────────────────────────────────────────────────────────────
@@ -927,9 +1011,9 @@ function saveSelections() {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function lk(so, idx)      { return escId(so) + '__' + idx; }
-function lkFromId(keyId)  { return keyId; }
-function col(cols, i)     { return (cols[i] || '').trim(); }
+function lk(so, idx)     { return escId(so) + '__' + idx; }
+function lkFromId(keyId) { return keyId; }
+function col(cols, i)    { return (cols[i] || '').trim(); }
 function fmtMoney(val) {
     var n = parseFloat(String(val).replace(/[^0-9.-]/g, ''));
     return isNaN(n) ? val : n.toFixed(2);
