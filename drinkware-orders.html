@@ -273,6 +273,27 @@
         }
         .overall-tally-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
 
+        /* ── Per-group variant picker ── */
+        .group-variant-picker {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 14px 0; flex-wrap: wrap;
+        }
+        .group-variant-label {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.6px; color: var(--text-muted); white-space: nowrap;
+        }
+        .group-variant-btn {
+            padding: 6px 14px; border: 2px solid var(--border); border-radius: 7px;
+            background: var(--surface); font-family: 'DM Sans', sans-serif;
+            font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text);
+            transition: all 0.18s;
+        }
+        .group-variant-btn:hover    { border-color: var(--accent); color: var(--accent); }
+        .group-variant-btn.selected {
+            border-color: var(--teal); background: var(--teal-light);
+            color: var(--teal); font-weight: 600;
+        }
+
         /* ── Add art button ── */
         .btn-add-art {
             margin-top: 10px; padding: 9px 18px; border-radius: 7px;
@@ -356,7 +377,8 @@
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 var ORDERS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7uNYew2smPQWTZRff7v-70y1jrRYViSu-buckNngS2m16e3GoqUuueaEQqsTn09PmoyGQOvleYBpG/pub?gid=0&single=true&output=csv';
 var CATALOG_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVJhbWNNbNFEAmApy98mjMJpJeb30LVAIrFoEkVkNeCFa5QRFQj0WsKI9IdWr-Cx1c-6EdS7v_SfP4/pub?output=csv';
-var SUBMISSION_URL  = 'https://script.google.com/macros/s/AKfycbysnXa7xwuOL_1gbPZoehviSo3B_NNWpTHlE_31V7uxro6588ZHASjGZnkSC1-S8hN4/exec';
+var SUBMISSION_URL  = 'YOUR_APPS_SCRIPT_URL_HERE'; // ← Replace when ready
+
 // ── Column indices (0-based) ──────────────────────────────────────────────────
 var COL = {
     salesOrderNo:      0,   // A
@@ -505,7 +527,7 @@ function lineIsReady(sel) {
 }
 
 // Default new empty art group
-function newArtGroup() { return { artNumber: '', colorQtys: {} }; }
+function newArtGroup() { return { artNumber: '', colorQtys: {}, variantIndex: null }; }
 
 // Ensure sel has artGroups array
 function ensureArtGroups(key) {
@@ -598,28 +620,9 @@ function buildLineItem(so, line, idx) {
     } else if (sel.submitted) {
         html += buildSubmittedDisplay(sel, catalog);
 
-    } else if (catalog.length > 1) {
-        // Step 1: variant
-        html += '<div class="selection-label">Step 1 — Choose Style</div>';
-        html += '<div class="variant-grid">';
-        catalog.forEach(function (v, vIdx) {
-            var cls = sel.variantIndex === vIdx ? ' selected' : '';
-            html += '<button class="variant-btn' + cls + '" onclick="selectVariant(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + vIdx + ')">' + esc(v.description) + '</button>';
-        });
-        html += '</div>';
-
-        var variantPicked = sel.variantIndex !== undefined;
-        var colors = variantPicked ? (catalog[sel.variantIndex] || { colors: [] }).colors : [];
-        html += '<div class="color-step' + (variantPicked ? ' visible' : '') + '" id="colorstep-' + keyId + '">';
-        html += '<div class="step-divider">Step 2 — Enter Quantities by Art &amp; Color</div>';
-        html += buildArtGroupsSection(keyId, so, idx, colors, sel, qty);
-        html += '</div>';
-
     } else {
-        // Single variant — straight to art groups
-        html += '<div class="single-desc">' + esc(catalog[0].description) + '</div>';
-        html += '<div class="selection-label">Enter Quantities by Art &amp; Color</div>';
-        html += buildArtGroupsSection(keyId, so, idx, catalog[0].colors, sel, qty);
+        // Single or multi-variant — art groups handle per-group style selection
+        html += buildArtGroupsSection(keyId, so, idx, catalog, sel, qty);
     }
 
     html += '</div></div>';
@@ -627,7 +630,7 @@ function buildLineItem(so, line, idx) {
 }
 
 // ── Build all art groups for a line ──────────────────────────────────────────
-function buildArtGroupsSection(keyId, so, idx, colors, sel, orderedQty) {
+function buildArtGroupsSection(keyId, so, idx, catalog, sel, orderedQty) {
     var groups = (sel.artGroups && sel.artGroups.length) ? sel.artGroups : [newArtGroup()];
     var allocated = totalAllocated(sel);
     var tallyClass = allocated === 0 ? 'under' : (allocated === orderedQty ? 'exact' : (allocated > orderedQty ? 'over' : 'under'));
@@ -635,7 +638,7 @@ function buildArtGroupsSection(keyId, so, idx, colors, sel, orderedQty) {
 
     var html = '<div class="art-groups" id="artgroups-' + keyId + '">';
     groups.forEach(function (ag, gIdx) {
-        html += buildArtGroup(keyId, so, idx, colors, ag, gIdx, groups.length);
+        html += buildArtGroup(keyId, so, idx, catalog, ag, gIdx, groups.length);
     });
     html += '</div>';
     html += '<button class="btn-add-art" onclick="addArtGroup(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ')">+ Add Another Art Number</button>';
@@ -647,15 +650,38 @@ function buildArtGroupsSection(keyId, so, idx, colors, sel, orderedQty) {
     return html;
 }
 
-// ── Build a single art group ──────────────────────────────────────────────────
-function buildArtGroup(keyId, so, idx, colors, ag, gIdx, totalGroups) {
-    var artVal   = ag.artNumber || '';
-    var isValid  = /^.+_[A-Za-z]{2}$/.test(artVal.trim());
-    var artCls   = artVal === '' ? '' : (isValid ? ' valid' : ' invalid');
-    var groupCls = artVal === '' ? '' : (isValid ? ' group-valid' : ' group-error');
-    var gId      = keyId + '_g' + gIdx;
+// ── Build a single art group ──────────────────────────────────────────────────────────────────────────────
+function buildArtGroup(keyId, so, idx, catalog, ag, gIdx, totalGroups) {
+    var artVal    = ag.artNumber || '';
+    var isValid   = /^.+_[A-Za-z]{2}$/.test(artVal.trim());
+    var artCls    = artVal === '' ? '' : (isValid ? ' valid' : ' invalid');
+    var groupCls  = artVal === '' ? '' : (isValid ? ' group-valid' : ' group-error');
+    var gId       = keyId + '_g' + gIdx;
+    var multiVariant = catalog.length > 1;
+
+    // Resolve colors for this group
+    var colors = [];
+    if (multiVariant) {
+        colors = ag.variantIndex != null && catalog[ag.variantIndex]
+            ? catalog[ag.variantIndex].colors : [];
+    } else {
+        colors = catalog[0] ? catalog[0].colors : [];
+    }
 
     var html = '<div class="art-group' + groupCls + '" id="ag-' + gId + '">';
+
+    // Per-group variant picker (only for multi-variant products)
+    if (multiVariant) {
+        html += '<div class="group-variant-picker">';
+        html += '<span class="group-variant-label">Style:</span>';
+        catalog.forEach(function (v, vIdx) {
+            var sel_cls = ag.variantIndex === vIdx ? ' selected' : '';
+            html += '<button class="group-variant-btn' + sel_cls + '"'
+                  + ' onclick="selectGroupVariant(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',' + vIdx + ')">'
+                  + esc(v.description) + '</button>';
+        });
+        html += '</div>';
+    }
 
     // Group header: art number input + remove button
     html += '<div class="art-group-header">';
@@ -665,19 +691,24 @@ function buildArtGroup(keyId, so, idx, colors, ag, gIdx, totalGroups) {
           + ' oninput="onArtInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',this.value)">';
     html += '<span class="art-hint">ends with _XX</span>';
     if (totalGroups > 1) {
-        html += '<button class="btn-remove-art" onclick="removeArtGroup(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ')">✕ Remove</button>';
+        html += '<button class="btn-remove-art" onclick="removeArtGroup(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ')">\u2715 Remove</button>';
     }
     html += '</div>';
 
-    // Group body: color qty inputs
-    html += '<div class="art-group-body">';
-    html += buildColorQtyInputs(gId, keyId, so, idx, colors, ag.colorQtys || {}, gIdx);
-    html += '</div>';
+    // Group body: color qty inputs (hidden until style chosen for multi-variant)
+    if (!multiVariant || ag.variantIndex != null) {
+        html += '<div class="art-group-body">';
+        html += buildColorQtyInputs(gId, keyId, so, idx, colors, ag.colorQtys || {}, gIdx);
+        html += '</div>';
+    } else {
+        html += '<div class="art-group-body" style="padding:8px 14px;">'
+              + '<span style="font-size:12px;color:var(--text-muted);">← Choose a style above to enter quantities</span>'
+              + '</div>';
+    }
 
     html += '</div>';
     return html;
 }
-
 // ── Build color qty inputs for one art group ──────────────────────────────────
 function buildColorQtyInputs(gId, keyId, so, idx, colors, colorQtys, gIdx) {
     var groupTotal = Object.values(colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
@@ -698,18 +729,18 @@ function buildColorQtyInputs(gId, keyId, so, idx, colors, colorQtys, gIdx) {
     return html;
 }
 
-// ── Submitted display ─────────────────────────────────────────────────────────
+// ── Submitted display ─────────────────────────────────────────────────────────────────────────────────
 function buildSubmittedDisplay(sel, catalog) {
-    var vIdx  = sel.variantIndex !== undefined ? sel.variantIndex : 0;
-    var vDesc = catalog[vIdx] ? catalog[vIdx].description : '';
     var groups = sel.artGroups || [];
-
     var html = '<div class="submitted-display">';
-    html += '<div class="submitted-variant">✓ Submitted — ' + esc(vDesc) + '</div>';
+    html += '<div class="submitted-variant">✓ Submitted</div>';
     groups.forEach(function (ag, i) {
         if (!ag.artNumber && !Object.values(ag.colorQtys || {}).some(function(v){ return (parseInt(v)||0) > 0; })) return;
+        var vIdx  = ag.variantIndex != null ? ag.variantIndex : (sel.variantIndex !== undefined ? sel.variantIndex : 0);
+        var vDesc = catalog[vIdx] ? catalog[vIdx].description : '';
         html += '<div class="submitted-art-group">';
-        html += '<div class="submitted-art-label">Art ' + (i+1) + ': ' + esc(ag.artNumber || '—') + '</div>';
+        html += '<div class="submitted-art-label">Art ' + (i+1) + ': ' + esc(ag.artNumber || '—')
+              + (vDesc ? ' — ' + esc(vDesc) : '') + '</div>';
         html += '<div class="submitted-breakdown">';
         Object.keys(ag.colorQtys || {}).forEach(function (c) {
             var q = parseInt(ag.colorQtys[c]) || 0;
@@ -720,34 +751,36 @@ function buildSubmittedDisplay(sel, catalog) {
     html += '</div>';
     return html;
 }
-
-// ── Interaction: variant ──────────────────────────────────────────────────────
-function selectVariant(keyId, so, idx, vIdx) {
+// ── Interaction: per-group variant selection ────────────────────────────────────────────────
+function selectGroupVariant(keyId, so, idx, gIdx, vIdx) {
     var key = lkFromId(keyId);
-    if (!selections[key]) selections[key] = {};
-    if (selections[key].variantIndex !== vIdx) {
-        selections[key].variantIndex = vIdx;
-        selections[key].artGroups    = [newArtGroup()];  // reset on variant switch
+    ensureArtGroups(key);
+    var ag = selections[key].artGroups[gIdx];
+    if (ag.variantIndex !== vIdx) {
+        ag.variantIndex = vIdx;
+        ag.colorQtys    = {};  // reset colors when style changes
     }
     saveSelections();
 
-    $('#li-' + keyId + ' .variant-btn').removeClass('selected').each(function (i) {
-        if (i === vIdx) $(this).addClass('selected');
-    });
-
+    // Re-render just this art group
     var upc     = ordersGrouped[so].lines[idx].upc;
     var catalog = catalogData[upc] || [];
-    var colors  = catalog[vIdx] ? catalog[vIdx].colors : [];
     var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
-    $('#colorstep-' + keyId)
-        .html('<div class="step-divider">Step 2 — Enter Quantities by Art &amp; Color</div>'
-            + buildArtGroupsSection(keyId, so, idx, colors, selections[key], qty))
-        .addClass('visible');
+    var newHtml = buildArtGroup(keyId, so, idx, catalog, ag, gIdx, selections[key].artGroups.length);
+    $('#ag-' + keyId + '_g' + gIdx).replaceWith(newHtml);
+
+    // Update overall tally
+    var allocated  = totalAllocated(selections[key]);
+    var tallyClass = allocated === 0 ? 'under' : (allocated === qty ? 'exact' : (allocated > qty ? 'over' : 'under'));
+    var tallyIcon  = (allocated === qty && qty > 0) ? '✓ ' : '';
+    $('#overtally-' + keyId)
+        .attr('class', 'alloc-tally ' + tallyClass)
+        .html(tallyIcon + '<span id="overtally-num-' + keyId + '">' + allocated + '</span> / ' + qty + ' allocated');
 
     refreshOrderStatus(so);
+    updateSubmitBar();
 }
-
-// ── Interaction: add art group ────────────────────────────────────────────────
+// ── Interaction: add art group ────────────────────────────────────────────────────────────────────────────────
 function addArtGroup(keyId, so, idx) {
     var key = lkFromId(keyId);
     ensureArtGroups(key);
@@ -756,48 +789,25 @@ function addArtGroup(keyId, so, idx) {
 
     var upc     = ordersGrouped[so].lines[idx].upc;
     var catalog = catalogData[upc] || [];
-    var vIdx    = selections[key].variantIndex !== undefined ? selections[key].variantIndex : 0;
-    var colors  = catalog[vIdx] ? catalog[vIdx].colors : (catalog[0] ? catalog[0].colors : []);
-    var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
     var newIdx  = selections[key].artGroups.length - 1;
-    var gId     = keyId + '_g' + newIdx;
 
-    // Append new group before the Add button
-    var groupHtml = buildArtGroup(keyId, so, idx, colors, newArtGroup(), newIdx, selections[key].artGroups.length);
+    // Append new group
+    var groupHtml = buildArtGroup(keyId, so, idx, catalog, newArtGroup(), newIdx, selections[key].artGroups.length);
     $('#artgroups-' + keyId).append(groupHtml);
 
     // Update all remove buttons (show them now that there are multiple groups)
-    refreshRemoveButtons(keyId, so, idx, colors);
+    refreshRemoveButtons(keyId, so, idx, catalog);
 }
-
-// ── Interaction: remove art group ─────────────────────────────────────────────
+// ── Interaction: remove art group ─────────────────────────────────────────────────────────────────────────────────
 function removeArtGroup(keyId, so, idx, gIdx) {
     var key = lkFromId(keyId);
     if (!selections[key] || !selections[key].artGroups) return;
     selections[key].artGroups.splice(gIdx, 1);
     saveSelections();
-
-    // Full re-render of the art groups section
-    var upc     = ordersGrouped[so].lines[idx].upc;
-    var catalog = catalogData[upc] || [];
-    var vIdx    = selections[key].variantIndex !== undefined ? selections[key].variantIndex : 0;
-    var colors  = catalog[vIdx] ? catalog[vIdx].colors : (catalog[0] ? catalog[0].colors : []);
-    var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
-
-    var $colorStep = $('#colorstep-' + keyId);
-    if ($colorStep.length) {
-        // Multi-variant path
-        $colorStep.html('<div class="step-divider">Step 2 — Enter Quantities by Art &amp; Color</div>'
-            + buildArtGroupsSection(keyId, so, idx, colors, selections[key], qty));
-    } else {
-        // Single-variant path: re-render from selection-area downward
-        redrawSelectionArea(keyId, so, idx);
-    }
-
+    redrawSelectionArea(keyId, so, idx);
     refreshOrderStatus(so);
     updateSubmitBar();
 }
-
 // ── Interaction: art number input ─────────────────────────────────────────────
 function onArtInput(keyId, so, idx, gIdx, val) {
     var key = lkFromId(keyId);
@@ -855,7 +865,7 @@ function onQtyInput(keyId, so, idx, gIdx, color, rawVal) {
 }
 
 // ── Refresh remove buttons when group count changes ───────────────────────────
-function refreshRemoveButtons(keyId, so, idx, colors) {
+function refreshRemoveButtons(keyId, so, idx, catalog) {
     var key    = lkFromId(keyId);
     var groups = (selections[key] && selections[key].artGroups) || [];
     groups.forEach(function (ag, gIdx) {
@@ -868,7 +878,7 @@ function refreshRemoveButtons(keyId, so, idx, colors) {
     });
 }
 
-// ── Redraw selection area for single-variant lines ────────────────────────────
+// ── Redraw selection area ────────────────────────────────────────────────────────────────────────────────────
 function redrawSelectionArea(keyId, so, idx) {
     var key     = lkFromId(keyId);
     var upc     = ordersGrouped[so].lines[idx].upc;
@@ -876,13 +886,8 @@ function redrawSelectionArea(keyId, so, idx) {
     var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
     var sel     = selections[key] || {};
     var $sa     = $('#li-' + keyId + ' .selection-area');
-    $sa.html(
-        '<div class="single-desc">' + esc(catalog[0].description) + '</div>'
-        + '<div class="selection-label">Enter Quantities by Art &amp; Color</div>'
-        + buildArtGroupsSection(keyId, so, idx, catalog[0].colors, sel, qty)
-    );
+    $sa.html(buildArtGroupsSection(keyId, so, idx, catalog, sel, qty));
 }
-
 function toggleOrder(soId) {
     $('#body-' + soId).toggleClass('open');
     $('#ebtn-' + soId).toggleClass('open');
@@ -951,13 +956,15 @@ function submitSelections() {
 
             var upc     = line.upc;
             var catalog = catalogData[upc] || [];
-            var vIdx    = sel.variantIndex !== undefined ? sel.variantIndex : 0;
-            var variant = catalog[vIdx] || {};
 
             // One payload row per art group × color × qty > 0
+            // Each art group carries its own variantIndex for split-style orders
             (sel.artGroups || []).forEach(function (ag) {
                 var artOk = /^.+_[A-Za-z]{2}$/.test((ag.artNumber || '').trim());
                 if (!artOk) return;
+                var vIdx    = ag.variantIndex != null ? ag.variantIndex
+                            : (sel.variantIndex !== undefined ? sel.variantIndex : 0);
+                var variant = catalog[vIdx] || {};
                 Object.keys(ag.colorQtys || {}).forEach(function (color) {
                     var qty = parseInt(ag.colorQtys[color]) || 0;
                     if (qty <= 0) return;
