@@ -861,6 +861,14 @@ function onQtyInput(keyId, so, idx, gIdx, color, rawVal) {
     var cId  = '#cq-' + gId + '-' + escId(color);
     $(cId).toggleClass('has-qty', val > 0);
 
+    // ← add this: flag art number if qtys exist but art is blank
+    var groupTotal = Object.values(ag.colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var $artInput = $('#art-' + gId);
+    if (groupTotal > 0 && !(ag.artNumber || '').trim()) {
+        $artInput.addClass('invalid').removeClass('valid');
+        $('#ag-' + gId).addClass('group-error').removeClass('group-valid');
+    }
+    
     // Update group tally
     var groupTotal = Object.values(ag.colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
     $('#gtally-num-' + gId).text(groupTotal);
@@ -966,6 +974,26 @@ function submitSelections() {
         return;
     }
 
+    // ← add this block
+    var errors = [];
+    orderKeys.forEach(function(so) {
+        ordersGrouped[so].lines.forEach(function(line, idx) {
+            var key = lk(so, idx);
+            var sel = selections[key] || {};
+            if (sel.submitted) return;
+            (sel.artGroups || []).forEach(function(ag, gIdx) {
+                var groupTotal = Object.values(ag.colorQtys || {}).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+                if (groupTotal > 0 && !(ag.artNumber || '').trim()) {
+                    errors.push('Sales Order ' + so + ', line ' + (idx+1) + ', Art #' + (gIdx+1) + ' has quantities but no art number.');
+                }
+            });
+        });
+    });
+    if (errors.length > 0) {
+        alert('⚠ Please fix the following before submitting:\n\n' + errors.join('\n'));
+        return;
+    }
+    
     var payload = [];
     orderKeys.forEach(function (so) {
         var g = ordersGrouped[so];
