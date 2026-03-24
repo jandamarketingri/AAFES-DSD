@@ -388,11 +388,13 @@ var COL = {
     salespersonName:   5,   // F
     shipToName:        6,   // G
     requestedDelivery: 8,   // I
+    itemCode:          9,   // ← J
+    itemCodeDesc:      10   // ← K    
     quantityOrdered:   11,  // L
     unitPrice:         12,  // M
     upc:               13,  // N
     retailPrice:       14,   // O
-    selectionStatus:   15   // ← add this
+    selectionStatus:   15
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -452,6 +454,8 @@ function parseOrders(csv) {
             salespersonName:   col(cols, COL.salespersonName),
             shipToName:        col(cols, COL.shipToName),
             requestedDelivery: col(cols, COL.requestedDelivery),
+            itemCode:          col(cols, COL.itemCode),
+            itemCodeDesc:      col(cols, COL.itemCodeDesc),
             quantityOrdered:   col(cols, COL.quantityOrdered),
             unitPrice:         col(cols, COL.unitPrice),
             upc:               col(cols, COL.upc),
@@ -620,6 +624,8 @@ function buildLineItem(so, line, idx) {
 
     var html = '<div class="' + cardCls + '" id="li-' + keyId + '">';
     html += '<div class="line-item-header">';
+    html += '<div class="li-field"><label>Item Code</label><span class="mono">' + esc(line.itemCode) + '</span></div>';
+    html += '<div class="li-field"><label>Description</label><span>' + esc(line.itemCodeDesc) + '</span></div>';
     html += '<div class="li-field"><label>UPC</label><span class="mono">' + esc(upc) + '</span></div>';
     html += '<div class="li-field"><label>Retail</label><span>' + esc(retail) + '</span></div>';
     html += '<div class="li-field"><label>Cost</label><span>' + esc(cost) + '</span></div>';
