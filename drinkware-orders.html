@@ -391,7 +391,8 @@ var COL = {
     quantityOrdered:   11,  // L
     unitPrice:         12,  // M
     upc:               13,  // N
-    retailPrice:       14   // O
+    retailPrice:       14,   // O
+    selectionStatus:   15   // ← add this
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -455,7 +456,8 @@ function parseOrders(csv) {
             unitPrice:         col(cols, COL.unitPrice),
             upc:               col(cols, COL.upc),
             retailPrice:       col(cols, COL.retailPrice),
-            customerPONo:      col(cols, COL.customerPONo)
+            customerPONo:      col(cols, COL.customerPONo),
+            selectionStatus:   col(cols, COL.selectionStatus) 
         };
         var so = row.salesOrderNo;
         if (!ordersGrouped[so]) { ordersGrouped[so] = { meta: row, lines: [] }; orderKeys.push(so); }
@@ -494,6 +496,18 @@ function renderAll() {
     }
     var saved = sessionStorage.getItem('drinkwareSelections_' + repEmail);
     if (saved) { try { selections = JSON.parse(saved); } catch(e) {} }
+
+    // ← add this block: override submitted flags from spreadsheet column P
+    orderKeys.forEach(function(so) {
+        ordersGrouped[so].lines.forEach(function(line, idx) {
+            if ((line.selectionStatus || '').toLowerCase().indexOf('submitted') !== -1) {
+                var key = lk(so, idx);
+                if (!selections[key]) selections[key] = {};
+                selections[key].submitted = true;
+            }
+        });
+    });    
+    
     rebuildPage();
 }
 
