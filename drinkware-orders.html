@@ -206,7 +206,7 @@
         .art-group.group-error { border-color: #e53935; }
 
         .art-group-header {
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: flex-start; gap: 10px;
             padding: 10px 14px; background: #f7f7f5;
             border-bottom: 1px solid var(--border);
             flex-wrap: wrap;
@@ -224,6 +224,30 @@
         .art-number-input:focus   { outline: none; border-color: var(--accent); }
         .art-number-input.valid   { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
         .art-number-input.invalid { border-color: #e53935; background: #ffebee; }
+        
+        /* ── Imprint color input ── */
+        .imprint-color-input {
+            padding: 7px 10px; border: 2px solid var(--border); border-radius: 6px;
+            font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+            color: var(--text); background: var(--surface); width: 190px;
+            transition: border-color 0.18s, background 0.18s;
+        }
+        .imprint-color-input:focus   { outline: none; border-color: var(--accent); }
+        .imprint-color-input.valid   { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+        .imprint-color-input.invalid { border-color: #e53935; background: #ffebee; }
+        
+        /* ── Imprint comment textarea ── */
+        .imprint-comment-textarea {
+            padding: 7px 10px; border: 2px solid var(--border); border-radius: 6px;
+            font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+            color: var(--text); background: var(--surface);
+            transition: border-color 0.18s, background 0.18s;
+            width: 280px;
+            resize: vertical;
+            min-height: 44px;
+            max-height: 120px;
+        }
+        .imprint-comment-textarea:focus { outline: none; border-color: var(--accent); }
         .art-hint { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
 
         .btn-remove-art {
@@ -540,12 +564,13 @@ function lineIsReady(sel) {
     return sel.artGroups.some(function (ag) {
         var artOk = /^.+_[A-Za-z]{2}$/.test((ag.artNumber || '').trim());
         var qtyOk = Object.values(ag.colorQtys || {}).some(function (v) { return (parseInt(v) || 0) > 0; });
-        return artOk && qtyOk;
+        var imprintOk = qtyOk ? ((ag.imprintColor || '').trim().length > 0) : false;
+        return artOk && qtyOk && imprintOk;
     });
 }
 
 // Default new empty art group
-function newArtGroup() { return { artNumber: '', colorQtys: {}, variantIndex: null }; }
+function newArtGroup() { return { artNumber: '', imprintColor: '', imprintComment: '', colorQtys: {}, variantIndex: null }; }
 
 // Ensure sel has artGroups array
 function ensureArtGroups(key) {
@@ -673,9 +698,27 @@ function buildArtGroupsSection(keyId, so, idx, catalog, sel, orderedQty) {
 // ── Build a single art group ──────────────────────────────────────────────────────────────────────────────
 function buildArtGroup(keyId, so, idx, catalog, ag, gIdx, totalGroups) {
     var artVal    = ag.artNumber || '';
-    var isValid   = /^.+_[A-Za-z]{2}$/.test(artVal.trim());
-    var artCls    = artVal === '' ? '' : (isValid ? ' valid' : ' invalid');
-    var groupCls  = artVal === '' ? '' : (isValid ? ' group-valid' : ' group-error');
+    var artTrim   = artVal.trim();
+    var isValid   = /^.+_[A-Za-z]{2}$/.test(artTrim);
+    
+    var groupTotal = Object.values(ag.colorQtys || {}).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var groupHasQty = groupTotal > 0;
+    
+    var imprintVal  = ag.imprintColor || '';
+    var imprintTrim = imprintVal.trim();
+    var imprintOk   = groupHasQty ? imprintTrim.length > 0 : true;
+    var imprintInputCls = groupHasQty ? (imprintOk ? ' valid' : ' invalid') : '';
+    
+    var commentVal = ag.imprintComment || '';
+
+    var artCls    = artTrim === '' ? (groupHasQty ? ' invalid' : '') : (isValid ? ' valid' : ' invalid');
+    
+    var groupCls  = '';
+    if (artTrim !== '') {
+        groupCls = (isValid && imprintOk) ? ' group-valid' : ' group-error';
+    } else {
+        groupCls = groupHasQty ? ' group-error' : '';
+    }
     var gId       = keyId + '_g' + gIdx;
     var multiVariant = catalog.length > 1;
 
@@ -710,6 +753,18 @@ function buildArtGroup(keyId, so, idx, catalog, ag, gIdx, totalGroups) {
           + ' value="' + esc(artVal) + '" placeholder="e.g. MYART_AB"'
           + ' oninput="onArtInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',this.value)">';
     html += '<span class="art-hint">ends with _XX</span>';
+    
+    html += '<span class="art-hint" style="margin-left:12px;">Imprint Color</span>';
+    html += '<input type="text" class="imprint-color-input' + imprintInputCls + '" id="imprint-' + gId + '"'
+          + ' value="' + esc(imprintVal) + '" placeholder="e.g. Black"'
+          + ' oninput="onImprintInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',this.value)">';
+
+    html += '<span class="art-hint" style="margin-left:12px;">Imprint Comment</span>';
+    html += '<textarea class="imprint-comment-textarea" id="imprintcomment-' + gId + '"'
+          + ' placeholder="Notes for this art (optional)"'
+          + ' oninput="onImprintCommentInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',this.value)">'
+          + esc(commentVal) + '</textarea>';
+    
     if (totalGroups > 1) {
         html += '<button class="btn-remove-art" onclick="removeArtGroup(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ')">\u2715 Remove</button>';
     }
@@ -758,9 +813,16 @@ function buildSubmittedDisplay(sel, catalog) {
         if (!ag.artNumber && !Object.values(ag.colorQtys || {}).some(function(v){ return (parseInt(v)||0) > 0; })) return;
         var vIdx  = ag.variantIndex != null ? ag.variantIndex : (sel.variantIndex !== undefined ? sel.variantIndex : 0);
         var vDesc = catalog[vIdx] ? catalog[vIdx].description : '';
+        var imprint = (ag.imprintColor || '').trim();
+        var comment = (ag.imprintComment || '').trim();
         html += '<div class="submitted-art-group">';
         html += '<div class="submitted-art-label">Art ' + (i+1) + ': ' + esc(ag.artNumber || '—')
+              + (imprint ? ' — Imprint: ' + esc(imprint) : '')
               + (vDesc ? ' — ' + esc(vDesc) : '') + '</div>';
+        if (comment) {
+            html += '<div style="margin-top:6px;font-size:12px;color:var(--text-muted);font-family:\'DM Mono\', monospace;">'
+                + 'Comment: ' + esc(comment) + '</div>';
+        }
         html += '<div class="submitted-breakdown">';
         Object.keys(ag.colorQtys || {}).forEach(function (c) {
             var q = parseInt(ag.colorQtys[c]) || 0;
@@ -838,11 +900,72 @@ function onArtInput(keyId, so, idx, gIdx, val) {
     var gId     = keyId + '_g' + gIdx;
     var isValid = /^.+_[A-Za-z]{2}$/.test(val.trim());
     var $input  = $('#art-' + gId);
+    
+    var ag = selections[key].artGroups[gIdx];
+    var groupTotal = Object.values(ag.colorQtys || {}).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var groupHasQty = groupTotal > 0;
+    var imprintTrim = (ag.imprintColor || '').trim();
+    var imprintOk   = groupHasQty ? imprintTrim.length > 0 : true;
+    var $imprintInput = $('#imprint-' + gId);
+    $imprintInput.removeClass('valid invalid');
+    if (groupHasQty) $imprintInput.addClass(imprintOk ? 'valid' : 'invalid');
+
     $input.removeClass('valid invalid');
     if (val.trim() !== '') $input.addClass(isValid ? 'valid' : 'invalid');
-    $('#ag-' + gId).removeClass('group-valid group-error');
-    if (val.trim() !== '') $('#ag-' + gId).addClass(isValid ? 'group-valid' : 'group-error');
+    else if (groupHasQty) $input.addClass('invalid');
 
+    $('#ag-' + gId).removeClass('group-valid group-error');
+    if (val.trim() !== '') {
+        $('#ag-' + gId).addClass((isValid && imprintOk) ? 'group-valid' : 'group-error');
+    } else if (groupHasQty) {
+        $('#ag-' + gId).addClass('group-error');
+    }
+
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+
+// ── Interaction: imprint input ───────────────────────────────────────────────
+function onImprintInput(keyId, so, idx, gIdx, val) {
+    var key = lkFromId(keyId);
+    ensureArtGroups(key);
+    selections[key].artGroups[gIdx].imprintColor = val.trim();
+    saveSelections();
+
+    var gId     = keyId + '_g' + gIdx;
+    var ag      = selections[key].artGroups[gIdx];
+    var groupTotal = Object.values(ag.colorQtys || {}).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var groupHasQty = groupTotal > 0;
+    
+    var imprintTrim = (ag.imprintColor || '').trim();
+    var imprintOk   = groupHasQty ? imprintTrim.length > 0 : true;
+    
+    var $imprintInput = $('#imprint-' + gId);
+    $imprintInput.removeClass('valid invalid');
+    if (groupHasQty) $imprintInput.addClass(imprintOk ? 'valid' : 'invalid');
+
+    var artVal = (ag.artNumber || '').trim();
+    var artValid = /^.+_[A-Za-z]{2}$/.test(artVal);
+    
+    var $group = $('#ag-' + gId);
+    $group.removeClass('group-valid group-error');
+    if (artVal !== '') {
+        $group.addClass((artValid && imprintOk) ? 'group-valid' : 'group-error');
+    } else if (groupHasQty) {
+        $group.addClass('group-error');
+    }
+
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+
+// ── Interaction: imprint comment input ──────────────────────────────────
+function onImprintCommentInput(keyId, so, idx, gIdx, val) {
+    var key = lkFromId(keyId);
+    ensureArtGroups(key);
+    // Keep as-is (do not trim aggressively) so reps can type freely.
+    selections[key].artGroups[gIdx].imprintComment = val || '';
+    saveSelections();
     refreshOrderStatus(so);
     updateSubmitBar();
 }
@@ -861,16 +984,30 @@ function onQtyInput(keyId, so, idx, gIdx, color, rawVal) {
     var cId  = '#cq-' + gId + '-' + escId(color);
     $(cId).toggleClass('has-qty', val > 0);
 
-    // ← add this: flag art number if qtys exist but art is blank
+    // Update art + imprint validity based on entered quantities
     var groupTotal = Object.values(ag.colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
-    var $artInput = $('#art-' + gId);
-    if (groupTotal > 0 && !(ag.artNumber || '').trim()) {
-        $artInput.addClass('invalid').removeClass('valid');
-        $('#ag-' + gId).addClass('group-error').removeClass('group-valid');
-    }
+    var groupHasQty = groupTotal > 0;
     
+    var artVal = (ag.artNumber || '').trim();
+    var artValid = /^.+_[A-Za-z]{2}$/.test(artVal);
+    var imprintTrim = (ag.imprintColor || '').trim();
+    var imprintOk = groupHasQty ? imprintTrim.length > 0 : true;
+
+    var $artInput = $('#art-' + gId);
+    $artInput.removeClass('valid invalid');
+    if (artVal !== '') $artInput.addClass(artValid ? 'valid' : 'invalid');
+    else if (groupHasQty) $artInput.addClass('invalid');
+
+    var $imprintInput = $('#imprint-' + gId);
+    $imprintInput.removeClass('valid invalid');
+    if (groupHasQty) $imprintInput.addClass(imprintOk ? 'valid' : 'invalid');
+
+    var $group = $('#ag-' + gId);
+    $group.removeClass('group-valid group-error');
+    if (artVal !== '') $group.addClass((artValid && imprintOk) ? 'group-valid' : 'group-error');
+    else if (groupHasQty) $group.addClass('group-error');
+
     // Update group tally
-    var groupTotal = Object.values(ag.colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
     $('#gtally-num-' + gId).text(groupTotal);
 
     // Update overall tally
@@ -986,6 +1123,9 @@ function submitSelections() {
                 if (groupTotal > 0 && !(ag.artNumber || '').trim()) {
                     errors.push('Sales Order ' + so + ', line ' + (idx+1) + ', Art #' + (gIdx+1) + ' has quantities but no art number.');
                 }
+                if (groupTotal > 0 && !(ag.imprintColor || '').trim()) {
+                    errors.push('Sales Order ' + so + ', line ' + (idx+1) + ', Art #' + (gIdx+1) + ' has quantities but no imprint color.');
+                }
             });
         });
     });
@@ -1032,6 +1172,8 @@ function submitSelections() {
                         selectedCRC:       variant.crc         || '',
                         selectedDesc:      variant.description || '',
                         artNumber:         ag.artNumber,
+                        imprintColor:     ag.imprintColor,
+                        imprintComment:   ag.imprintComment,
                         selectedColor:     color,
                         colorQty:          qty
                     });
