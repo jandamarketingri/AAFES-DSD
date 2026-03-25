@@ -1106,12 +1106,7 @@ function updateSubmitBar() {
 
 // ── Submit ────────────────────────────────────────────────────────────────────
 function submitSelections() {
-    if (SUBMISSION_URL === '') {
-        alert('⚠ Submission endpoint not yet configured.\n\nReplace SUBMISSION_URL in drinkware-orders.html with your Apps Script URL to enable submissions.');
-        return;
-    }
 
-    // ← add this block
     var errors = [];
     orderKeys.forEach(function(so) {
         ordersGrouped[so].lines.forEach(function(line, idx) {
