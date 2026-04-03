@@ -579,6 +579,7 @@
         <button class="filter-btn men-category" data-filter="men-polos" onclick="loadCategory('men-polos')">Men's Polos</button>
         <button class="filter-btn men-category" data-filter="men-adjustable-caps" onclick="loadCategory('men-adjustable-caps')">Adjustable Caps</button>
         <button class="filter-btn men-category" data-filter="men-elevated-caps" onclick="loadCategory('men-elevated-caps')">Elevated Caps</button>
+        <button class="filter-btn men-category" data-filter="proud-family-tees" onclick="loadCategory('proud-family-tees')">Proud Family Tees</button>
         <button class="filter-btn women-category" data-filter="women-basic-tees" onclick="loadCategory('women-basic-tees')">Women's Basic Tees</button>
         <button class="filter-btn women-category" data-filter="women-premium-tees" onclick="loadCategory('women-premium-tees')">Women's Premium Tees</button>
         <button class="filter-btn women-category" data-filter="women-hoodies" onclick="loadCategory('women-hoodies')">Women's Hoodies</button>
@@ -625,6 +626,7 @@ var SHEET_CONFIG = {
     'men-polos': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=1362197383&single=true&output=csv',
     'men-adjustable-caps': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=1177199316&single=true&output=csv',
     'men-elevated-caps': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=836123421&single=true&output=csv',
+    'proud-family-tees': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=1510368305&single=true&output=csv',
     'women-basic-tees': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=1079165482&single=true&output=csv',
     'women-premium-tees': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=1288881911&single=true&output=csv',
     'women-hoodies': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=41894503&single=true&output=csv',
@@ -653,6 +655,7 @@ var categoryToPriceCode = {
     'men-polos': '762VMBTS',
     'men-adjustable-caps': '762ADJCP',
     'men-elevated-caps': '762ELCP',
+    'proud-family-tees': '762FAMT',
     'women-basic-tees': '762WCTEE',
     'women-premium-tees': '762WSTEE',
     'women-hoodies': '762WHOOD',
@@ -1054,7 +1057,7 @@ function getCategoryLabel(category) {
     var labels = {
         "men-basic-tees": "Men's Basic Tees", "men-premium-tees": "Men's Premium Tees",
         "men-long-sleeve": "Men's Long-Sleeve", "men-hoodies": "Men's Hoodies",
-        "men-adjustable-caps": "Men's Adjustable Caps", "men-elevated-caps": "Men's Elevated Caps",
+        "men-adjustable-caps": "Men's Adjustable Caps", "men-elevated-caps": "Men's Elevated Caps", "proud-family-tees": "Proud Family Tees",
         "women-basic-tees": "Women's Basic Tees", "women-premium-tees": "Women's Premium Tees",
         "women-hoodies": "Women's Hoodies", "women-caps": "Women's Caps"
     };
