@@ -404,23 +404,27 @@ var CATALOG_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVJhbWNN
 var SUBMISSION_URL  = 'https://script.google.com/macros/s/AKfycbwL_HwIuOgVARoidJkyHNKy1wWmM7jWpKbjrois54sx4beMDxKSaOHracvG2jR-ZN83/exec';
 
 // ── Column indices (0-based) ──────────────────────────────────────────────────
-// New column F (index 5) = Rep Email; everything that was F+ shifts right by 1
+// A=SalesOrderNo, B=OrderDate, C=CustomerPONo, D=SalespersonNo,
+// E=SalespersonEmail, F=SalespersonName, G=ShipToName, H=UDF_FACILITY_ID,
+// I=UDF_REQUESTED_DELIVERY_DATE, J=ItemCode, K=ItemCodeDesc,
+// L=QuantityOrdered, M=UnitPrice, N=UPC_Number, O=RetailPrice, P=SelectionStatus
 var COL = {
     salesOrderNo:      0,   // A
     orderDate:         1,   // B
     customerPONo:      2,   // C
+                            // D = SalespersonNo (not used)
     salespersonEmail:  4,   // E
-    repEmail:          5,   // F  ← NEW
-    salespersonName:   6,   // G  (was F)
-    shipToName:        7,   // H  (was G)
-    requestedDelivery: 9,   // J  (was I)
-    itemCode:          10,  // K  (was J)
-    itemCodeDesc:      11,  // L  (was K)
-    quantityOrdered:   12,  // M  (was L)
-    unitPrice:         13,  // N  (was M)
-    upc:               14,  // O  (was N)
-    retailPrice:       15,  // P  (was O)
-    selectionStatus:   16   // Q  (was P)
+    salespersonName:   5,   // F
+    shipToName:        6,   // G
+                            // H = UDF_FACILITY_ID (not used)
+    requestedDelivery: 8,   // I
+    itemCode:          9,   // J
+    itemCodeDesc:      10,  // K
+    quantityOrdered:   11,  // L
+    unitPrice:         12,  // M
+    upc:               13,  // N
+    retailPrice:       14,  // O
+    selectionStatus:   15   // P
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -477,7 +481,6 @@ function parseOrders(csv) {
             salesOrderNo:      col(cols, COL.salesOrderNo),
             orderDate:         col(cols, COL.orderDate),
             salespersonEmail:  email,
-            repEmail:          col(cols, COL.repEmail),
             salespersonName:   col(cols, COL.salespersonName),
             shipToName:        col(cols, COL.shipToName),
             requestedDelivery: col(cols, COL.requestedDelivery),
