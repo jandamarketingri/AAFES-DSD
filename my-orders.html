@@ -303,6 +303,138 @@
         }
         .total-items { font-size: 13px; color: var(--text-muted); }
         .total-items strong { color: var(--text); }
+
+        /* ── Tab switcher ── */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 28px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 5px;
+            width: fit-content;
+        }
+        .tab-btn {
+            padding: 8px 20px;
+            border-radius: 7px;
+            border: none;
+            background: transparent;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.18s;
+            white-space: nowrap;
+        }
+        .tab-btn:hover { color: var(--accent); }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(102,126,234,0.35);
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        /* ── Drinkware filter bar ── */
+        .dw-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+            flex-wrap: wrap;
+        }
+
+        /* ── Drinkware order cards ── */
+        .dw-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto auto;
+            align-items: center;
+            gap: 14px;
+            padding: 18px 22px;
+            cursor: pointer;
+            user-select: none;
+        }
+        @media (max-width: 860px) {
+            .dw-summary { grid-template-columns: 1fr 1fr; gap: 10px; }
+        }
+
+        /* ── Drinkware detail panel ── */
+        .dw-detail {
+            display: none;
+            border-top: 1px solid var(--border);
+            background: #fafaf8;
+            padding: 20px 22px;
+            animation: slideDown 0.2s ease;
+        }
+        .dw-detail.open { display: block; }
+
+        .dw-meta {
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* ── Drinkware line item table ── */
+        .dw-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .dw-table th {
+            text-align: left;
+            padding: 8px 10px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+            border-bottom: 1.5px solid var(--border);
+            white-space: nowrap;
+        }
+        .dw-table td {
+            padding: 9px 10px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .dw-table tr:last-child td { border-bottom: none; }
+        .dw-table tr:hover td { background: rgba(102,126,234,0.04); }
+        .dw-table .mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+        .dw-table .qty  { font-weight: 700; color: var(--accent); }
+
+        /* ── Color chip ── */
+        .color-chip {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #ede9fe;
+            color: #5b21b6;
+            white-space: nowrap;
+        }
+        .art-chip {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #e0f2f1;
+            color: #00695c;
+            font-family: 'DM Mono', monospace;
+            white-space: nowrap;
+        }
+
+        /* ── Drinkware badge ── */
+        .status-drinkware {
+            background: #e0f2f1;
+            color: #00695c;
+        }
     </style>
 </head>
 <body>
@@ -322,35 +454,91 @@
     <div class="page-title">My Orders</div>
     <div class="page-subtitle" id="pageSubtitle">Loading your order history…</div>
 
-    <div class="filter-bar" id="filterBar" style="display:none;">
-        <button class="filter-btn active" data-filter="30"  onclick="applyFilter('30',  this)">Last 30 Days</button>
-        <button class="filter-btn"        data-filter="90"  onclick="applyFilter('90',  this)">Last 90 Days</button>
-        <button class="filter-btn"        data-filter="365" onclick="applyFilter('365', this)">Last Year</button>
-        <button class="filter-btn"        data-filter="all" onclick="applyFilter('all', this)">All Time</button>
-        <div class="filter-divider"></div>
-        <span class="order-count" id="orderCount"></span>
+    <!-- ── Tab switcher ── -->
+    <div class="tab-bar">
+        <button class="tab-btn active" id="tabBtnOrders"    onclick="switchTab('orders')">📋 Orders</button>
+        <button class="tab-btn"        id="tabBtnDrinkware" onclick="switchTab('drinkware')">☕ Past Drinkware</button>
     </div>
 
-    <div id="contentArea">
-        <div class="state-box">
-            <div class="spinner"></div>
-            <p>Fetching your orders…</p>
+    <!-- ── Orders tab ── -->
+    <div class="tab-panel active" id="tabOrders">
+        <div class="filter-bar" id="filterBar" style="display:none;">
+            <button class="filter-btn active" data-filter="30"  onclick="applyFilter('30',  this)">Last 30 Days</button>
+            <button class="filter-btn"        data-filter="90"  onclick="applyFilter('90',  this)">Last 90 Days</button>
+            <button class="filter-btn"        data-filter="365" onclick="applyFilter('365', this)">Last Year</button>
+            <button class="filter-btn"        data-filter="all" onclick="applyFilter('all', this)">All Time</button>
+            <div class="filter-divider"></div>
+            <span class="order-count" id="orderCount"></span>
+        </div>
+        <div id="contentArea">
+            <div class="state-box">
+                <div class="spinner"></div>
+                <p>Fetching your orders…</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Drinkware tab ── -->
+    <div class="tab-panel" id="tabDrinkware">
+        <div class="dw-filter-bar" id="dwFilterBar" style="display:none;">
+            <button class="filter-btn active" data-dwfilter="all"  onclick="applyDwFilter('all',  this)">All Time</button>
+            <button class="filter-btn"        data-dwfilter="365"  onclick="applyDwFilter('365', this)">Last Year</button>
+            <button class="filter-btn"        data-dwfilter="90"   onclick="applyDwFilter('90',  this)">Last 90 Days</button>
+            <button class="filter-btn"        data-dwfilter="30"   onclick="applyDwFilter('30',  this)">Last 30 Days</button>
+            <div class="filter-divider"></div>
+            <span class="order-count" id="dwOrderCount"></span>
+        </div>
+        <div id="dwContentArea">
+            <div class="state-box">
+                <div class="spinner"></div>
+                <p>Loading drinkware history…</p>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-// ── CONFIG — replace with your deployed Apps Script URL ──
+// ── CONFIG ────────────────────────────────────────────────────────────────────
 var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
 
-var allOrders = [];
+// ▶ Replace with your published Google Sheet CSV URL for past drinkware orders
+// File → Share → Publish to web → select the sheet → CSV → copy URL
+var DRINKWARE_CSV_URL = 'YOUR_DRINKWARE_GOOGLE_SHEET_CSV_URL_HERE';
 
-// ── Auth check ──
+// Column indices (0-based) matching your drinkware sheet:
+// Sales Order No | Custom PO | Order Date | Ship To | Required Delivery Date
+// | Rep Email | SKU | SKU Description | Color | Quantity | Art Number
+// | Imprint Color(s) | Comments
+var DW_COL = {
+    salesOrderNo:    0,
+    customPO:        1,
+    orderDate:       2,
+    shipTo:          3,
+    reqDelivery:     4,
+    repEmail:        5,
+    sku:             6,
+    skuDesc:         7,
+    color:           8,
+    quantity:        9,
+    artNumber:       10,
+    imprintColor:    11,
+    comments:        12
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+var allOrders     = [];
+var allDwOrders   = [];
+var dwLoaded      = false;
+var currentTab    = 'orders';
+var repEmailGlobal = '';
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
 $(document).ready(function () {
     var raw = sessionStorage.getItem('salesPortalAuth');
     if (!raw) { window.location.href = 'login.html'; return; }
     try {
         var auth = JSON.parse(raw);
+        repEmailGlobal = (auth.email || '').toLowerCase().trim();
         $('#repBadge').text(auth.name || auth.email);
         fetchOrders(auth.email);
     } catch (e) {
@@ -358,7 +546,24 @@ $(document).ready(function () {
     }
 });
 
-// ── Fetch orders from Apps Script ──
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+    currentTab = tab;
+    $('.tab-btn').removeClass('active');
+    $('.tab-panel').removeClass('active');
+    if (tab === 'orders') {
+        $('#tabBtnOrders').addClass('active');
+        $('#tabOrders').addClass('active');
+        $('#pageSubtitle').text('Showing orders placed under your account.');
+    } else {
+        $('#tabBtnDrinkware').addClass('active');
+        $('#tabDrinkware').addClass('active');
+        $('#pageSubtitle').text('Past drinkware orders associated with your rep account.');
+        if (!dwLoaded) loadDrinkwareOrders();
+    }
+}
+
+// ── Fetch regular orders from Apps Script ─────────────────────────────────────
 function fetchOrders(email) {
     $.ajax({
         url: APPS_SCRIPT_URL,
@@ -381,11 +586,10 @@ function fetchOrders(email) {
     });
 }
 
-// ── Filter by date range ──
+// ── Filter by date range (regular orders) ────────────────────────────────────
 function applyFilter(filter, btn) {
-    $('.filter-btn').removeClass('active');
+    $('#filterBar .filter-btn').removeClass('active');
     $(btn).addClass('active');
-
     var now = new Date();
     var filtered = allOrders.filter(function (o) {
         if (filter === 'all') return true;
@@ -393,76 +597,53 @@ function applyFilter(filter, btn) {
         if (!o.timestamp) return false;
         var orderDate = new Date(o.timestamp);
         if (isNaN(orderDate.getTime())) return false;
-        var cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-        return orderDate >= cutoff;
+        return orderDate >= new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
     });
     renderOrders(filtered);
 }
 
-// ── Render order list ──
+// ── Render regular orders ─────────────────────────────────────────────────────
 function renderOrders(orders) {
     if (orders.length === 0) {
-        $('#contentArea').html(
-            '<div class="state-box"><div class="icon">📋</div><p>No orders found for this time period.</p></div>'
-        );
+        $('#contentArea').html('<div class="state-box"><div class="icon">📋</div><p>No orders found for this time period.</p></div>');
         $('#orderCount').text('');
         return;
     }
-
-    // Group rows by PO number — count of unique POs = true order count
-    var grouped = {};
-    var poOrder = [];
+    var grouped = {}, poOrder = [];
     orders.forEach(function (row) {
         var po = row.poNumber || '—';
-        if (!grouped[po]) {
-            grouped[po] = { meta: row, items: [], source: row.source };
-            poOrder.push(po);
-        }
+        if (!grouped[po]) { grouped[po] = { meta: row, items: [], source: row.source }; poOrder.push(po); }
         grouped[po].items.push(row);
     });
-
     var poCount = poOrder.length;
     $('#orderCount').text(poCount + ' order' + (poCount !== 1 ? 's' : ''));
-
     var html = '<div class="orders-list">';
     poOrder.forEach(function (po) {
-        var g         = grouped[po];
-        var meta      = g.meta;
+        var g = grouped[po], meta = g.meta;
         var lineItems = g.items.filter(function (r) { return r.sku && r.sku !== '/C' && r.explodedKit !== 'Y'; });
         var totalQty  = lineItems.reduce(function (s, r) { return s + (parseInt(r.quantity) || 0); }, 0);
-
         var statusClass = g.source === 'active' ? 'status-pending' : 'status-imported';
         var statusLabel = g.source === 'active' ? 'Pending Import' : 'Imported to ERP';
-
         html += '<div class="order-card">';
-
-        // Summary row
         html += '<div class="order-summary" onclick="toggleDetail(\'' + escId(po) + '\')">';
         html += '<div class="summary-field"><label>PO Number</label><div class="val mono">' + esc(po) + '</div></div>';
-        html += '<div class="summary-field"><label>Order Date</label><div class="val">'     + esc(formatDate(meta.timestamp)) + '</div></div>';
-        html += '<div class="summary-field"><label>Facility</label><div class="val">'       + esc(meta.locationName || meta.facilityId || '—') + '</div></div>';
-        html += '<div class="summary-field"><label>Ship Window</label><div class="val">'    + esc(formatDate(meta.beginShip)) + ' → ' + esc(formatDate(meta.shipBy)) + '</div></div>';
-        html += '<div class="summary-field"><label>Items / Qty</label><div class="val">'    + lineItems.length + ' SKUs &nbsp;·&nbsp; ' + totalQty + ' units</div></div>';
+        html += '<div class="summary-field"><label>Order Date</label><div class="val">' + esc(formatDate(meta.timestamp)) + '</div></div>';
+        html += '<div class="summary-field"><label>Facility</label><div class="val">' + esc(meta.locationName || meta.facilityId || '—') + '</div></div>';
+        html += '<div class="summary-field"><label>Ship Window</label><div class="val">' + esc(formatDate(meta.beginShip)) + ' → ' + esc(formatDate(meta.shipBy)) + '</div></div>';
+        html += '<div class="summary-field"><label>Items / Qty</label><div class="val">' + lineItems.length + ' SKUs &nbsp;·&nbsp; ' + totalQty + ' units</div></div>';
         html += '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>';
         html += '<button class="expand-btn" id="btn-' + escId(po) + '">▾</button>';
         html += '</div>';
-
-        // Detail panel
         html += '<div class="order-detail" id="detail-' + escId(po) + '">';
         html += '<div class="detail-meta">';
-        html += '<div class="detail-meta-item"><label>Rep Name</label><span>'    + esc(meta.repName   || '—') + '</span></div>';
-        html += '<div class="detail-meta-item"><label>Rep Email</label><span>'   + esc(meta.repEmail  || '—') + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Rep Name</label><span>' + esc(meta.repName || '—') + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Rep Email</label><span>' + esc(meta.repEmail || '—') + '</span></div>';
         html += '<div class="detail-meta-item"><label>Facility ID</label><span>' + esc(meta.facilityId || '—') + '</span></div>';
-        html += '<div class="detail-meta-item"><label>Begin Ship</label><span>'  + esc(formatDate(meta.beginShip)) + '</span></div>';
-        html += '<div class="detail-meta-item"><label>Ship By</label><span>'     + esc(formatDate(meta.shipBy)) + '</span></div>';
-        if (meta.brand) {
-            html += '<div class="detail-meta-item"><label>Brand</label><span>' + esc(meta.brand) + '</span></div>';
-        }
-        if (g.source === 'archived' && meta.exportDate) {
-            html += '<div class="detail-meta-item"><label>Imported Date</label><span>' + esc(formatDate(meta.exportDate)) + '</span></div>';
-        }
+        html += '<div class="detail-meta-item"><label>Begin Ship</label><span>' + esc(formatDate(meta.beginShip)) + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Ship By</label><span>' + esc(formatDate(meta.shipBy)) + '</span></div>';
+        if (meta.brand) html += '<div class="detail-meta-item"><label>Brand</label><span>' + esc(meta.brand) + '</span></div>';
+        if (g.source === 'archived' && meta.exportDate) html += '<div class="detail-meta-item"><label>Imported Date</label><span>' + esc(formatDate(meta.exportDate)) + '</span></div>';
         html += '</div>';
-
         if (lineItems.length > 0) {
             html += '<table class="items-table"><thead><tr>';
             html += '<th>SKU</th><th>Description / Comments</th><th>Qty</th><th>Retail Price</th><th>UPC</th>';
@@ -480,30 +661,184 @@ function renderOrders(orders) {
         } else {
             html += '<p style="color:var(--text-muted);font-size:13px;">No line item details available.</p>';
         }
-
         html += '<div class="detail-footer"><span class="total-items"><strong>' + lineItems.length + '</strong> SKU(s) &nbsp;·&nbsp; <strong>' + totalQty + '</strong> total units</span></div>';
-        html += '</div>'; // detail
-        html += '</div>'; // card
+        html += '</div></div>';
     });
     html += '</div>';
-
     $('#contentArea').html(html);
 }
 
-// ── Toggle detail ──
 function toggleDetail(poId) {
-    var $detail = $('#detail-' + poId);
-    var $btn    = $('#btn-'    + poId);
-    if ($detail.hasClass('open')) {
-        $detail.removeClass('open');
-        $btn.removeClass('open');
-    } else {
-        $detail.addClass('open');
-        $btn.addClass('open');
+    var $d = $('#detail-' + poId), $b = $('#btn-' + poId);
+    $d.toggleClass('open'); $b.toggleClass('open');
+}
+
+// ── Load drinkware orders from Google Sheet CSV ───────────────────────────────
+function loadDrinkwareOrders() {
+    if (DRINKWARE_CSV_URL === 'YOUR_DRINKWARE_GOOGLE_SHEET_CSV_URL_HERE') {
+        $('#dwContentArea').html(
+            '<div class="state-box"><div class="icon">⚙️</div>' +
+            '<p>Set <strong>DRINKWARE_CSV_URL</strong> in the script to your published Google Sheet CSV link.</p></div>'
+        );
+        return;
+    }
+    $('#dwContentArea').html('<div class="state-box"><div class="spinner"></div><p>Loading drinkware history…</p></div>');
+    $.ajax({
+        url: DRINKWARE_CSV_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function (csv) {
+            parseDrinkwareCSV(csv);
+            dwLoaded = true;
+            $('#dwFilterBar').show();
+            applyDwFilter('all', $('#dwFilterBar .filter-btn[data-dwfilter="all"]')[0]);
+        },
+        error: function () {
+            $('#dwContentArea').html(
+                '<div class="state-box"><div class="icon">⚠️</div>' +
+                '<p>Could not load drinkware orders. Check the CSV URL and sheet publish settings.</p></div>'
+            );
+        }
+    });
+}
+
+// ── Parse drinkware CSV ───────────────────────────────────────────────────────
+function parseDrinkwareCSV(csv) {
+    allDwOrders = [];
+    var rows = csv.split('\n');
+    for (var i = 1; i < rows.length; i++) {
+        if (!rows[i].trim()) continue;
+        var cols = parseCSVRow(rows[i]);
+        var email = (cols[DW_COL.repEmail] || '').toLowerCase().trim();
+        if (email !== repEmailGlobal) continue;
+        allDwOrders.push({
+            salesOrderNo:  (cols[DW_COL.salesOrderNo]  || '').trim(),
+            customPO:      (cols[DW_COL.customPO]       || '').trim(),
+            orderDate:     (cols[DW_COL.orderDate]      || '').trim(),
+            shipTo:        (cols[DW_COL.shipTo]         || '').trim(),
+            reqDelivery:   (cols[DW_COL.reqDelivery]    || '').trim(),
+            repEmail:      email,
+            sku:           (cols[DW_COL.sku]            || '').trim(),
+            skuDesc:       (cols[DW_COL.skuDesc]        || '').trim(),
+            color:         (cols[DW_COL.color]          || '').trim(),
+            quantity:      (cols[DW_COL.quantity]       || '').trim(),
+            artNumber:     (cols[DW_COL.artNumber]      || '').trim(),
+            imprintColor:  (cols[DW_COL.imprintColor]   || '').trim(),
+            comments:      (cols[DW_COL.comments]       || '').trim()
+        });
     }
 }
 
-// ── Helpers ──
+// ── Filter drinkware orders ───────────────────────────────────────────────────
+function applyDwFilter(filter, btn) {
+    $('#dwFilterBar .filter-btn').removeClass('active');
+    $(btn).addClass('active');
+    var now = new Date();
+    var filtered = allDwOrders.filter(function (r) {
+        if (filter === 'all') return true;
+        if (!r.orderDate) return false;
+        var d = new Date(r.orderDate);
+        if (isNaN(d.getTime())) return false;
+        return d >= new Date(now.getTime() - parseInt(filter) * 24 * 60 * 60 * 1000);
+    });
+    renderDrinkwareOrders(filtered);
+}
+
+// ── Render drinkware orders ───────────────────────────────────────────────────
+function renderDrinkwareOrders(rows) {
+    if (rows.length === 0) {
+        $('#dwContentArea').html(
+            '<div class="state-box"><div class="icon">☕</div>' +
+            '<p>No drinkware orders found for this time period.</p></div>'
+        );
+        $('#dwOrderCount').text('');
+        return;
+    }
+
+    // Group by Sales Order No
+    var grouped = {}, soOrder = [];
+    rows.forEach(function (r) {
+        var so = r.salesOrderNo || '—';
+        if (!grouped[so]) { grouped[so] = { meta: r, lines: [] }; soOrder.push(so); }
+        grouped[so].lines.push(r);
+    });
+
+    $('#dwOrderCount').text(soOrder.length + ' order' + (soOrder.length !== 1 ? 's' : ''));
+
+    var html = '<div class="orders-list">';
+    soOrder.forEach(function (so) {
+        var g    = grouped[so];
+        var meta = g.meta;
+        var totalQty = g.lines.reduce(function (s, r) { return s + (parseInt(r.quantity) || 0); }, 0);
+        var soId = 'dw_' + escId(so);
+
+        html += '<div class="order-card">';
+
+        // ── Summary row ──
+        html += '<div class="dw-summary" onclick="toggleDwDetail(\'' + soId + '\')">';
+        html += dwField('Sales Order', so, true);
+        html += dwField('Custom PO',   meta.customPO  || '—', true);
+        html += dwField('Order Date',  formatDate(meta.orderDate));
+        html += dwField('Ship To',     meta.shipTo    || '—');
+        html += dwField('Req. Delivery', formatDate(meta.reqDelivery));
+        html += '<div class="summary-field"><label>Lines / Qty</label><div class="val">' + g.lines.length + ' lines &nbsp;·&nbsp; ' + totalQty + ' units</div></div>';
+        html += '<span class="status-badge status-drinkware">☕ Drinkware</span>';
+        html += '<button class="expand-btn" id="dwbtn-' + soId + '">▾</button>';
+        html += '</div>';
+
+        // ── Detail panel ──
+        html += '<div class="dw-detail" id="dwdetail-' + soId + '">';
+
+        // Order-level meta strip
+        html += '<div class="dw-meta">';
+        html += dwMeta('Sales Order No', so);
+        html += dwMeta('Custom PO',      meta.customPO  || '—');
+        html += dwMeta('Order Date',     formatDate(meta.orderDate));
+        html += dwMeta('Ship To',        meta.shipTo    || '—');
+        html += dwMeta('Req. Delivery',  formatDate(meta.reqDelivery));
+        html += dwMeta('Rep Email',      meta.repEmail  || '—');
+        html += '</div>';
+
+        // Line items table
+        html += '<table class="dw-table"><thead><tr>';
+        html += '<th>SKU</th><th>Description</th><th>Color</th><th>Qty</th><th>Art Number</th><th>Imprint Color(s)</th><th>Comments</th>';
+        html += '</tr></thead><tbody>';
+        g.lines.forEach(function (line) {
+            html += '<tr>';
+            html += '<td class="mono">' + esc(line.sku || '—') + '</td>';
+            html += '<td>' + esc(line.skuDesc || '—') + '</td>';
+            html += '<td>' + (line.color ? '<span class="color-chip">' + esc(line.color) + '</span>' : '—') + '</td>';
+            html += '<td class="qty">' + esc(line.quantity || '—') + '</td>';
+            html += '<td>' + (line.artNumber ? '<span class="art-chip">' + esc(line.artNumber) + '</span>' : '—') + '</td>';
+            html += '<td>' + esc(line.imprintColor || '—') + '</td>';
+            html += '<td style="color:var(--text-muted);font-size:12px;">' + esc(line.comments || '—') + '</td>';
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+
+        html += '<div class="detail-footer"><span class="total-items"><strong>' + g.lines.length + '</strong> line(s) &nbsp;·&nbsp; <strong>' + totalQty + '</strong> total units</span></div>';
+        html += '</div>'; // dw-detail
+        html += '</div>'; // order-card
+    });
+    html += '</div>';
+    $('#dwContentArea').html(html);
+}
+
+function toggleDwDetail(soId) {
+    $('#dwdetail-' + soId).toggleClass('open');
+    $('#dwbtn-'    + soId).toggleClass('open');
+}
+
+// ── HTML helpers for drinkware ────────────────────────────────────────────────
+function dwField(label, val, mono) {
+    return '<div class="summary-field"><label>' + esc(label) + '</label>'
+         + '<div class="val' + (mono ? ' mono' : '') + '">' + esc(val) + '</div></div>';
+}
+function dwMeta(label, val) {
+    return '<div class="detail-meta-item"><label>' + esc(label) + '</label><span>' + esc(val) + '</span></div>';
+}
+
+// ── Shared helpers ────────────────────────────────────────────────────────────
 function showError(msg) {
     $('#contentArea').html('<div class="state-box"><div class="icon">⚠️</div><p>' + esc(msg) + '</p></div>');
     $('#pageSubtitle').text('Something went wrong.');
@@ -514,6 +849,18 @@ function formatDate(val) {
     var d = new Date(val);
     if (isNaN(d.getTime())) return val;
     return (d.getMonth() + 1) + '/' + d.getDate() + '/' + d.getFullYear();
+}
+
+function parseCSVRow(row) {
+    var cols = [], cur = '', inQ = false;
+    for (var i = 0; i < row.length; i++) {
+        var ch = row[i];
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+        else { cur += ch; }
+    }
+    cols.push(cur.trim());
+    return cols;
 }
 
 function esc(str) {
