@@ -407,7 +407,9 @@ var SUBMISSION_URL  = 'https://script.google.com/macros/s/AKfycbwL_HwIuOgVARoidJ
 // A=SalesOrderNo, B=OrderDate, C=CustomerPONo, D=SalespersonNo,
 // E=SalespersonEmail, F=SalespersonName, G=ShipToName, H=UDF_FACILITY_ID,
 // I=UDF_REQUESTED_DELIVERY_DATE, J=ItemCode, K=ItemCodeDesc,
-// L=QuantityOrdered, M=UnitPrice, N=UPC_Number, O=RetailPrice, P=SelectionStatus
+// L=QuantityOrdered, M=UnitPrice, N=UPC_Number, O=RetailPrice,
+// P=SelectionStatus, Q=CompletedStatus
+// Lines with any value in P or Q are hidden entirely (already processed).
 var COL = {
     salesOrderNo:      0,   // A
     orderDate:         1,   // B
@@ -424,7 +426,8 @@ var COL = {
     unitPrice:         12,  // M
     upc:               13,  // N
     retailPrice:       14,  // O
-    selectionStatus:   15   // P
+    selectionStatus:   15,  // P
+    completedStatus:   16   // Q
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -477,6 +480,8 @@ function parseOrders(csv) {
         var cols  = parseCSVRow(rows[i]);
         var email = (cols[COL.salespersonEmail] || '').toLowerCase().trim();
         if (email !== repEmail) continue;
+        // Skip lines that already have a value in col P (SelectionStatus) or col Q (CompletedStatus)
+        if ((cols[COL.selectionStatus] || '').trim() || (cols[COL.completedStatus] || '').trim()) continue;
         var row = {
             salesOrderNo:      col(cols, COL.salesOrderNo),
             orderDate:         col(cols, COL.orderDate),
@@ -531,17 +536,6 @@ function renderAll() {
     var saved = sessionStorage.getItem('drinkwareSelections_' + repEmail);
     if (saved) { try { selections = JSON.parse(saved); } catch(e) {} }
 
-    // ← add this block: override submitted flags from spreadsheet column P
-    orderKeys.forEach(function(so) {
-        ordersGrouped[so].lines.forEach(function(line, idx) {
-            if ((line.selectionStatus || '').toLowerCase().indexOf('submitted') !== -1) {
-                var key = lk(so, idx);
-                if (!selections[key]) selections[key] = {};
-                selections[key].submitted = true;
-            }
-        });
-    });    
-    
     rebuildPage();
 }
 
