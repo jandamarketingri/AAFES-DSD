@@ -376,8 +376,11 @@
         <h1>Sales Portal</h1>
     </div>
     <div class="header-right">
-        <span class="rep-badge" id="repBadge">Loading…</span>
-        <a href="index.html" class="btn-back">← Back to Portal</a>
+        <div style="background:white;padding:8px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;gap:10px;align-items:center;">
+            <span style="color:#555;font-size:14px;">👤 <span id="repBadge">Loading…</span></span>
+            <a href="my-orders.html" style="background:#667eea;color:white;padding:6px 12px;border-radius:4px;font-weight:600;text-decoration:none;font-size:14px;">📋 My Orders</a>
+            <button onclick="portalLogout()" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;font-size:14px;">Logout</button>
+        </div>
     </div>
 </div>
 
@@ -456,6 +459,14 @@ $(document).ready(function () {
         loadData();
     } catch (e) { window.location.href = 'login.html'; }
 });
+
+// ── Logout ────────────────────────────────────────────────────────────────────
+function portalLogout() {
+    if (confirm('Are you sure you want to log out?')) {
+        sessionStorage.removeItem('salesPortalAuth');
+        window.location.href = 'login.html';
+    }
+}
 
 // ── Load both CSVs in parallel ────────────────────────────────────────────────
 function loadData() {
