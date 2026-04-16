@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Drinkware Orders - Sales Portal</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #f5f4f0;
+            --surface: #ffffff;
+            --border: #e2e0d8;
+            --text: #1a1a18;
+            --text-muted: #7a7870;
+            --accent: #667eea;
+            --accent2: #764ba2;
+            --pending-badge: #fff8e1;
+            --pending-text: #e65100;
+            --submitted-badge: #e8f5e9;
+            --submitted-text: #2e7d32;
+            --partial-badge: #e3f2fd;
+            --partial-text: #1565c0;
+            --teal: #00897b;
+            --teal-light: #e0f2f1;
+            --shadow: 0 2px 12px rgba(0,0,0,0.07);
+            --radius: 10px;
+        }
+
+        body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        /* ── Header ── */
+        .portal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; padding: 0 32px;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 64px; position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 16px rgba(102,126,234,0.3);
+        }
+        .portal-header .logo-area { display: flex; align-items: center; gap: 14px; }
+        .portal-header img.logo   { max-height: 38px; max-width: 120px; object-fit: contain; }
+        .portal-header h1         { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; }
+        .header-right             { display: flex; align-items: center; gap: 18px; }
+        .rep-badge {
+            background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px; padding: 5px 14px; font-size: 13px; font-weight: 500;
+        }
+        .btn-back {
+            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.35);
+            color: white; padding: 7px 16px; border-radius: 6px;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+            cursor: pointer; text-decoration: none; transition: background 0.2s;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.25); }
+
+        /* ── Page ── */
+        .page-body { max-width: 1100px; margin: 0 auto; padding: 36px 24px 100px; }
+        .page-title    { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .page-subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 28px; }
+
+        /* ── State boxes ── */
+        .state-box {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 60px 20px;
+            text-align: center; color: var(--text-muted);
+        }
+        .state-box .icon { font-size: 40px; margin-bottom: 14px; }
+        .state-box p { font-size: 15px; }
+        .spinner {
+            width: 36px; height: 36px; border: 3px solid var(--border);
+            border-top-color: var(--accent); border-radius: 50%;
+            animation: spin 0.8s linear infinite; margin: 0 auto 14px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Order cards ── */
+        .orders-list { display: flex; flex-direction: column; gap: 16px; }
+        .order-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); overflow: hidden;
+            box-shadow: var(--shadow); transition: box-shadow 0.2s;
+        }
+        .order-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+
+        .order-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 22px; cursor: pointer; user-select: none;
+            background: #fafaf8; flex-wrap: wrap; gap: 12px;
+        }
+        .order-header-left  { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .order-header-right { display: flex; align-items: center; gap: 12px; }
+
+        .meta-pill { display: flex; flex-direction: column; }
+        .meta-pill label {
+            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 2px;
+        }
+        .meta-pill .val      { font-size: 14px; font-weight: 500; }
+        .meta-pill .val.mono { font-family: 'DM Mono', monospace; font-size: 13px; }
+
+        .status-badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 12px;
+            font-size: 11px; font-weight: 600; letter-spacing: 0.3px; white-space: nowrap;
+        }
+        .status-pending   { background: var(--pending-badge);  color: var(--pending-text); }
+        .status-submitted { background: var(--submitted-badge); color: var(--submitted-text); }
+        .status-partial   { background: var(--partial-badge);  color: var(--partial-text); }
+
+        .expand-btn {
+            width: 30px; height: 30px; border-radius: 50%;
+            border: 1.5px solid var(--border); background: var(--bg);
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: var(--text-muted); transition: all 0.2s; flex-shrink: 0;
+        }
+        .expand-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .expand-btn.open  { transform: rotate(180deg); border-color: var(--accent); color: var(--accent); }
+
+        /* ── Progress bar ── */
+        .progress-bar-wrap { height: 3px; background: var(--border); overflow: hidden; }
+        .progress-bar-fill {
+            height: 100%; background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.4s ease;
+        }
+
+        /* ── Order body ── */
+        .order-body { display: none; padding: 22px; }
+        .order-body.open { display: block; animation: slideDown 0.2s ease; }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Line items ── */
+        .line-items { display: flex; flex-direction: column; gap: 14px; }
+
+        .line-item {
+            border: 1.5px solid var(--border); border-radius: 8px;
+            overflow: hidden; transition: border-color 0.2s;
+        }
+        .line-item.is-ready     { border-color: var(--teal); }
+        .line-item.is-over      { border-color: #e53935; }
+        .line-item.is-submitted { border-color: #81c784; opacity: 0.82; }
+
+        .line-item-header {
+            display: flex; align-items: center; gap: 20px;
+            padding: 12px 18px; background: #f7f7f5; flex-wrap: wrap;
+        }
+        .li-field { display: flex; flex-direction: column; }
+        .li-field label {
+            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 2px;
+        }
+        .li-field span      { font-size: 13px; font-weight: 500; }
+        .li-field span.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+        .li-qty-badge {
+            margin-left: auto;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white; border-radius: 20px;
+            padding: 4px 14px; font-size: 13px; font-weight: 600; white-space: nowrap;
+        }
+
+        /* ── Selection area ── */
+        .selection-area { padding: 16px 18px; }
+        .selection-label {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 10px;
+        }
+        .single-desc { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+
+        /* ── Variant buttons ── */
+        .variant-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+        .variant-btn {
+            padding: 8px 16px; border: 2px solid var(--border); border-radius: 8px;
+            background: var(--surface); font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer; color: var(--text);
+            transition: all 0.18s;
+        }
+        .variant-btn:hover    { border-color: var(--accent); color: var(--accent); }
+        .variant-btn.selected {
+            border-color: var(--teal); background: var(--teal-light);
+            color: var(--teal); font-weight: 600;
+        }
+
+        /* ── Color step ── */
+        .color-step         { display: none; margin-top: 16px; }
+        .color-step.visible { display: block; }
+
+        .step-divider {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.7px; color: var(--text-muted); margin-bottom: 14px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .step-divider::before, .step-divider::after {
+            content: ''; flex: 1; height: 1px; background: var(--border);
+        }
+
+        /* ── Art groups ── */
+        .art-groups { display: flex; flex-direction: column; gap: 12px; }
+
+        .art-group {
+            border: 1.5px solid var(--border); border-radius: 8px;
+            overflow: hidden; transition: border-color 0.2s;
+        }
+        .art-group.group-valid { border-color: var(--teal); }
+        .art-group.group-error { border-color: #e53935; }
+
+        .art-group-header {
+            display: flex; align-items: flex-start; gap: 10px;
+            padding: 10px 14px; background: #f7f7f5;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .art-group-label {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.6px; color: var(--text-muted); white-space: nowrap;
+        }
+        .art-number-input {
+            padding: 7px 10px; border: 2px solid var(--border); border-radius: 6px;
+            font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+            color: var(--text); background: var(--surface); width: 190px;
+            transition: border-color 0.18s, background 0.18s;
+        }
+        .art-number-input:focus   { outline: none; border-color: var(--accent); }
+        .art-number-input.valid   { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+        .art-number-input.invalid { border-color: #e53935; background: #ffebee; }
+        
+        /* ── Imprint color input ── */
+        .imprint-color-input {
+            padding: 7px 10px; border: 2px solid var(--border); border-radius: 6px;
+            font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+            color: var(--text); background: var(--surface); width: 190px;
+            transition: border-color 0.18s, background 0.18s;
+        }
+        .imprint-color-input:focus   { outline: none; border-color: var(--accent); }
+        .imprint-color-input.valid   { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+        .imprint-color-input.invalid { border-color: #e53935; background: #ffebee; }
+        
+        /* ── Imprint comment textarea ── */
+        .imprint-comment-textarea {
+            padding: 7px 10px; border: 2px solid var(--border); border-radius: 6px;
+            font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 500;
+            color: var(--text); background: var(--surface);
+            transition: border-color 0.18s, background 0.18s;
+            width: 280px;
+            resize: vertical;
+            min-height: 44px;
+            max-height: 120px;
+        }
+        .imprint-comment-textarea:focus { outline: none; border-color: var(--accent); }
+        .art-hint { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+
+        .btn-remove-art {
+            margin-left: auto; padding: 5px 10px; border-radius: 5px;
+            border: 1.5px solid #ffcdd2; background: #fff5f5;
+            color: #c62828; font-family: 'DM Sans', sans-serif;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.18s; white-space: nowrap;
+        }
+        .btn-remove-art:hover { background: #ffebee; border-color: #e53935; }
+
+        .art-group-body { padding: 12px 14px; }
+
+        /* ── Color qty grid ── */
+        .color-qty-grid {
+            display: flex; flex-wrap: wrap; gap: 10px;
+            align-items: flex-end; margin-bottom: 10px;
+        }
+        .color-qty-item { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 76px; }
+        .color-qty-label { font-size: 12px; font-weight: 600; color: var(--text); text-align: center; line-height: 1.3; }
+        .color-qty-input {
+            width: 70px; padding: 8px 4px; border: 2px solid var(--border); border-radius: 6px;
+            text-align: center; font-family: 'DM Mono', monospace;
+            font-size: 16px; font-weight: 600; color: var(--text); background: var(--surface);
+            transition: border-color 0.18s, background 0.18s;
+            -moz-appearance: textfield;
+        }
+        .color-qty-input::-webkit-inner-spin-button,
+        .color-qty-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+        .color-qty-input:focus   { outline: none; border-color: var(--accent); }
+        .color-qty-input.has-qty { border-color: var(--teal); background: var(--teal-light); color: var(--teal); }
+
+        /* ── Allocation tally (per-group and overall) ── */
+        .alloc-tally {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+            background: #f3f3f0; border: 1.5px solid var(--border); transition: all 0.2s;
+        }
+        .alloc-tally.exact { background: var(--teal-light); border-color: var(--teal); color: var(--teal); }
+        .alloc-tally.over  { background: #ffebee; border-color: #e53935; color: #c62828; }
+        .alloc-tally.under { color: var(--text-muted); }
+
+        .overall-tally-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+            flex-wrap: wrap; gap: 10px;
+        }
+        .overall-tally-label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+
+        /* ── Per-group variant picker ── */
+        .group-variant-picker {
+            display: flex; align-items: center; gap: 8px;
+            padding: 10px 14px 0; flex-wrap: wrap;
+        }
+        .group-variant-label {
+            font-size: 11px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.6px; color: var(--text-muted); white-space: nowrap;
+        }
+        .group-variant-btn {
+            padding: 6px 14px; border: 2px solid var(--border); border-radius: 7px;
+            background: var(--surface); font-family: 'DM Sans', sans-serif;
+            font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text);
+            transition: all 0.18s;
+        }
+        .group-variant-btn:hover    { border-color: var(--accent); color: var(--accent); }
+        .group-variant-btn.selected {
+            border-color: var(--teal); background: var(--teal-light);
+            color: var(--teal); font-weight: 600;
+        }
+
+        /* ── Art search dropdown ── */
+        .art-search-wrap {
+            position: relative; display: inline-block;
+        }
+        .art-search-dropdown {
+            position: absolute; top: calc(100% + 4px); left: 0;
+            background: white; border: 1.5px solid var(--border);
+            border-radius: 8px; box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+            z-index: 200; min-width: 320px; max-width: 480px;
+            max-height: 260px; overflow-y: auto;
+        }
+        .art-search-dropdown.hidden { display: none; }
+        .art-search-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 13px; cursor: pointer;
+            border-bottom: 1px solid #f0ede8; transition: background 0.15s;
+        }
+        .art-search-item:last-child { border-bottom: none; }
+        .art-search-item:hover { background: var(--teal-light); }
+        .art-search-item.selected { background: var(--teal-light); }
+        .art-search-code {
+            font-family: 'DM Mono', monospace; font-size: 12px;
+            font-weight: 600; color: var(--teal);
+            background: #e0f2f1; border-radius: 4px;
+            padding: 2px 7px; white-space: nowrap; flex-shrink: 0;
+        }
+        .art-search-name {
+            font-size: 12px; color: var(--text-muted);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .art-search-empty {
+            padding: 14px 16px; font-size: 13px;
+            color: var(--text-muted); text-align: center;
+        }
+        .art-search-loading {
+            padding: 14px 16px; font-size: 13px;
+            color: var(--text-muted); text-align: center;
+        }
+
+        /* ── Art preview panel ── */
+        .art-preview-panel {
+            margin-top: 10px; border: 1.5px solid var(--teal);
+            border-radius: 8px; background: #f9fffe;
+            overflow: hidden; display: none;
+        }
+        .art-preview-panel.visible { display: block; }
+        .art-preview-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 12px; background: var(--teal-light);
+            border-bottom: 1px solid var(--teal);
+        }
+        .art-preview-title {
+            font-size: 12px; font-weight: 600; color: var(--teal);
+            font-family: 'DM Mono', monospace;
+        }
+        .art-preview-filename {
+            font-size: 11px; color: var(--text-muted); margin-top: 1px;
+        }
+        .art-preview-body {
+            padding: 12px; display: flex; align-items: flex-start; gap: 12px;
+        }
+        .art-preview-img {
+            max-width: 180px; max-height: 180px;
+            object-fit: contain; border-radius: 4px;
+            border: 1px solid var(--border); background: white;
+            cursor: zoom-in;
+        }
+        .art-preview-meta { font-size: 12px; color: var(--text-muted); line-height: 1.8; }
+        .art-preview-meta strong { color: var(--text); }
+
+        /* ── Lightbox ── */
+        .art-lightbox {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.82); z-index: 9999;
+            align-items: center; justify-content: center; cursor: zoom-out;
+        }
+        .art-lightbox.visible { display: flex; }
+        .art-lightbox img {
+            max-width: 90vw; max-height: 90vh;
+            object-fit: contain; border-radius: 8px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+        }
+        .art-lightbox-close {
+            position: absolute; top: 20px; right: 28px;
+            color: white; font-size: 32px; cursor: pointer;
+            font-weight: 300; line-height: 1; user-select: none;
+        }
+
+        /* ── Add art button ── */
+        .btn-add-art {
+            margin-top: 10px; padding: 9px 18px; border-radius: 7px;
+            border: 2px dashed var(--border); background: transparent;
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+            color: var(--text-muted); cursor: pointer; width: 100%;
+            transition: all 0.18s; text-align: center;
+        }
+        .btn-add-art:hover { border-color: var(--accent); color: var(--accent); background: rgba(102,126,234,0.04); }
+
+        /* ── Submitted display ── */
+        .submitted-display {
+            background: var(--submitted-badge); border-radius: 6px;
+            padding: 12px 14px; font-size: 13px; color: var(--submitted-text);
+        }
+        .submitted-variant { font-weight: 600; margin-bottom: 8px; }
+        .submitted-art-group { margin-bottom: 8px; }
+        .submitted-art-group:last-child { margin-bottom: 0; }
+        .submitted-art-label { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+        .submitted-breakdown { display: flex; flex-wrap: wrap; gap: 5px; }
+        .sub-chip {
+            background: white; border: 1px solid #a5d6a7; border-radius: 12px;
+            padding: 3px 10px; font-size: 12px; font-weight: 500; color: var(--submitted-text);
+        }
+
+        /* ── Submit bar ── */
+        .submit-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; border-top: 1px solid var(--border);
+            padding: 14px 32px; display: flex; align-items: center;
+            justify-content: space-between; gap: 16px;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.08); z-index: 50;
+        }
+        .submit-bar-info         { font-size: 13px; color: var(--text-muted); }
+        .submit-bar-info strong  { color: var(--text); }
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border: none; padding: 12px 32px; border-radius: 8px;
+            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: opacity 0.2s, transform 0.1s; white-space: nowrap;
+        }
+        .btn-submit:hover    { opacity: 0.92; transform: translateY(-1px); }
+        .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        @media (max-width: 600px) {
+            .submit-bar { flex-direction: column; align-items: stretch; }
+            .order-header-left { gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Art image lightbox -->
+<div class="art-lightbox" id="artLightbox" onclick="closeLightbox()">
+    <span class="art-lightbox-close" onclick="closeLightbox()">×</span>
+    <img id="artLightboxImg" src="" alt="Art preview">
+</div>
+
+<div class="portal-header">
+    <div class="logo-area">
+        <img src="logo.png" class="logo" alt="Logo" onerror="this.style.display='none'">
+        <h1>Sales Portal</h1>
+    </div>
+    <div class="header-right">
+        <div style="background:white;padding:8px 16px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;gap:10px;align-items:center;">
+            <span style="color:#555;font-size:14px;">👤 <span id="repBadge">Loading…</span></span>
+            <a href="my-orders.html" style="background:#667eea;color:white;padding:6px 12px;border-radius:4px;font-weight:600;text-decoration:none;font-size:14px;">📋 My Orders</a>
+            <button onclick="portalLogout()" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;font-size:14px;">Logout</button>
+        </div>
+    </div>
+</div>
+
+<div class="page-body">
+    <div class="page-title">☕ Drinkware Orders</div>
+    <div class="page-subtitle" id="pageSubtitle">Loading your pending drinkware selections…</div>
+    <div id="contentArea">
+        <div class="state-box">
+            <div class="spinner"></div>
+            <p>Fetching orders and product catalog…</p>
+        </div>
+    </div>
+</div>
+
+<div class="submit-bar" id="submitBar" style="display:none;">
+    <div class="submit-bar-info" id="submitBarInfo"></div>
+    <button class="btn-submit" id="submitBtn" onclick="submitSelections()">Submit Selections</button>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+var ORDERS_CSV_URL  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7uNYew2smPQWTZRff7v-70y1jrRYViSu-buckNngS2m16e3GoqUuueaEQqsTn09PmoyGQOvleYBpG/pub?gid=0&single=true&output=csv';
+var CATALOG_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQVJhbWNNbNFEAmApy98mjMJpJeb30LVAIrFoEkVkNeCFa5QRFQj0WsKI9IdWr-Cx1c-6EdS7v_SfP4/pub?output=csv';
+var SUBMISSION_URL  = 'https://script.google.com/macros/s/AKfycbwL_HwIuOgVARoidJkyHNKy1wWmM7jWpKbjrois54sx4beMDxKSaOHracvG2jR-ZN83/exec';
+var ART_INDEX_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQWCxgrIdmsJ2uoIczTbDNN3JJy5_aQMAYOI6U87Y4IMYs81_6hlc-0O1VC6gd5T2G-TbpBIF_pSby_/pub?gid=1130333372&single=true&output=csv';
+var DRIVE_FOLDER_ID   = '1zpG9165rtmZEXVMoRTC5Sr7LIVQ4bf2S';
+
+// ── Column indices (0-based) ──────────────────────────────────────────────────
+// A=SalesOrderNo, B=OrderDate, C=CustomerPONo, D=SalespersonNo,
+// E=SalespersonEmail, F=SalespersonName, G=ShipToName, H=UDF_FACILITY_ID,
+// I=UDF_REQUESTED_DELIVERY_DATE, J=ItemCode, K=ItemCodeDesc,
+// L=QuantityOrdered, M=UnitPrice, N=UPC_Number, O=RetailPrice,
+// P=SelectionStatus, Q=CompletedStatus
+// Lines with any value in P or Q are hidden entirely (already processed).
+var COL = {
+    salesOrderNo:      0,   // A
+    orderDate:         1,   // B
+    customerPONo:      2,   // C
+                            // D = SalespersonNo (not used)
+    salespersonEmail:  4,   // E
+    salespersonName:   5,   // F
+    shipToName:        6,   // G
+                            // H = UDF_FACILITY_ID (not used)
+    requestedDelivery: 8,   // I
+    itemCode:          9,   // J
+    itemCodeDesc:      10,  // K
+    quantityOrdered:   11,  // L
+    unitPrice:         12,  // M
+    upc:               13,  // N
+    retailPrice:       14,  // O
+    selectionStatus:   15,  // P
+    completedStatus:   16   // Q
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+var repEmail      = '';
+var repName       = '';
+var ordersGrouped = {};  // salesOrderNo → { meta, lines[] }
+var orderKeys     = [];
+var catalogData   = {};  // upc → [ { crc, sku, description, colors[] }, … ]
+
+// selections[lineKey] = {
+//   variantIndex?: number,
+//   artGroups: [ { artNumber: string, colorQtys: { colorName: qty } }, … ],
+//   submitted?: bool
+// }
+var selections = {};
+
+// Art image index: array of { art_code, filename, relative_path }
+var artIndex = [];
+var artIndexLoaded = false;
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+$(document).ready(function () {
+    var raw = sessionStorage.getItem('salesPortalAuth');
+    if (!raw) { window.location.href = 'login.html'; return; }
+    try {
+        var auth = JSON.parse(raw);
+        repEmail = (auth.email || '').toLowerCase().trim();
+        repName  = auth.name || repEmail;
+        $('#repBadge').text(repName);
+        loadData();
+    } catch (e) { window.location.href = 'login.html'; }
+});
+
+// ── Logout ────────────────────────────────────────────────────────────────────
+function portalLogout() {
+    if (confirm('Are you sure you want to log out?')) {
+        sessionStorage.removeItem('salesPortalAuth');
+        window.location.href = 'login.html';
+    }
+}
+
+// ── Load all CSVs in parallel ─────────────────────────────────────────────────
+function loadData() {
+    var done = 0;
+    function tick() { if (++done === 3) renderAll(); }
+    $.ajax({ url: ORDERS_CSV_URL,  method: 'GET', dataType: 'text',
+        success: function (csv) { parseOrders(csv);  tick(); },
+        error:   function ()    { showError('Could not load orders. Please try again.'); }
+    });
+    $.ajax({ url: CATALOG_CSV_URL, method: 'GET', dataType: 'text',
+        success: function (csv) { parseCatalog(csv); tick(); },
+        error:   function ()    { showError('Could not load product catalog. Please try again.'); }
+    });
+    $.ajax({ url: ART_INDEX_CSV_URL, method: 'GET', dataType: 'text',
+        success: function (csv) { parseArtIndex(csv); tick(); },
+        error:   function ()    {
+            // Art index failing is non-fatal — search just won't work
+            console.warn('Could not load art index. Art search will be unavailable.');
+            artIndexLoaded = false;
+            tick();
+        }
+    });
+}
+
+// ── Parse art index CSV ───────────────────────────────────────────────────────
+// Columns: art_code, filename, relative_path, full_path
+function parseArtIndex(csv) {
+    var rows = csv.split('\n');
+    artIndex = [];
+    for (var i = 1; i < rows.length; i++) {
+        if (!rows[i].trim()) continue;
+        var cols = parseCSVRow(rows[i]);
+        var code = (cols[0] || '').trim().toUpperCase();
+        var fname = (cols[1] || '').trim();
+        var relPath = (cols[2] || '').trim();
+        if (code && fname) {
+            artIndex.push({ art_code: code, filename: fname, relative_path: relPath });
+        }
+    }
+    artIndexLoaded = true;
+    console.log('Art index loaded: ' + artIndex.length + ' entries');
+}
+
+// ── Search art index ──────────────────────────────────────────────────────────
+function searchArtIndex(query) {
+    if (!query || query.length < 2) return [];
+    var q = query.toUpperCase();
+    var results = [];
+    var seen = {};
+    for (var i = 0; i < artIndex.length; i++) {
+        var entry = artIndex[i];
+        // Match art_code OR filename (both uppercased)
+        if (entry.art_code.indexOf(q) !== -1 || entry.filename.toUpperCase().indexOf(q) !== -1) {
+            var key = entry.filename; // dedupe by filename
+            if (!seen[key]) {
+                seen[key] = true;
+                results.push(entry);
+            }
+        }
+        if (results.length >= 12) break; // cap dropdown at 12
+    }
+    return results;
+}
+
+// ── Build a Drive thumbnail URL from a filename ───────────────────────────────
+// We search Drive for the file by name using the Files API (public folder, no auth needed)
+// Falls back to a direct thumbnail if we have a cached fileId
+var artFileIdCache = {}; // filename → Drive file ID
+
+function getDriveImageUrl(fileId) {
+    // Use Drive's thumbnail endpoint — works for publicly shared files
+    return 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w400';
+}
+
+function getDriveViewUrl(fileId) {
+    return 'https://drive.google.com/file/d/' + fileId + '/view';
+}
+
+// Resolve a filename to a Drive file ID via the Drive API (public folder)
+function resolveFileId(filename, callback) {
+    if (artFileIdCache[filename]) {
+        callback(artFileIdCache[filename]);
+        return;
+    }
+    // Use Drive API v3 — folder is public so no API key needed for list
+    // We use the public "search by name in folder" approach
+    var encodedName = encodeURIComponent("name='" + filename.replace(/'/g, "\\'") + "' and '" + DRIVE_FOLDER_ID + "' in parents");
+    var url = 'https://www.googleapis.com/drive/v3/files?q=' + encodedName
+            + '&fields=files(id,name)&key=AIzaSyD-placeholder';
+    // Since we can't use a real API key here, we use the folder listing approach instead:
+    // Search within the whole Drive folder using the public share link thumbnail trick.
+    // The cleanest approach for a public folder: use the Drive search URL pattern.
+    // We'll resolve by scanning the folder index once and caching all file IDs.
+    resolveFolderIndex(function(index) {
+        var id = index[filename.toLowerCase()];
+        if (id) {
+            artFileIdCache[filename] = id;
+            callback(id);
+        } else {
+            callback(null);
+        }
+    });
+}
+
+// Cache of filename.toLowerCase() → fileId, loaded once
+var _folderIndexCache = null;
+var _folderIndexCallbacks = [];
+var _folderIndexLoading = false;
+
+function resolveFolderIndex(callback) {
+    if (_folderIndexCache) { callback(_folderIndexCache); return; }
+    _folderIndexCallbacks.push(callback);
+    if (_folderIndexLoading) return;
+    _folderIndexLoading = true;
+    loadDriveFolderRecursive(DRIVE_FOLDER_ID, {}, function(index) {
+        _folderIndexCache = index;
+        console.log('Drive folder index loaded: ' + Object.keys(index).length + ' files');
+        var cbs = _folderIndexCallbacks.slice();
+        _folderIndexCallbacks = [];
+        _folderIndexLoading = false;
+        cbs.forEach(function(cb) { cb(_folderIndexCache); });
+    });
+}
+
+// Recursively list a public Drive folder using the Drive API with no auth
+// (works for publicly shared folders — requires a public API key)
+// API key is restricted to Drive API, read-only
+var DRIVE_API_KEY = '4621e9b3400f0957dbe405e9379d42dfe5af2c0e';
+
+function loadDriveFolderRecursive(folderId, accumulated, done) {
+    loadDrivePage2(folderId, null, accumulated, done);
+}
+
+function loadDrivePage2(folderId, pageToken, accumulated, done) {
+    var params = {
+        q: "'" + folderId + "' in parents and trashed=false",
+        fields: 'nextPageToken,files(id,name,mimeType)',
+        pageSize: '1000',
+        key: DRIVE_API_KEY
+    };
+    if (pageToken) params.pageToken = pageToken;
+    var qs = Object.keys(params).map(function(k) {
+        return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+    }).join('&');
+
+    $.ajax({
+        url: 'https://www.googleapis.com/drive/v3/files?' + qs,
+        method: 'GET',
+        success: function(data) {
+            var subfolders = [];
+            (data.files || []).forEach(function(f) {
+                if (f.mimeType === 'application/vnd.google-apps.folder') {
+                    subfolders.push(f.id);
+                } else if (f.mimeType && f.mimeType.indexOf('image') !== -1) {
+                    accumulated[f.name.toLowerCase()] = f.id;
+                }
+            });
+            // Handle pagination
+            function afterPage() {
+                if (subfolders.length === 0) { done(accumulated); return; }
+                var remaining = subfolders.length;
+                subfolders.forEach(function(sfId) {
+                    loadDriveFolderRecursive(sfId, accumulated, function() {
+                        if (--remaining === 0) done(accumulated);
+                    });
+                });
+            }
+            if (data.nextPageToken) {
+                loadDrivePage2(folderId, data.nextPageToken, accumulated, afterPage);
+            } else {
+                afterPage();
+            }
+        },
+        error: function(xhr) {
+            var msg = (xhr.responseJSON && xhr.responseJSON.error && xhr.responseJSON.error.message) || xhr.statusText;
+            console.warn('Drive API error for folder ' + folderId + ': ' + msg);
+            // Non-fatal — continue with what we have
+            done(accumulated);
+        }
+    });
+}
+
+// ── Lightbox ──────────────────────────────────────────────────────────────────
+function openLightbox(src) {
+    $('#artLightboxImg').attr('src', src);
+    $('#artLightbox').addClass('visible');
+}
+function closeLightbox() {
+    $('#artLightbox').removeClass('visible');
+    $('#artLightboxImg').attr('src', '');
+}
+
+// ── Show art search dropdown ──────────────────────────────────────────────────
+var _artDebounceTimers = {};
+
+function onArtSearchInput(gId, query) {
+    var $dropdown = $('#artdrop-' + gId);
+    clearTimeout(_artDebounceTimers[gId]);
+
+    if (!query || query.length < 2) {
+        $dropdown.addClass('hidden').html('');
+        return;
+    }
+
+    _artDebounceTimers[gId] = setTimeout(function() {
+        if (!artIndexLoaded) {
+            $dropdown.removeClass('hidden').html('<div class="art-search-loading">Loading art index…</div>');
+            return;
+        }
+        var results = searchArtIndex(query);
+        if (results.length === 0) {
+            $dropdown.removeClass('hidden').html('<div class="art-search-empty">No matching art found</div>');
+        } else {
+            var html = '';
+            results.forEach(function(r, i) {
+                html += '<div class="art-search-item" onclick="selectArtResult(\'' + escAttr(gId) + '\',\'' + escAttr(r.art_code) + '\',\'' + escAttr(r.filename) + '\',\'' + escAttr(r.relative_path) + '\')">'
+                      + '<span class="art-search-code">' + esc(r.art_code) + '</span>'
+                      + '<span class="art-search-name">' + esc(r.filename) + '</span>'
+                      + '</div>';
+            });
+            $dropdown.removeClass('hidden').html(html);
+        }
+    }, 220);
+}
+
+function selectArtResult(gId, artCode, filename, relPath) {
+    // Parse keyId and gIdx back out of gId (format: keyId_gN)
+    var lastG = gId.lastIndexOf('_g');
+    var keyId = gId.substring(0, lastG);
+    var gIdx  = parseInt(gId.substring(lastG + 2));
+    var key   = lkFromId(keyId);
+
+    // Persist preview data on the art group
+    ensureArtGroups(key);
+    var ag = selections[key].artGroups[gIdx];
+    ag.artNumber       = artCode;
+    ag.previewArtCode  = artCode;
+    ag.previewFilename = filename;
+    ag.previewRelPath  = relPath;
+    saveSelections();
+
+    // Fill the input and trigger validation
+    var $input = $('#art-' + gId);
+    $input.val(artCode);
+    $input.trigger('input');
+
+    // Hide dropdown
+    $('#artdrop-' + gId).addClass('hidden').html('');
+
+    // Show preview panel
+    showArtPreview(gId, artCode, filename, relPath);
+}
+
+function showArtPreview(gId, artCode, filename, relPath) {
+    var $panel = $('#artpreview-' + gId);
+    $panel.addClass('visible');
+    $panel.find('.art-preview-title').text(artCode);
+    $panel.find('.art-preview-filename').text(filename);
+    $panel.find('.art-preview-meta').html(
+        '<strong>File:</strong> ' + esc(filename) + '<br>'
+      + '<strong>Location:</strong> ' + esc(relPath)
+    );
+
+    var $img = $panel.find('.art-preview-img');
+    var $link = $panel.find('.art-preview-open');
+    $img.attr('src', '').hide();
+    $panel.find('.art-preview-loading').show();
+
+    resolveFileId(filename, function(fileId) {
+        $panel.find('.art-preview-loading').hide();
+        if (fileId) {
+            var thumbUrl = getDriveImageUrl(fileId);
+            var viewUrl  = getDriveViewUrl(fileId);
+            $img.attr('src', thumbUrl).show().off('click').on('click', function() {
+                openLightbox(thumbUrl);
+            });
+            $link.attr('href', viewUrl).show();
+        } else {
+            $panel.find('.art-preview-notfound').show();
+        }
+    });
+}
+
+function clearArtPreview(gId) {
+    $('#artpreview-' + gId).removeClass('visible');
+}
+
+// Close dropdown when clicking outside
+$(document).on('click', function(e) {
+    if (!$(e.target).closest('.art-search-wrap').length) {
+        $('.art-search-dropdown').addClass('hidden').html('');
+    }
+});
+function parseOrders(csv) {
+    var rows = csv.split('\n');
+    ordersGrouped = {}; orderKeys = [];
+    for (var i = 1; i < rows.length; i++) {
+        if (!rows[i].trim()) continue;
+        var cols  = parseCSVRow(rows[i]);
+        var email = (cols[COL.salespersonEmail] || '').toLowerCase().trim();
+        if (email !== repEmail) continue;
+        // Skip lines that already have a value in col P (SelectionStatus) or col Q (CompletedStatus)
+        if ((cols[COL.selectionStatus] || '').trim() || (cols[COL.completedStatus] || '').trim()) continue;
+        var row = {
+            salesOrderNo:      col(cols, COL.salesOrderNo),
+            orderDate:         col(cols, COL.orderDate),
+            salespersonEmail:  email,
+            salespersonName:   col(cols, COL.salespersonName),
+            shipToName:        col(cols, COL.shipToName),
+            requestedDelivery: col(cols, COL.requestedDelivery),
+            itemCode:          col(cols, COL.itemCode),
+            itemCodeDesc:      col(cols, COL.itemCodeDesc),
+            quantityOrdered:   col(cols, COL.quantityOrdered),
+            unitPrice:         col(cols, COL.unitPrice),
+            upc:               col(cols, COL.upc),
+            retailPrice:       col(cols, COL.retailPrice),
+            customerPONo:      col(cols, COL.customerPONo),
+            selectionStatus:   col(cols, COL.selectionStatus)
+        };
+        var so = row.salesOrderNo;
+        if (!ordersGrouped[so]) { ordersGrouped[so] = { meta: row, lines: [] }; orderKeys.push(so); }
+        ordersGrouped[so].lines.push(row);
+    }
+}
+
+// ── Parse catalog CSV ─────────────────────────────────────────────────────────
+function parseCatalog(csv) {
+    var rows = csv.split('\n');
+    catalogData = {};
+    for (var i = 1; i < rows.length; i++) {
+        if (!rows[i].trim()) continue;
+        var cols = parseCSVRow(rows[i]);
+        var upc  = (cols[0] || '').trim();
+        if (!upc) continue;
+        var colors = [];
+        for (var c = 4; c < cols.length; c++) {
+            var color = (cols[c] || '').trim();
+            if (color) colors.push(color);
+        }
+        if (!catalogData[upc]) catalogData[upc] = [];
+        catalogData[upc].push({
+            crc: (cols[1] || '').trim(), sku: (cols[2] || '').trim(),
+            description: (cols[3] || '').trim(), colors: colors
+        });
+    }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function renderAll() {
+    $('#pageSubtitle').text('Enter quantities by color and art number for each item, then submit when ready.');
+    if (orderKeys.length === 0) {
+        $('#contentArea').html('<div class="state-box"><div class="icon">☕</div><p>No drinkware orders are currently assigned to your account.</p></div>');
+        return;
+    }
+    var saved = sessionStorage.getItem('drinkwareSelections_' + repEmail);
+    if (saved) { try { selections = JSON.parse(saved); } catch(e) {} }
+
+    rebuildPage();
+}
+
+function rebuildPage() {
+    var html = '<div class="orders-list">';
+    orderKeys.forEach(function (so) { html += buildOrderCard(so); });
+    html += '</div>';
+    $('#contentArea').html(html);
+    updateSubmitBar();
+}
+
+// ── Selection helpers ─────────────────────────────────────────────────────────
+
+// Total units allocated across all art groups for a line
+function totalAllocated(sel) {
+    if (!sel || !sel.artGroups) return 0;
+    return sel.artGroups.reduce(function (sum, ag) {
+        return sum + Object.values(ag.colorQtys || {}).reduce(function (s, v) { return s + (parseInt(v) || 0); }, 0);
+    }, 0);
+}
+
+// A line is ready if: at least one art group has a valid art number AND at least 1 qty
+function lineIsReady(sel) {
+    if (!sel || sel.submitted) return false;
+    if (!sel.artGroups || sel.artGroups.length === 0) return false;
+    return sel.artGroups.some(function (ag) {
+        var artOk = /^.+_[A-Za-z]{2}$/.test((ag.artNumber || '').trim());
+        var qtyOk = Object.values(ag.colorQtys || {}).some(function (v) { return (parseInt(v) || 0) > 0; });
+        var imprintOk = qtyOk ? ((ag.imprintColor || '').trim().length > 0) : false;
+        return artOk && qtyOk && imprintOk;
+    });
+}
+
+// Default new empty art group
+function newArtGroup() { return { artNumber: '', imprintColor: '', imprintComment: '', colorQtys: {}, variantIndex: null }; }
+
+// Ensure sel has artGroups array
+function ensureArtGroups(key) {
+    if (!selections[key]) selections[key] = {};
+    if (!selections[key].artGroups || selections[key].artGroups.length === 0) {
+        selections[key].artGroups = [newArtGroup()];
+    }
+}
+
+// ── Order card ────────────────────────────────────────────────────────────────
+function buildOrderCard(so) {
+    var g = ordersGrouped[so], meta = g.meta, lines = g.lines, total = lines.length;
+    var readyCount = 0, submittedCount = 0;
+    lines.forEach(function (l, idx) {
+        var s = selections[lk(so, idx)] || {};
+        if (s.submitted) submittedCount++;
+        else if (lineIsReady(s)) readyCount++;
+    });
+    var doneCount = readyCount + submittedCount;
+    var pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+
+    var statusClass, statusLabel;
+    if (submittedCount === total) {
+        statusClass = 'status-submitted'; statusLabel = '✓ All Submitted';
+    } else if (doneCount > 0) {
+        statusClass = 'status-partial';
+        statusLabel = submittedCount > 0
+            ? submittedCount + ' submitted, ' + readyCount + ' ready'
+            : doneCount + '/' + total + ' Ready';
+    } else {
+        statusClass = 'status-pending'; statusLabel = 'Needs Selection';
+    }
+
+    var soId = escId(so);
+    var html = '<div class="order-card" id="card-' + soId + '">';
+    html += '<div class="order-header" onclick="toggleOrder(\'' + soId + '\')">';
+    html += '<div class="order-header-left">';
+    html += pill('Sales Order', so, true);
+    html += pill('Customer PO', meta.customerPONo || '—', true);
+    html += pill('Order Date', formatDate(meta.orderDate), false);
+    html += pill('Ship To', meta.shipToName || '—', false);
+    html += pill('Req. Delivery', formatDate(meta.requestedDelivery), false);
+    html += pill('Lines', total + ' item' + (total !== 1 ? 's' : ''), false);
+    html += '</div>';
+    html += '<div class="order-header-right">';
+    html += '<span class="status-badge ' + statusClass + '" id="badge-' + soId + '">' + statusLabel + '</span>';
+    html += '<button class="expand-btn" id="ebtn-' + soId + '">▾</button>';
+    html += '</div></div>';
+    html += '<div class="progress-bar-wrap"><div class="progress-bar-fill" id="prog-' + soId + '" style="width:' + pct + '%"></div></div>';
+    html += '<div class="order-body" id="body-' + soId + '">';
+    html += '<div class="line-items">';
+    lines.forEach(function (line, idx) { html += buildLineItem(so, line, idx); });
+    html += '</div></div></div>';
+    return html;
+}
+
+function pill(label, val, mono) {
+    return '<div class="meta-pill"><label>' + esc(label) + '</label><div class="val' + (mono ? ' mono' : '') + '">' + esc(val) + '</div></div>';
+}
+
+// ── Line item ─────────────────────────────────────────────────────────────────
+function buildLineItem(so, line, idx) {
+    var key     = lk(so, idx);
+    var sel     = selections[key] || {};
+    var upc     = line.upc;
+    var catalog = catalogData[upc] || [];
+    var qty     = parseInt(line.quantityOrdered) || 0;
+    var retail  = line.retailPrice ? '$' + fmtMoney(line.retailPrice) : '—';
+    var cost    = line.unitPrice   ? '$' + fmtMoney(line.unitPrice)   : '—';
+    var keyId   = escId(key);
+
+    var alloced = totalAllocated(sel);
+    var cardCls = sel.submitted   ? 'line-item is-submitted'
+                : (alloced > qty  ? 'line-item is-over'
+                : (lineIsReady(sel) ? 'line-item is-ready' : 'line-item'));
+
+    var html = '<div class="' + cardCls + '" id="li-' + keyId + '">';
+    html += '<div class="line-item-header">';
+    html += '<div class="li-field"><label>Item Code</label><span class="mono">' + esc(line.itemCode) + '</span></div>';
+    html += '<div class="li-field"><label>Description</label><span>' + esc(line.itemCodeDesc) + '</span></div>';
+    html += '<div class="li-field"><label>UPC</label><span class="mono">' + esc(upc) + '</span></div>';
+    html += '<div class="li-field"><label>Retail</label><span>' + esc(retail) + '</span></div>';
+    html += '<div class="li-field"><label>Cost</label><span>' + esc(cost) + '</span></div>';
+    html += '<div class="li-qty-badge">Order Qty: ' + esc(qty || line.quantityOrdered || '—') + '</div>';
+    html += '</div>';
+
+    html += '<div class="selection-area">';
+
+    if (catalog.length === 0) {
+        html += '<div style="color:var(--text-muted);font-size:13px;padding:6px 0;">⚠ UPC ' + esc(upc) + ' not found in product catalog. Contact your administrator.</div>';
+
+    } else if (sel.submitted) {
+        html += buildSubmittedDisplay(sel, catalog);
+
+    } else {
+        // Single or multi-variant — art groups handle per-group style selection
+        html += buildArtGroupsSection(keyId, so, idx, catalog, sel, qty);
+    }
+
+    html += '</div></div>';
+    return html;
+}
+
+// ── Build all art groups for a line ──────────────────────────────────────────
+function buildArtGroupsSection(keyId, so, idx, catalog, sel, orderedQty) {
+    var groups = (sel.artGroups && sel.artGroups.length) ? sel.artGroups : [newArtGroup()];
+    var allocated = totalAllocated(sel);
+    var tallyClass = allocated === 0 ? 'under' : (allocated === orderedQty ? 'exact' : (allocated > orderedQty ? 'over' : 'under'));
+    var tallyIcon  = (allocated === orderedQty && orderedQty > 0) ? '✓ ' : '';
+
+    var html = '<div class="art-groups" id="artgroups-' + keyId + '">';
+    groups.forEach(function (ag, gIdx) {
+        html += buildArtGroup(keyId, so, idx, catalog, ag, gIdx, groups.length);
+    });
+    html += '</div>';
+    html += '<button class="btn-add-art" onclick="addArtGroup(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ')">+ Add Another Art Number</button>';
+    html += '<div class="overall-tally-row">';
+    html += '<span class="overall-tally-label">Total across all arts:</span>';
+    html += '<span class="alloc-tally ' + tallyClass + '" id="overtally-' + keyId + '">'
+          + tallyIcon + '<span id="overtally-num-' + keyId + '">' + allocated + '</span> / ' + orderedQty + ' allocated</span>';
+    html += '</div>';
+    return html;
+}
+
+// ── Build a single art group ──────────────────────────────────────────────────────────────────────────────
+function buildArtGroup(keyId, so, idx, catalog, ag, gIdx, totalGroups) {
+    var artVal    = ag.artNumber || '';
+    var artTrim   = artVal.trim();
+    var isValid   = /^.+_[A-Za-z]{2}$/.test(artTrim);
+    
+    var groupTotal = Object.values(ag.colorQtys || {}).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var groupHasQty = groupTotal > 0;
+    
+    var imprintVal  = ag.imprintColor || '';
+    var imprintTrim = imprintVal.trim();
+    var imprintOk   = groupHasQty ? imprintTrim.length > 0 : true;
+    var imprintInputCls = groupHasQty ? (imprintOk ? ' valid' : ' invalid') : '';
+    
+    var commentVal = ag.imprintComment || '';
+
+    var artCls    = artTrim === '' ? (groupHasQty ? ' invalid' : '') : (isValid ? ' valid' : ' invalid');
+    
+    var groupCls  = '';
+    if (artTrim !== '') {
+        groupCls = (isValid && imprintOk) ? ' group-valid' : ' group-error';
+    } else {
+        groupCls = groupHasQty ? ' group-error' : '';
+    }
+    var gId       = keyId + '_g' + gIdx;
+    var multiVariant = catalog.length > 1;
+
+    // Resolve colors for this group
+    var colors = [];
+    if (multiVariant) {
+        colors = ag.variantIndex != null && catalog[ag.variantIndex]
+            ? catalog[ag.variantIndex].colors : [];
+    } else {
+        colors = catalog[0] ? catalog[0].colors : [];
+    }
+
+    var html = '<div class="art-group' + groupCls + '" id="ag-' + gId + '">';
+
+    // Per-group variant picker (only for multi-variant products)
+    if (multiVariant) {
+        html += '<div class="group-variant-picker">';
+        html += '<span class="group-variant-label">Style:</span>';
+        catalog.forEach(function (v, vIdx) {
+            var sel_cls = ag.variantIndex === vIdx ? ' selected' : '';
+            html += '<button class="group-variant-btn' + sel_cls + '"'
+                  + ' onclick="selectGroupVariant(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',' + vIdx + ')">'
+                  + esc(v.description) + '</button>';
+        });
+        html += '</div>';
+    }
+
+    // Group header: art number input + search dropdown + remove button
+    html += '<div class="art-group-header">';
+    html += '<span class="art-group-label">Art #' + (gIdx + 1) + '</span>';
+
+    // Art number input wrapped in search container
+    html += '<div class="art-search-wrap">';
+    html += '<input type="text" class="art-number-input' + artCls + '" id="art-' + gId + '"'
+          + ' value="' + esc(artVal) + '" placeholder="Search or type art number…"'
+          + ' autocomplete="off"'
+          + ' oninput="onArtInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',this.value); onArtSearchInput(\'' + escAttr(gId) + '\',this.value)"'
+          + ' onfocus="onArtSearchInput(\'' + escAttr(gId) + '\',this.value)">';
+    html += '<div class="art-search-dropdown hidden" id="artdrop-' + gId + '"></div>';
+    html += '</div>'; // end art-search-wrap
+    
+    html += '<span class="art-hint" style="margin-left:12px;">Imprint Color</span>';
+    html += '<input type="text" class="imprint-color-input' + imprintInputCls + '" id="imprint-' + gId + '"'
+          + ' value="' + esc(imprintVal) + '" placeholder="e.g. Black"'
+          + ' oninput="onImprintInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',this.value)">';
+
+    html += '<span class="art-hint" style="margin-left:12px;">Imprint Comment</span>';
+    html += '<textarea class="imprint-comment-textarea" id="imprintcomment-' + gId + '"'
+          + ' placeholder="Notes for this art (optional)"'
+          + ' oninput="onImprintCommentInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',this.value)">'
+          + esc(commentVal) + '</textarea>';
+    
+    if (totalGroups > 1) {
+        html += '<button class="btn-remove-art" onclick="removeArtGroup(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ')">\u2715 Remove</button>';
+    }
+    html += '</div>';
+
+    // Group body: color qty inputs (hidden until style chosen for multi-variant)
+    if (!multiVariant || ag.variantIndex != null) {
+        html += '<div class="art-group-body">';
+        html += buildColorQtyInputs(gId, keyId, so, idx, colors, ag.colorQtys || {}, gIdx);
+        html += '</div>';
+    } else {
+        html += '<div class="art-group-body" style="padding:8px 14px;">'
+              + '<span style="font-size:12px;color:var(--text-muted);">← Choose a style above to enter quantities</span>'
+              + '</div>';
+    }
+
+    // Art preview panel (shown when a search result is selected)
+    var previewVisible = ag.previewFilename ? ' visible' : '';
+    html += '<div class="art-preview-panel' + previewVisible + '" id="artpreview-' + gId + '">';
+    html += '<div class="art-preview-header">';
+    html += '<div><div class="art-preview-title">' + esc(ag.previewArtCode || artVal) + '</div>'
+          + '<div class="art-preview-filename">' + esc(ag.previewFilename || '') + '</div></div>';
+    html += '<a class="art-preview-open" href="#" target="_blank" style="font-size:12px;font-weight:600;color:var(--teal);text-decoration:none;' + (ag.previewFilename ? '' : 'display:none') + '">Open in Drive ↗</a>';
+    html += '</div>';
+    html += '<div class="art-preview-body">';
+    html += '<span class="art-preview-loading" style="font-size:12px;color:var(--text-muted);' + (ag.previewFilename ? '' : 'display:none') + '">Loading preview…</span>';
+    html += '<img class="art-preview-img" src="" alt="Art preview" style="display:none">';
+    html += '<span class="art-preview-notfound" style="font-size:12px;color:#e53935;display:none;">Preview unavailable — file not found in Drive.</span>';
+    html += '<div class="art-preview-meta" style="font-size:12px;color:var(--text-muted);line-height:1.8;">' + esc(ag.previewFilename || '') + '</div>';
+    html += '</div></div>';
+
+    html += '</div>';
+    return html;
+}
+// ── Build color qty inputs for one art group ──────────────────────────────────
+function buildColorQtyInputs(gId, keyId, so, idx, colors, colorQtys, gIdx) {
+    var groupTotal = Object.values(colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var html = '<div class="color-qty-grid">';
+    colors.forEach(function (color) {
+        var cId  = 'cq-' + gId + '-' + escId(color);
+        var qVal = parseInt(colorQtys[color]) || 0;
+        html += '<div class="color-qty-item">';
+        html += '<div class="color-qty-label">' + esc(color) + '</div>';
+        html += '<input type="number" class="color-qty-input' + (qVal > 0 ? ' has-qty' : '') + '"'
+              + ' id="' + cId + '" value="' + qVal + '" min="0" placeholder="0"'
+              + ' oninput="onQtyInput(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ',\'' + escAttr(color) + '\',this.value)">';
+        html += '</div>';
+    });
+    html += '</div>';
+    html += '<span class="alloc-tally under" id="gtally-' + gId + '">'
+          + '<span id="gtally-num-' + gId + '">' + groupTotal + '</span> units in this art</span>';
+    return html;
+}
+
+// ── Submitted display ─────────────────────────────────────────────────────────────────────────────────
+function buildSubmittedDisplay(sel, catalog) {
+    var groups = sel.artGroups || [];
+    var html = '<div class="submitted-display">';
+    html += '<div class="submitted-variant">✓ Submitted</div>';
+    groups.forEach(function (ag, i) {
+        if (!ag.artNumber && !Object.values(ag.colorQtys || {}).some(function(v){ return (parseInt(v)||0) > 0; })) return;
+        var vIdx  = ag.variantIndex != null ? ag.variantIndex : (sel.variantIndex !== undefined ? sel.variantIndex : 0);
+        var vDesc = catalog[vIdx] ? catalog[vIdx].description : '';
+        var imprint = (ag.imprintColor || '').trim();
+        var comment = (ag.imprintComment || '').trim();
+        html += '<div class="submitted-art-group">';
+        html += '<div class="submitted-art-label">Art ' + (i+1) + ': ' + esc(ag.artNumber || '—')
+              + (imprint ? ' — Imprint: ' + esc(imprint) : '')
+              + (vDesc ? ' — ' + esc(vDesc) : '') + '</div>';
+        if (comment) {
+            html += '<div style="margin-top:6px;font-size:12px;color:var(--text-muted);font-family:\'DM Mono\', monospace;">'
+                + 'Comment: ' + esc(comment) + '</div>';
+        }
+        html += '<div class="submitted-breakdown">';
+        Object.keys(ag.colorQtys || {}).forEach(function (c) {
+            var q = parseInt(ag.colorQtys[c]) || 0;
+            if (q > 0) html += '<span class="sub-chip">' + esc(c) + ': ' + q + '</span>';
+        });
+        html += '</div></div>';
+    });
+    html += '</div>';
+    return html;
+}
+// ── Interaction: per-group variant selection ────────────────────────────────────────────────
+function selectGroupVariant(keyId, so, idx, gIdx, vIdx) {
+    var key = lkFromId(keyId);
+    ensureArtGroups(key);
+    var ag = selections[key].artGroups[gIdx];
+    if (ag.variantIndex !== vIdx) {
+        ag.variantIndex = vIdx;
+        ag.colorQtys    = {};  // reset colors when style changes
+    }
+    saveSelections();
+
+    // Re-render just this art group
+    var upc     = ordersGrouped[so].lines[idx].upc;
+    var catalog = catalogData[upc] || [];
+    var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
+    var newHtml = buildArtGroup(keyId, so, idx, catalog, ag, gIdx, selections[key].artGroups.length);
+    $('#ag-' + keyId + '_g' + gIdx).replaceWith(newHtml);
+
+    // Update overall tally
+    var allocated  = totalAllocated(selections[key]);
+    var tallyClass = allocated === 0 ? 'under' : (allocated === qty ? 'exact' : (allocated > qty ? 'over' : 'under'));
+    var tallyIcon  = (allocated === qty && qty > 0) ? '✓ ' : '';
+    $('#overtally-' + keyId)
+        .attr('class', 'alloc-tally ' + tallyClass)
+        .html(tallyIcon + '<span id="overtally-num-' + keyId + '">' + allocated + '</span> / ' + qty + ' allocated');
+
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+// ── Interaction: add art group ────────────────────────────────────────────────────────────────────────────────
+function addArtGroup(keyId, so, idx) {
+    var key = lkFromId(keyId);
+    ensureArtGroups(key);
+    selections[key].artGroups.push(newArtGroup());
+    saveSelections();
+
+    var upc     = ordersGrouped[so].lines[idx].upc;
+    var catalog = catalogData[upc] || [];
+    var newIdx  = selections[key].artGroups.length - 1;
+
+    // Append new group
+    var groupHtml = buildArtGroup(keyId, so, idx, catalog, newArtGroup(), newIdx, selections[key].artGroups.length);
+    $('#artgroups-' + keyId).append(groupHtml);
+
+    // Update all remove buttons (show them now that there are multiple groups)
+    refreshRemoveButtons(keyId, so, idx, catalog);
+}
+// ── Interaction: remove art group ─────────────────────────────────────────────────────────────────────────────────
+function removeArtGroup(keyId, so, idx, gIdx) {
+    var key = lkFromId(keyId);
+    if (!selections[key] || !selections[key].artGroups) return;
+    selections[key].artGroups.splice(gIdx, 1);
+    saveSelections();
+    redrawSelectionArea(keyId, so, idx);
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+// ── Interaction: art number input ─────────────────────────────────────────────
+function onArtInput(keyId, so, idx, gIdx, val) {
+    var key = lkFromId(keyId);
+    ensureArtGroups(key);
+    selections[key].artGroups[gIdx].artNumber = val.trim();
+    saveSelections();
+
+    var gId     = keyId + '_g' + gIdx;
+    var isValid = /^.+_[A-Za-z]{2}$/.test(val.trim());
+    var $input  = $('#art-' + gId);
+    
+    var ag = selections[key].artGroups[gIdx];
+    var groupTotal = Object.values(ag.colorQtys || {}).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var groupHasQty = groupTotal > 0;
+    var imprintTrim = (ag.imprintColor || '').trim();
+    var imprintOk   = groupHasQty ? imprintTrim.length > 0 : true;
+    var $imprintInput = $('#imprint-' + gId);
+    $imprintInput.removeClass('valid invalid');
+    if (groupHasQty) $imprintInput.addClass(imprintOk ? 'valid' : 'invalid');
+
+    $input.removeClass('valid invalid');
+    if (val.trim() !== '') $input.addClass(isValid ? 'valid' : 'invalid');
+    else if (groupHasQty) $input.addClass('invalid');
+
+    $('#ag-' + gId).removeClass('group-valid group-error');
+    if (val.trim() !== '') {
+        $('#ag-' + gId).addClass((isValid && imprintOk) ? 'group-valid' : 'group-error');
+    } else if (groupHasQty) {
+        $('#ag-' + gId).addClass('group-error');
+    }
+
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+
+// ── Interaction: imprint input ───────────────────────────────────────────────
+function onImprintInput(keyId, so, idx, gIdx, val) {
+    var key = lkFromId(keyId);
+    ensureArtGroups(key);
+    selections[key].artGroups[gIdx].imprintColor = val.trim();
+    saveSelections();
+
+    var gId     = keyId + '_g' + gIdx;
+    var ag      = selections[key].artGroups[gIdx];
+    var groupTotal = Object.values(ag.colorQtys || {}).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var groupHasQty = groupTotal > 0;
+    
+    var imprintTrim = (ag.imprintColor || '').trim();
+    var imprintOk   = groupHasQty ? imprintTrim.length > 0 : true;
+    
+    var $imprintInput = $('#imprint-' + gId);
+    $imprintInput.removeClass('valid invalid');
+    if (groupHasQty) $imprintInput.addClass(imprintOk ? 'valid' : 'invalid');
+
+    var artVal = (ag.artNumber || '').trim();
+    var artValid = /^.+_[A-Za-z]{2}$/.test(artVal);
+    
+    var $group = $('#ag-' + gId);
+    $group.removeClass('group-valid group-error');
+    if (artVal !== '') {
+        $group.addClass((artValid && imprintOk) ? 'group-valid' : 'group-error');
+    } else if (groupHasQty) {
+        $group.addClass('group-error');
+    }
+
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+
+// ── Interaction: imprint comment input ──────────────────────────────────
+function onImprintCommentInput(keyId, so, idx, gIdx, val) {
+    var key = lkFromId(keyId);
+    ensureArtGroups(key);
+    // Keep as-is (do not trim aggressively) so reps can type freely.
+    selections[key].artGroups[gIdx].imprintComment = val || '';
+    saveSelections();
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+
+// ── Interaction: qty input ────────────────────────────────────────────────────
+function onQtyInput(keyId, so, idx, gIdx, color, rawVal) {
+    var key = lkFromId(keyId);
+    ensureArtGroups(key);
+    var ag  = selections[key].artGroups[gIdx];
+    if (!ag.colorQtys) ag.colorQtys = {};
+    var val = Math.max(0, parseInt(rawVal) || 0);
+    ag.colorQtys[color] = val;
+    saveSelections();
+
+    var gId  = keyId + '_g' + gIdx;
+    var cId  = '#cq-' + gId + '-' + escId(color);
+    $(cId).toggleClass('has-qty', val > 0);
+
+    // Update art + imprint validity based on entered quantities
+    var groupTotal = Object.values(ag.colorQtys).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+    var groupHasQty = groupTotal > 0;
+    
+    var artVal = (ag.artNumber || '').trim();
+    var artValid = /^.+_[A-Za-z]{2}$/.test(artVal);
+    var imprintTrim = (ag.imprintColor || '').trim();
+    var imprintOk = groupHasQty ? imprintTrim.length > 0 : true;
+
+    var $artInput = $('#art-' + gId);
+    $artInput.removeClass('valid invalid');
+    if (artVal !== '') $artInput.addClass(artValid ? 'valid' : 'invalid');
+    else if (groupHasQty) $artInput.addClass('invalid');
+
+    var $imprintInput = $('#imprint-' + gId);
+    $imprintInput.removeClass('valid invalid');
+    if (groupHasQty) $imprintInput.addClass(imprintOk ? 'valid' : 'invalid');
+
+    var $group = $('#ag-' + gId);
+    $group.removeClass('group-valid group-error');
+    if (artVal !== '') $group.addClass((artValid && imprintOk) ? 'group-valid' : 'group-error');
+    else if (groupHasQty) $group.addClass('group-error');
+
+    // Update group tally
+    $('#gtally-num-' + gId).text(groupTotal);
+
+    // Update overall tally
+    var orderedQty = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
+    var allocated  = totalAllocated(selections[key]);
+    var tallyClass = allocated === 0 ? 'under' : (allocated === orderedQty ? 'exact' : (allocated > orderedQty ? 'over' : 'under'));
+    var tallyIcon  = (allocated === orderedQty && orderedQty > 0) ? '✓ ' : '';
+    $('#overtally-' + keyId)
+        .attr('class', 'alloc-tally ' + tallyClass)
+        .html(tallyIcon + '<span id="overtally-num-' + keyId + '">' + allocated + '</span> / ' + orderedQty + ' allocated');
+
+    // Card border
+    var $li = $('#li-' + keyId);
+    $li.removeClass('is-ready is-over');
+    if (allocated > orderedQty)       $li.addClass('is-over');
+    else if (lineIsReady(selections[key])) $li.addClass('is-ready');
+
+    refreshOrderStatus(so);
+    updateSubmitBar();
+}
+
+// ── Refresh remove buttons when group count changes ───────────────────────────
+function refreshRemoveButtons(keyId, so, idx, catalog) {
+    var key    = lkFromId(keyId);
+    var groups = (selections[key] && selections[key].artGroups) || [];
+    groups.forEach(function (ag, gIdx) {
+        var gId = keyId + '_g' + gIdx;
+        var $hdr = $('#ag-' + gId + ' .art-group-header');
+        $hdr.find('.btn-remove-art').remove();
+        if (groups.length > 1) {
+            $hdr.append('<button class="btn-remove-art" onclick="removeArtGroup(\'' + keyId + '\',\'' + escAttr(so) + '\',' + idx + ',' + gIdx + ')">✕ Remove</button>');
+        }
+    });
+}
+
+// ── Redraw selection area ────────────────────────────────────────────────────────────────────────────────────
+function redrawSelectionArea(keyId, so, idx) {
+    var key     = lkFromId(keyId);
+    var upc     = ordersGrouped[so].lines[idx].upc;
+    var catalog = catalogData[upc] || [];
+    var qty     = parseInt(ordersGrouped[so].lines[idx].quantityOrdered) || 0;
+    var sel     = selections[key] || {};
+    var $sa     = $('#li-' + keyId + ' .selection-area');
+    $sa.html(buildArtGroupsSection(keyId, so, idx, catalog, sel, qty));
+}
+function toggleOrder(soId) {
+    $('#body-' + soId).toggleClass('open');
+    $('#ebtn-' + soId).toggleClass('open');
+}
+
+// ── Refresh order badge + progress ────────────────────────────────────────────
+function refreshOrderStatus(so) {
+    var lines = ordersGrouped[so].lines, total = lines.length;
+    var readyCount = 0, submittedCount = 0;
+    lines.forEach(function (l, idx) {
+        var s = selections[lk(so, idx)] || {};
+        if (s.submitted) submittedCount++;
+        else if (lineIsReady(s)) readyCount++;
+    });
+    var doneCount = readyCount + submittedCount;
+    var pct  = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+    var soId = escId(so);
+    $('#prog-' + soId).css('width', pct + '%');
+
+    var statusClass, statusLabel;
+    if (submittedCount === total) {
+        statusClass = 'status-submitted'; statusLabel = '✓ All Submitted';
+    } else if (doneCount > 0) {
+        statusClass = 'status-partial';
+        statusLabel = submittedCount > 0
+            ? submittedCount + ' submitted, ' + readyCount + ' ready'
+            : doneCount + '/' + total + ' Ready';
+    } else {
+        statusClass = 'status-pending'; statusLabel = 'Needs Selection';
+    }
+    $('#badge-' + soId).attr('class', 'status-badge ' + statusClass).text(statusLabel);
+}
+
+// ── Submit bar ────────────────────────────────────────────────────────────────
+function updateSubmitBar() {
+    var pendingTotal = 0, readyCount = 0;
+    orderKeys.forEach(function (so) {
+        ordersGrouped[so].lines.forEach(function (l, idx) {
+            var s = selections[lk(so, idx)] || {};
+            if (!s.submitted) { pendingTotal++; if (lineIsReady(s)) readyCount++; }
+        });
+    });
+    if (pendingTotal === 0) { $('#submitBar').hide(); return; }
+    $('#submitBar').show();
+    $('#submitBarInfo').html(
+        '<strong>' + readyCount + '</strong> of <strong>' + pendingTotal +
+        '</strong> pending line' + (pendingTotal !== 1 ? 's' : '') + ' ready to submit'
+    );
+    $('#submitBtn').prop('disabled', readyCount === 0);
+}
+
+// ── Submit ────────────────────────────────────────────────────────────────────
+function submitSelections() {
+
+    var errors = [];
+    orderKeys.forEach(function(so) {
+        ordersGrouped[so].lines.forEach(function(line, idx) {
+            var key = lk(so, idx);
+            var sel = selections[key] || {};
+            if (sel.submitted) return;
+            (sel.artGroups || []).forEach(function(ag, gIdx) {
+                var groupTotal = Object.values(ag.colorQtys || {}).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
+                if (groupTotal > 0 && !(ag.artNumber || '').trim()) {
+                    errors.push('Sales Order ' + so + ', line ' + (idx+1) + ', Art #' + (gIdx+1) + ' has quantities but no art number.');
+                }
+                if (groupTotal > 0 && !(ag.imprintColor || '').trim()) {
+                    errors.push('Sales Order ' + so + ', line ' + (idx+1) + ', Art #' + (gIdx+1) + ' has quantities but no imprint color.');
+                }
+            });
+        });
+    });
+    if (errors.length > 0) {
+        alert('⚠ Please fix the following before submitting:\n\n' + errors.join('\n'));
+        return;
+    }
+    
+    var payload = [];
+    orderKeys.forEach(function (so) {
+        var g = ordersGrouped[so];
+        g.lines.forEach(function (line, idx) {
+            var key = lk(so, idx);
+            var sel = selections[key] || {};
+            if (sel.submitted || !lineIsReady(sel)) return;
+
+            var upc     = line.upc;
+            var catalog = catalogData[upc] || [];
+
+            // One payload row per art group × color × qty > 0
+            // Each art group carries its own variantIndex for split-style orders
+            (sel.artGroups || []).forEach(function (ag) {
+                var artOk = /^.+_[A-Za-z]{2}$/.test((ag.artNumber || '').trim());
+                if (!artOk) return;
+                var vIdx    = ag.variantIndex != null ? ag.variantIndex
+                            : (sel.variantIndex !== undefined ? sel.variantIndex : 0);
+                var variant = catalog[vIdx] || {};
+                Object.keys(ag.colorQtys || {}).forEach(function (color) {
+                    var qty = parseInt(ag.colorQtys[color]) || 0;
+                    if (qty <= 0) return;
+                    payload.push({
+                        salesOrderNo:      so,
+                        customerPONo:      g.meta.customerPONo || '',
+                        orderDate:         g.meta.orderDate,
+                        shipToName:        g.meta.shipToName,
+                        requestedDelivery: g.meta.requestedDelivery,
+                        repEmail:          repEmail,
+                        repName:           repName,
+                        upc:               upc,
+                        totalQtyOrdered:   line.quantityOrdered,
+                        unitPrice:         line.unitPrice,
+                        retailPrice:       line.retailPrice,
+                        selectedSKU:       variant.sku         || '',
+                        selectedCRC:       variant.crc         || '',
+                        selectedDesc:      variant.description || '',
+                        artNumber:         ag.artNumber,
+                        imprintColor:     ag.imprintColor,
+                        imprintComment:   ag.imprintComment,
+                        selectedColor:     color,
+                        colorQty:          qty
+                    });
+                });
+            });
+        });
+    });
+
+    if (payload.length === 0) { alert('No ready selections to submit.'); return; }
+
+    $('#submitBtn').prop('disabled', true).text('Submitting…');
+
+    var form = $('<form>', { method: 'POST', action: SUBMISSION_URL, target: '_blank', style: 'display:none;' });
+    form.append($('<input>', { type: 'hidden', name: 'data', value: JSON.stringify(payload) }));
+    $('body').append(form);
+    form.submit();
+    setTimeout(function () { form.remove(); }, 1000);
+
+    // Mark submitted
+    orderKeys.forEach(function (so) {
+        ordersGrouped[so].lines.forEach(function (l, idx) {
+            var key = lk(so, idx);
+            if (selections[key] && !selections[key].submitted && lineIsReady(selections[key]))
+                selections[key].submitted = true;
+        });
+    });
+    saveSelections();
+    rebuildPage();
+    alert('✅ Submitted ' + payload.length + ' row' + (payload.length !== 1 ? 's' : '') + ' (art × color × qty)!');
+}
+
+// ── Persistence ───────────────────────────────────────────────────────────────
+function saveSelections() {
+    sessionStorage.setItem('drinkwareSelections_' + repEmail, JSON.stringify(selections));
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function lk(so, idx)     { return escId(so) + '__' + idx; }
+function lkFromId(keyId) { return keyId; }
+function col(cols, i)    { return (cols[i] || '').trim(); }
+function fmtMoney(val) {
+    var n = parseFloat(String(val).replace(/[^0-9.-]/g, ''));
+    return isNaN(n) ? val : n.toFixed(2);
+}
+function formatDate(val) {
+    if (!val) return '—';
+    var d = new Date(val);
+    return isNaN(d.getTime()) ? val : (d.getMonth()+1) + '/' + d.getDate() + '/' + d.getFullYear();
+}
+function parseCSVRow(row) {
+    var cols = [], cur = '', inQ = false;
+    for (var i = 0; i < row.length; i++) {
+        var ch = row[i];
+        if (ch === '"') { inQ = !inQ; }
+        else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+        else { cur += ch; }
+    }
+    cols.push(cur.trim());
+    return cols;
+}
+function esc(str) {
+    return String(str == null ? '' : str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(str) { return String(str || '').replace(/'/g, "\\'"); }
+function escId(str)   { return String(str).replace(/[^a-zA-Z0-9]/g, '_'); }
+function showError(msg) {
+    $('#contentArea').html('<div class="state-box"><div class="icon">⚠️</div><p>' + esc(msg) + '</p></div>');
+    $('#pageSubtitle').text('Something went wrong.');
+}
+</script>
+</body>
+</html>
