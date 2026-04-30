@@ -1129,10 +1129,8 @@ function displayProducts() {
             // AFTER:
             if(isOneSize){
                 var osSku = product.sizes['OS'];
-                var osOnHand = inventoryData.hasOwnProperty(osSku) ? inventoryData[osSku] : null;
-                var osOnHandHtml = osOnHand !== null
-                    ? '<div class="on-hand ' + (osOnHand === 0 ? 'on-hand-zero' : '') + '">' + osOnHand + ' on hand</div>'
-                    : '';
+                var osOnHand = inventoryData[osSku] || 0;
+                var osOnHandHtml = '<div class="on-hand ' + (osOnHand === 0 ? 'on-hand-zero' : '') + '">' + osOnHand + ' on hand</div>';
                 html += '<div class="size-grid-section">';
                 html += '<div class="size-grid-header">One Size Fits All</div>';
                 html += '<input type="number" class="size-qty-input" id="qty-' + index + '-OS" value="0" min="0" oninput="updateProductTotal(' + index + ')">';
@@ -1152,10 +1150,8 @@ function displayProducts() {
                 sizeOrder.forEach(function(size){
                     if(product.sizes[size]){
                         var sku = product.sizes[size];
-                        var onHand = inventoryData.hasOwnProperty(sku) ? inventoryData[sku] : null;
-                        var onHandHtml = onHand !== null
-                            ? '<div class="on-hand ' + (onHand === 0 ? 'on-hand-zero' : '') + '">' + onHand + ' on hand</div>'
-                            : '';
+                        var onHand = inventoryData[sku] || 0;
+                        var onHandHtml = '<div class="on-hand ' + (onHand === 0 ? 'on-hand-zero' : '') + '">' + onHand + ' on hand</div>';
                         html += '<div class="size-item">';
                         html += '<div class="size-label">' + size + '</div>';
                         html += '<input type="number" class="size-qty-input" id="qty-' + index + '-' + size + '" value="0" min="0" oninput="updateProductTotal(' + index + ')">';
