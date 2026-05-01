@@ -1005,9 +1005,8 @@ function loadPendingOrders() {
                 if (!sku || qty <= 0) continue;
                 var current = inventoryData[sku] || 0;
                 inventoryData[sku] = Math.max(0, current - qty);
-                console.warn(sku + ' - ' + current + ' - ' + qty)
             }
-            loadPendingOrders();
+            if (allCategoryProducts.length > 0) filterAndDisplayProducts();
         },
         error: function() { console.warn('Could not load pending orders data'); }
     });
@@ -1030,7 +1029,7 @@ function loadInventoryData() {
             }
             console.log('Loaded inventory for', Object.keys(inventoryData).length, 'SKUs');
             // Re-render if products are already loaded
-            if (allCategoryProducts.length > 0) filterAndDisplayProducts();
+            loadPendingOrders();
         },
         error: function() { console.warn('Could not load inventory data'); }
     });
