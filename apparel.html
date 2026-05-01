@@ -1005,6 +1005,7 @@ function loadPendingOrders() {
                 if (!sku || qty <= 0) continue;
                 var current = inventoryData[sku] || 0;
                 inventoryData[sku] = Math.max(0, current - qty);
+                console.warn(sku + ' - ' + current + ' - ' + qty)
             }
             loadPendingOrders();
         },
