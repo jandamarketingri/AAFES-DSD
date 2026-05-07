@@ -436,6 +436,43 @@
             color: #00695c;
         }
 
+        /* ── Debug panel ── */
+        .debug-panel {
+            background: #1e1e2e;
+            color: #cdd6f4;
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            line-height: 1.7;
+            margin-bottom: 22px;
+        }
+        .debug-panel .dbg-title {
+            color: #a6e3a1;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .debug-panel .dbg-row { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #313244; }
+        .debug-panel .dbg-row:last-child { border-bottom: none; margin-bottom: 0; }
+        .debug-panel .dbg-key { color: #89b4fa; }
+        .debug-panel .dbg-val { color: #f9e2af; }
+        .debug-panel .dbg-warn { color: #f38ba8; }
+        .debug-toggle {
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-family: 'DM Mono', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            cursor: pointer;
+            margin-bottom: 14px;
+        }
+        .debug-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
         /* ── Tracking ── */
         .tracking-wrap {
             margin-top: 14px;
@@ -747,6 +784,7 @@ function loadDrinkwareOrders() {
             parseDrinkwareCSV(csv);
             dwLoaded = true;
             $('#dwFilterBar').show();
+            renderDwDebugPanel();
             applyDwFilter('all', $('#dwFilterBar .filter-btn[data-dwfilter="all"]')[0]);
         },
         error: function () {
@@ -759,31 +797,66 @@ function loadDrinkwareOrders() {
 }
 
 // ── Parse drinkware CSV ───────────────────────────────────────────────────────
+var dwDebugRows = [];  // raw column snapshots shown in the debug panel
+
 function parseDrinkwareCSV(csv) {
     allDwOrders = [];
-    var rows = csv.split('\n');
+    dwDebugRows = [];
+
+    // Normalize \r\n — Google Sheets CSV uses Windows line endings
+    var rows = csv.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+
+    // Log the header row so column indices can be verified in the browser console
+    if (rows[0]) {
+        var headerCols = parseCSVRow(rows[0]);
+        console.log('[DW DEBUG] CSV header columns:', headerCols);
+        console.log('[DW DEBUG] DW_COL.trackingNumbers =', DW_COL.trackingNumbers,
+                    '  header at that index:', headerCols[DW_COL.trackingNumbers]);
+    }
+
     for (var i = 1; i < rows.length; i++) {
         if (!rows[i].trim()) continue;
         var cols = parseCSVRow(rows[i]);
         var email = (cols[DW_COL.repEmail] || '').toLowerCase().trim();
+
+        // Capture first 5 data rows for the debug panel (before email filter)
+        if (dwDebugRows.length < 5) {
+            dwDebugRows.push({
+                row:       i,
+                totalCols: cols.length,
+                repEmail:  cols[DW_COL.repEmail] || '(empty)',
+                colV_raw:  cols.length > DW_COL.trackingNumbers
+                               ? (cols[DW_COL.trackingNumbers] || '(empty)')
+                               : '⚠ col ' + DW_COL.trackingNumbers + ' missing — row only has ' + cols.length + ' cols'
+            });
+        }
+
         if (email !== repEmailGlobal) continue;
+
         allDwOrders.push({
-            salesOrderNo:  (cols[DW_COL.salesOrderNo]  || '').trim(),
-            customPO:      (cols[DW_COL.customPO]       || '').trim(),
-            orderDate:     (cols[DW_COL.orderDate]      || '').trim(),
-            shipTo:        (cols[DW_COL.shipTo]         || '').trim(),
-            reqDelivery:   (cols[DW_COL.reqDelivery]    || '').trim(),
-            repEmail:      email,
-            sku:           (cols[DW_COL.sku]            || '').trim(),
-            skuDesc:       (cols[DW_COL.skuDesc]        || '').trim(),
-            color:         (cols[DW_COL.color]          || '').trim(),
-            quantity:      (cols[DW_COL.quantity]       || '').trim(),
-            artNumber:     (cols[DW_COL.artNumber]      || '').trim(),
-            imprintColor:  (cols[DW_COL.imprintColor]   || '').trim(),
-            comments:      (cols[DW_COL.comments]       || '').trim(),
+            salesOrderNo:    (cols[DW_COL.salesOrderNo]   || '').trim(),
+            customPO:        (cols[DW_COL.customPO]        || '').trim(),
+            orderDate:       (cols[DW_COL.orderDate]       || '').trim(),
+            shipTo:          (cols[DW_COL.shipTo]          || '').trim(),
+            reqDelivery:     (cols[DW_COL.reqDelivery]     || '').trim(),
+            repEmail:        email,
+            sku:             (cols[DW_COL.sku]             || '').trim(),
+            skuDesc:         (cols[DW_COL.skuDesc]         || '').trim(),
+            color:           (cols[DW_COL.color]           || '').trim(),
+            quantity:        (cols[DW_COL.quantity]        || '').trim(),
+            artNumber:       (cols[DW_COL.artNumber]       || '').trim(),
+            imprintColor:    (cols[DW_COL.imprintColor]    || '').trim(),
+            comments:        (cols[DW_COL.comments]        || '').trim(),
             trackingNumbers: (cols[DW_COL.trackingNumbers] || '').trim()
         });
     }
+
+    console.log('[DW DEBUG] Rows matched for this rep:', allDwOrders.length);
+    console.log('[DW DEBUG] Sample tracking values:',
+        allDwOrders.slice(0, 5).map(function(r) {
+            return { so: r.salesOrderNo, tracking: '"' + r.trackingNumbers + '"' };
+        })
+    );
 }
 
 // ── Filter drinkware orders ───────────────────────────────────────────────────
@@ -803,25 +876,27 @@ function applyDwFilter(filter, btn) {
 
 // ── Carrier detection & tracking links ───────────────────────────────────────
 function detectCarrier(tn) {
-    tn = tn.replace(/\s/g, '');
-    // UPS: starts with 1Z, exactly 18 chars
+    // Strip all whitespace and hyphens before testing
+    tn = tn.replace(/[\s\-]/g, '');
+    // UPS: starts with 1Z, 18 chars total
     if (/^1Z[A-Z0-9]{16}$/i.test(tn)) return 'ups';
     // FedEx: 12-digit, 15-digit, or 20-22 digit starting with 96/61/77
     if (/^\d{12}$/.test(tn)) return 'fedex';
     if (/^\d{15}$/.test(tn)) return 'fedex';
     if (/^(96|61|77)\d{18,20}$/.test(tn)) return 'fedex';
-    // USPS: starts with known USPS prefixes or is 20-22 digit starting with 9
+    // USPS: known prefixes or 20-22 digit strings starting with 9
     if (/^(9400|9205|9407|9208|9300|9305|9410|9420|9470|9505|8200|70|03|23|420)\d+$/.test(tn)) return 'usps';
-    if (/^9[0-9]{19,21}$/.test(tn)) return 'usps';
+    if (/^9\d{19,21}$/.test(tn)) return 'usps';
     return 'unknown';
 }
 
 function trackingURL(tn) {
     var carrier = detectCarrier(tn);
-    if (carrier === 'ups')   return 'https://www.ups.com/track?tracknum=' + tn;
-    if (carrier === 'fedex') return 'https://www.fedex.com/fedextrack/?trknbr=' + tn;
-    if (carrier === 'usps')  return 'https://tools.usps.com/go/TrackConfirmAction?tLabels=' + tn;
-    return 'https://www.google.com/search?q=' + encodeURIComponent(tn + ' tracking');
+    var clean = tn.replace(/[\s\-]/g, '');
+    if (carrier === 'ups')   return 'https://www.ups.com/track?tracknum=' + clean;
+    if (carrier === 'fedex') return 'https://www.fedex.com/fedextrack/?trknbr=' + clean;
+    if (carrier === 'usps')  return 'https://tools.usps.com/go/TrackConfirmAction?tLabels=' + clean;
+    return 'https://www.google.com/search?q=' + encodeURIComponent(clean + ' tracking');
 }
 
 function carrierLabel(tn) {
@@ -832,12 +907,14 @@ function carrierLabel(tn) {
     return                    { icon: '📦', label: '',       cls: 'pill-unknown'};
 }
 
-// Collect all unique tracking numbers across lines in a group
+// Collect all unique tracking numbers across lines in a group.
+// Handles comma-separated, newline-separated, or space-separated lists.
 function collectTracking(lines) {
     var seen = {}, nums = [];
     lines.forEach(function(line) {
         if (!line.trackingNumbers) return;
-        line.trackingNumbers.split(',').forEach(function(t) {
+        // Split on commas, semicolons, or newlines
+        line.trackingNumbers.split(/[,;\n]+/).forEach(function(t) {
             t = t.replace(/\s/g, '');
             if (t && !seen[t]) { seen[t] = true; nums.push(t); }
         });
@@ -858,6 +935,47 @@ function renderTrackingPills(trackingNums) {
     });
     html += '</div></div>';
     return html;
+}
+
+// ── Debug panel (shows raw column V data to verify mapping) ──────────────────
+function renderDwDebugPanel() {
+    var html = '<button class="debug-toggle" onclick="toggleDebugPanel()">🔍 Show column debug info</button>';
+    html += '<div id="dwDebugPanel" style="display:none;">';
+    html += '<div class="debug-panel">';
+    html += '<div class="dbg-title">Column V (index ' + DW_COL.trackingNumbers + ') raw values — first 5 sheet rows</div>';
+
+    if (dwDebugRows.length === 0) {
+        html += '<div class="dbg-row"><span class="dbg-warn">No data rows found in CSV.</span></div>';
+    } else {
+        dwDebugRows.forEach(function(d) {
+            var isWarn = d.colV_raw.indexOf('⚠') !== -1 || d.colV_raw === '(empty)';
+            html += '<div class="dbg-row">';
+            html += '<span class="dbg-key">Row ' + d.row + '</span> &nbsp;·&nbsp; ';
+            html += '<span class="dbg-key">total cols:</span> <span class="dbg-val">' + esc(String(d.totalCols)) + '</span> &nbsp;·&nbsp; ';
+            html += '<span class="dbg-key">repEmail col:</span> <span class="dbg-val">' + esc(d.repEmail) + '</span><br>';
+            html += '<span class="dbg-key">col V value:</span> <span class="' + (isWarn ? 'dbg-warn' : 'dbg-val') + '">' + esc(d.colV_raw || '(empty)') + '</span>';
+            html += '</div>';
+        });
+    }
+
+    html += '<div style="margin-top:10px;color:#6c7086;font-size:11px;">Open browser DevTools → Console for full header row log.</div>';
+    html += '</div></div>';
+
+    // Prepend before the content area
+    $('#dwDebugPanel, .debug-toggle').remove();
+    $('#dwContentArea').before(html);
+}
+
+function toggleDebugPanel() {
+    var $p = $('#dwDebugPanel');
+    var $b = $('.debug-toggle');
+    if ($p.is(':visible')) {
+        $p.hide();
+        $b.text('🔍 Show column debug info');
+    } else {
+        $p.show();
+        $b.text('🔍 Hide column debug info');
+    }
 }
 
 // ── Render drinkware orders ───────────────────────────────────────────────────
