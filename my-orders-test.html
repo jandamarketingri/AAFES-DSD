@@ -267,6 +267,58 @@
         }
         .detail-meta-item span { font-size: 13px; font-weight: 500; }
 
+        /* ── Tracking section ── */
+        .tracking-section {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .tracking-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            padding-top: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .tracking-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .tracking-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            background: #eef0fd;
+            border: 1px solid #c7cdf8;
+            font-family: 'DM Mono', monospace;
+            font-size: 12px;
+            font-weight: 500;
+            color: #3b4cc0;
+            white-space: nowrap;
+        }
+        .tracking-chip .carrier-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.5;
+            flex-shrink: 0;
+        }
+        .tracking-none {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
         /* ── Line items table ── */
         .items-table {
             width: 100%;
@@ -435,98 +487,6 @@
             background: #e0f2f1;
             color: #00695c;
         }
-
-        /* ── Debug panel ── */
-        .debug-panel {
-            background: #1e1e2e;
-            color: #cdd6f4;
-            border-radius: var(--radius);
-            padding: 16px 20px;
-            font-family: 'DM Mono', monospace;
-            font-size: 12px;
-            line-height: 1.7;
-            margin-bottom: 22px;
-        }
-        .debug-panel .dbg-title {
-            color: #a6e3a1;
-            font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-        .debug-panel .dbg-row { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #313244; }
-        .debug-panel .dbg-row:last-child { border-bottom: none; margin-bottom: 0; }
-        .debug-panel .dbg-key { color: #89b4fa; }
-        .debug-panel .dbg-val { color: #f9e2af; }
-        .debug-panel .dbg-warn { color: #f38ba8; }
-        .debug-toggle {
-            background: none;
-            border: 1.5px solid var(--border);
-            border-radius: 6px;
-            padding: 5px 12px;
-            font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            color: var(--text-muted);
-            cursor: pointer;
-            margin-bottom: 14px;
-        }
-        .debug-toggle:hover { border-color: var(--accent); color: var(--accent); }
-
-        /* ── Tracking ── */
-        .tracking-wrap {
-            margin-top: 14px;
-            padding-top: 14px;
-            border-top: 1px solid var(--border);
-        }
-        .tracking-label {
-            font-size: 10px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-        }
-        .tracking-pills {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 7px;
-        }
-        .tracking-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 12px 5px 9px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            font-family: 'DM Mono', monospace;
-            text-decoration: none;
-            transition: opacity 0.15s, transform 0.15s;
-            white-space: nowrap;
-        }
-        .tracking-pill:hover { opacity: 0.82; transform: translateY(-1px); }
-        .tracking-pill .carrier-icon { font-size: 13px; }
-        .pill-ups   { background: #fff3cd; color: #6d4c00; border: 1.5px solid #f0c040; }
-        .pill-fedex { background: #e8eaf6; color: #283593; border: 1.5px solid #9fa8da; }
-        .pill-usps  { background: #fce4ec; color: #880e4f; border: 1.5px solid #f48fb1; }
-        .pill-unknown { background: #f3f3f0; color: #555; border: 1.5px solid #ddd; }
-
-        /* summary-row tracking indicator */
-        .tracking-dot {
-            display: inline-block;
-            width: 7px; height: 7px;
-            border-radius: 50%;
-            background: #43a047;
-            margin-right: 4px;
-            vertical-align: middle;
-        }
-        .tracking-hint {
-            font-size: 11px;
-            color: #43a047;
-            font-weight: 600;
-            white-space: nowrap;
-        }
     </style>
 </head>
 <body>
@@ -591,16 +551,49 @@
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
+
+// ▶ Publish your orders sheet tab to CSV:
+//   File → Share → Publish to web → select the tab containing your orders → CSV → copy URL
+//   The tab should be the one at gid=2075341928 in your spreadsheet.
+var ORDERS_CSV_URL = 'YOUR_ORDERS_CSV_URL_HERE';
 
 // ▶ Replace with your published Google Sheet CSV URL for past drinkware orders
-// File → Share → Publish to web → select the sheet → CSV → copy URL
-var DRINKWARE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiPIoX-kRukDbyPcEwaXiYlOXdY8LAmu9NIroi0BuuBRbCYH_SKjt70U7Gf4CwCuNtDIbKHlF3BHNN/pub?gid=2075341928&single=true&output=csv';
+var DRINKWARE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7uNYew2smPQWTZRff7v-70y1jrRYViSu-buckNngS2m16e3GoqUuueaEQqsTn09PmoyGQOvleYBpG/pub?gid=1339922144&single=true&output=csv';
 
-// Column indices (0-based) matching your drinkware sheet:
-// Sales Order No | Custom PO | Order Date | Ship To | Required Delivery Date
-// | Rep Email | SKU | SKU Description | Color | Quantity | Art Number
-// | Imprint Color(s) | Comments | … | Tracking Numbers (col V = index 21)
+// ── Orders sheet column indices (0-based) ────────────────────────────────────
+// A[0]  = Checkbox         B[1]  = Timestamp        C[2]  = Rep Name
+// D[3]  = Rep Email        E[4]  = Location Name     F[5]  = Ship-To Code
+// G[6]  = Facility ID      H[7]  = PO Number         I[8]  = Begin Ship
+// J[9]  = Ship By          K[10] = Line Key           L[11] = Sales Kit Line Key
+// M[12] = SKU              N[13] = Exploded Kit Item  O[14] = Quantity
+// P[15] = Retail Price     Q[16] = UPC               R[17] = Comments
+// S[18] = Qty per Bill     T[19] = Brand             U[20] = Export Date (archived rows only)
+// V[21] = Tracking Numbers (comma-space separated; repeated on every row of a PO — first row used)
+var ORD_COL = {
+    timestamp:    1,
+    repName:      2,
+    repEmail:     3,
+    locationName: 4,
+    shipToCode:   5,
+    facilityId:   6,
+    poNumber:     7,
+    beginShip:    8,
+    shipBy:       9,
+    lineKey:      10,
+    kitLineKey:   11,
+    sku:          12,
+    explodedKit:  13,
+    quantity:     14,
+    retailPrice:  15,
+    upc:          16,
+    comments:     17,
+    qtyPerBill:   18,
+    brand:        19,
+    exportDate:   20,
+    tracking:     21
+};
+
+// ── Drinkware column indices (0-based) ────────────────────────────────────────
 var DW_COL = {
     salesOrderNo:    0,
     customPO:        1,
@@ -614,15 +607,14 @@ var DW_COL = {
     quantity:        9,
     artNumber:       10,
     imprintColor:    11,
-    comments:        12,
-    trackingNumbers: 21   // Column V (0-based index 21)
+    comments:        12
 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
-var allOrders     = [];
-var allDwOrders   = [];
-var dwLoaded      = false;
-var currentTab    = 'orders';
+var allOrders      = [];
+var allDwOrders    = [];
+var dwLoaded       = false;
+var currentTab     = 'orders';
 var repEmailGlobal = '';
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
@@ -633,7 +625,7 @@ $(document).ready(function () {
         var auth = JSON.parse(raw);
         repEmailGlobal = (auth.email || '').toLowerCase().trim();
         $('#repBadge').text(auth.name || auth.email);
-        fetchOrders(auth.email);
+        loadOrders();
     } catch (e) {
         window.location.href = 'login.html';
     }
@@ -656,30 +648,84 @@ function switchTab(tab) {
     }
 }
 
-// ── Fetch regular orders from Apps Script ─────────────────────────────────────
-function fetchOrders(email) {
+// ── Load regular orders from published Google Sheet CSV ───────────────────────
+function loadOrders() {
+    if (ORDERS_CSV_URL === 'YOUR_ORDERS_CSV_URL_HERE') {
+        $('#contentArea').html(
+            '<div class="state-box"><div class="icon">⚙️</div>' +
+            '<p>Set <strong>ORDERS_CSV_URL</strong> in the script to your published Google Sheet CSV link.<br>' +
+            '<small style="color:var(--text-muted);">File → Share → Publish to web → select the orders tab → CSV</small></p></div>'
+        );
+        $('#pageSubtitle').text('Configuration needed.');
+        return;
+    }
     $.ajax({
-        url: APPS_SCRIPT_URL,
+        url: ORDERS_CSV_URL,
         method: 'GET',
-        data: { action: 'getOrdersByRep', email: email },
-        dataType: 'json',
-        success: function (response) {
-            if (response.success) {
-                allOrders = response.orders || [];
-                $('#filterBar').show();
-                $('#pageSubtitle').text('Showing orders placed under your account.');
-                applyFilter('30', $('.filter-btn[data-filter="30"]')[0]);
-            } else {
-                showError(response.message || 'Could not load orders.');
-            }
+        dataType: 'text',
+        success: function (csv) {
+            parseOrdersCSV(csv);
+            $('#filterBar').show();
+            $('#pageSubtitle').text('Showing orders placed under your account.');
+            applyFilter('30', $('#filterBar .filter-btn[data-filter="30"]')[0]);
         },
         error: function () {
-            showError('Connection error. Please check your network and try again.');
+            $('#contentArea').html(
+                '<div class="state-box"><div class="icon">⚠️</div>' +
+                '<p>Could not load orders. Check the CSV URL and sheet publish settings.</p></div>'
+            );
+            $('#pageSubtitle').text('Something went wrong.');
         }
     });
 }
 
-// ── Filter by date range (regular orders) ────────────────────────────────────
+// ── Parse orders CSV ──────────────────────────────────────────────────────────
+function parseOrdersCSV(csv) {
+    allOrders = [];
+    var rows = csv.split('\n');
+    for (var i = 1; i < rows.length; i++) {
+        if (!rows[i].trim()) continue;
+        var cols = parseCSVRow(rows[i]);
+        var email = (cols[ORD_COL.repEmail] || '').toLowerCase().trim();
+        if (email !== repEmailGlobal) continue;
+
+        // A row is "archived" if the Export Date column (U) is populated.
+        var exportDateRaw = (cols[ORD_COL.exportDate] || '').trim();
+        var source = exportDateRaw ? 'archived' : 'active';
+
+        allOrders.push({
+            source:       source,
+            timestamp:    (cols[ORD_COL.timestamp]    || '').trim(),
+            repName:      (cols[ORD_COL.repName]       || '').trim(),
+            repEmail:     email,
+            locationName: (cols[ORD_COL.locationName]  || '').trim(),
+            shipToCode:   (cols[ORD_COL.shipToCode]    || '').trim(),
+            facilityId:   (cols[ORD_COL.facilityId]    || '').trim(),
+            poNumber:     (cols[ORD_COL.poNumber]      || '').trim().replace(/^'/, ''),
+            beginShip:    (cols[ORD_COL.beginShip]     || '').trim(),
+            shipBy:       (cols[ORD_COL.shipBy]        || '').trim(),
+            lineKey:      (cols[ORD_COL.lineKey]       || '').trim(),
+            kitLineKey:   (cols[ORD_COL.kitLineKey]    || '').trim(),
+            sku:          (cols[ORD_COL.sku]           || '').trim(),
+            explodedKit:  (cols[ORD_COL.explodedKit]   || '').trim(),
+            quantity:     (cols[ORD_COL.quantity]      || '').trim(),
+            retailPrice:  (cols[ORD_COL.retailPrice]   || '').trim(),
+            upc:          (cols[ORD_COL.upc]           || '').trim(),
+            comments:     (cols[ORD_COL.comments]      || '').trim(),
+            qtyPerBill:   (cols[ORD_COL.qtyPerBill]   || '').trim(),
+            brand:        (cols[ORD_COL.brand]         || '').trim(),
+            exportDate:   exportDateRaw,
+            tracking:     (cols[ORD_COL.tracking]      || '').trim()
+        });
+    }
+
+    // Sort newest first by timestamp
+    allOrders.sort(function (a, b) {
+        return new Date(b.timestamp) - new Date(a.timestamp);
+    });
+}
+
+// ── Filter by date range (regular orders) ─────────────────────────────────────
 function applyFilter(filter, btn) {
     $('#filterBar .filter-btn').removeClass('active');
     $(btn).addClass('active');
@@ -695,29 +741,52 @@ function applyFilter(filter, btn) {
     renderOrders(filtered);
 }
 
-// ── Render regular orders ─────────────────────────────────────────────────────
+// ── Render regular orders ──────────────────────────────────────────────────────
 function renderOrders(orders) {
     if (orders.length === 0) {
         $('#contentArea').html('<div class="state-box"><div class="icon">📋</div><p>No orders found for this time period.</p></div>');
         $('#orderCount').text('');
         return;
     }
+
+    // Group rows by PO Number, preserving the already-sorted (newest-first) order.
+    // The FIRST row encountered for each PO is used for meta + tracking.
     var grouped = {}, poOrder = [];
     orders.forEach(function (row) {
         var po = row.poNumber || '—';
-        if (!grouped[po]) { grouped[po] = { meta: row, items: [], source: row.source }; poOrder.push(po); }
+        if (!grouped[po]) {
+            grouped[po] = { meta: row, items: [], source: row.source };
+            poOrder.push(po);
+        }
         grouped[po].items.push(row);
     });
+
     var poCount = poOrder.length;
     $('#orderCount').text(poCount + ' order' + (poCount !== 1 ? 's' : ''));
+
     var html = '<div class="orders-list">';
     poOrder.forEach(function (po) {
-        var g = grouped[po], meta = g.meta;
-        var lineItems = g.items.filter(function (r) { return r.sku && r.sku !== '/C' && r.explodedKit !== 'Y'; });
-        var totalQty  = lineItems.reduce(function (s, r) { return s + (parseInt(r.quantity) || 0); }, 0);
-        var statusClass = g.source === 'active' ? 'status-pending' : 'status-imported';
-        var statusLabel = g.source === 'active' ? 'Pending Import' : 'Imported to ERP';
+        var g    = grouped[po];
+        var meta = g.meta;
+
+        // Exclude kit-component rows and /C rows from the visible line-item count
+        var lineItems = g.items.filter(function (r) {
+            return r.sku && r.sku !== '/C' && r.explodedKit !== 'Y';
+        });
+        var totalQty = lineItems.reduce(function (s, r) { return s + (parseInt(r.quantity) || 0); }, 0);
+
+        var statusClass = g.source === 'active' ? 'status-pending'  : 'status-imported';
+        var statusLabel = g.source === 'active' ? 'Pending Import'  : 'Imported to ERP';
+
+        // Tracking numbers come from the first row of the PO only
+        var trackingRaw = meta.tracking || '';
+        var trackingNums = trackingRaw
+            ? trackingRaw.split(',').map(function (t) { return t.trim(); }).filter(Boolean)
+            : [];
+
         html += '<div class="order-card">';
+
+        // ── Summary row ──
         html += '<div class="order-summary" onclick="toggleDetail(\'' + escId(po) + '\')">';
         html += '<div class="summary-field"><label>PO Number</label><div class="val mono">' + esc(po) + '</div></div>';
         html += '<div class="summary-field"><label>Order Date</label><div class="val">' + esc(formatDate(meta.timestamp)) + '</div></div>';
@@ -727,16 +796,39 @@ function renderOrders(orders) {
         html += '<span class="status-badge ' + statusClass + '">' + statusLabel + '</span>';
         html += '<button class="expand-btn" id="btn-' + escId(po) + '">▾</button>';
         html += '</div>';
+
+        // ── Detail panel ──
         html += '<div class="order-detail" id="detail-' + escId(po) + '">';
+
+        // Order-level meta strip
         html += '<div class="detail-meta">';
-        html += '<div class="detail-meta-item"><label>Rep Name</label><span>' + esc(meta.repName || '—') + '</span></div>';
-        html += '<div class="detail-meta-item"><label>Rep Email</label><span>' + esc(meta.repEmail || '—') + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Rep Name</label><span>'    + esc(meta.repName    || '—') + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Rep Email</label><span>'   + esc(meta.repEmail   || '—') + '</span></div>';
         html += '<div class="detail-meta-item"><label>Facility ID</label><span>' + esc(meta.facilityId || '—') + '</span></div>';
-        html += '<div class="detail-meta-item"><label>Begin Ship</label><span>' + esc(formatDate(meta.beginShip)) + '</span></div>';
-        html += '<div class="detail-meta-item"><label>Ship By</label><span>' + esc(formatDate(meta.shipBy)) + '</span></div>';
-        if (meta.brand) html += '<div class="detail-meta-item"><label>Brand</label><span>' + esc(meta.brand) + '</span></div>';
-        if (g.source === 'archived' && meta.exportDate) html += '<div class="detail-meta-item"><label>Imported Date</label><span>' + esc(formatDate(meta.exportDate)) + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Begin Ship</label><span>'  + esc(formatDate(meta.beginShip)) + '</span></div>';
+        html += '<div class="detail-meta-item"><label>Ship By</label><span>'     + esc(formatDate(meta.shipBy))    + '</span></div>';
+        if (meta.brand) {
+            html += '<div class="detail-meta-item"><label>Brand</label><span>' + esc(meta.brand) + '</span></div>';
+        }
+        if (g.source === 'archived' && meta.exportDate) {
+            html += '<div class="detail-meta-item"><label>Imported Date</label><span>' + esc(formatDate(meta.exportDate)) + '</span></div>';
+        }
         html += '</div>';
+
+        // ── Tracking section ──
+        html += '<div class="tracking-section">';
+        html += '<span class="tracking-label">🚚 Tracking</span>';
+        html += '<div class="tracking-chips">';
+        if (trackingNums.length > 0) {
+            trackingNums.forEach(function (num) {
+                html += '<span class="tracking-chip"><span class="carrier-dot"></span>' + esc(num) + '</span>';
+            });
+        } else {
+            html += '<span class="tracking-none">No tracking numbers yet</span>';
+        }
+        html += '</div></div>';
+
+        // ── Line items table ──
         if (lineItems.length > 0) {
             html += '<table class="items-table"><thead><tr>';
             html += '<th>SKU</th><th>Description / Comments</th><th>Qty</th><th>Retail Price</th><th>UPC</th>';
@@ -754,8 +846,11 @@ function renderOrders(orders) {
         } else {
             html += '<p style="color:var(--text-muted);font-size:13px;">No line item details available.</p>';
         }
-        html += '<div class="detail-footer"><span class="total-items"><strong>' + lineItems.length + '</strong> SKU(s) &nbsp;·&nbsp; <strong>' + totalQty + '</strong> total units</span></div>';
-        html += '</div></div>';
+
+        html += '<div class="detail-footer">';
+        html += '<span class="total-items"><strong>' + lineItems.length + '</strong> SKU(s) &nbsp;·&nbsp; <strong>' + totalQty + '</strong> total units</span>';
+        html += '</div>';
+        html += '</div></div>'; // order-detail + order-card
     });
     html += '</div>';
     $('#contentArea').html(html);
@@ -784,7 +879,6 @@ function loadDrinkwareOrders() {
             parseDrinkwareCSV(csv);
             dwLoaded = true;
             $('#dwFilterBar').show();
-            renderDwDebugPanel();
             applyDwFilter('all', $('#dwFilterBar .filter-btn[data-dwfilter="all"]')[0]);
         },
         error: function () {
@@ -797,66 +891,30 @@ function loadDrinkwareOrders() {
 }
 
 // ── Parse drinkware CSV ───────────────────────────────────────────────────────
-var dwDebugRows = [];  // raw column snapshots shown in the debug panel
-
 function parseDrinkwareCSV(csv) {
     allDwOrders = [];
-    dwDebugRows = [];
-
-    // Normalize \r\n — Google Sheets CSV uses Windows line endings
-    var rows = csv.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-
-    // Log the header row so column indices can be verified in the browser console
-    if (rows[0]) {
-        var headerCols = parseCSVRow(rows[0]);
-        console.log('[DW DEBUG] CSV header columns:', headerCols);
-        console.log('[DW DEBUG] DW_COL.trackingNumbers =', DW_COL.trackingNumbers,
-                    '  header at that index:', headerCols[DW_COL.trackingNumbers]);
-    }
-
+    var rows = csv.split('\n');
     for (var i = 1; i < rows.length; i++) {
         if (!rows[i].trim()) continue;
         var cols = parseCSVRow(rows[i]);
         var email = (cols[DW_COL.repEmail] || '').toLowerCase().trim();
-
-        // Capture first 5 data rows for the debug panel (before email filter)
-        if (dwDebugRows.length < 5) {
-            dwDebugRows.push({
-                row:       i,
-                totalCols: cols.length,
-                repEmail:  cols[DW_COL.repEmail] || '(empty)',
-                colV_raw:  cols.length > DW_COL.trackingNumbers
-                               ? (cols[DW_COL.trackingNumbers] || '(empty)')
-                               : '⚠ col ' + DW_COL.trackingNumbers + ' missing — row only has ' + cols.length + ' cols'
-            });
-        }
-
         if (email !== repEmailGlobal) continue;
-
         allDwOrders.push({
-            salesOrderNo:    (cols[DW_COL.salesOrderNo]   || '').trim(),
-            customPO:        (cols[DW_COL.customPO]        || '').trim(),
-            orderDate:       (cols[DW_COL.orderDate]       || '').trim(),
-            shipTo:          (cols[DW_COL.shipTo]          || '').trim(),
-            reqDelivery:     (cols[DW_COL.reqDelivery]     || '').trim(),
-            repEmail:        email,
-            sku:             (cols[DW_COL.sku]             || '').trim(),
-            skuDesc:         (cols[DW_COL.skuDesc]         || '').trim(),
-            color:           (cols[DW_COL.color]           || '').trim(),
-            quantity:        (cols[DW_COL.quantity]        || '').trim(),
-            artNumber:       (cols[DW_COL.artNumber]       || '').trim(),
-            imprintColor:    (cols[DW_COL.imprintColor]    || '').trim(),
-            comments:        (cols[DW_COL.comments]        || '').trim(),
-            trackingNumbers: (cols[DW_COL.trackingNumbers] || '').trim()
+            salesOrderNo:  (cols[DW_COL.salesOrderNo]  || '').trim(),
+            customPO:      (cols[DW_COL.customPO]       || '').trim(),
+            orderDate:     (cols[DW_COL.orderDate]      || '').trim(),
+            shipTo:        (cols[DW_COL.shipTo]         || '').trim(),
+            reqDelivery:   (cols[DW_COL.reqDelivery]    || '').trim(),
+            repEmail:      email,
+            sku:           (cols[DW_COL.sku]            || '').trim(),
+            skuDesc:       (cols[DW_COL.skuDesc]        || '').trim(),
+            color:         (cols[DW_COL.color]          || '').trim(),
+            quantity:      (cols[DW_COL.quantity]       || '').trim(),
+            artNumber:     (cols[DW_COL.artNumber]      || '').trim(),
+            imprintColor:  (cols[DW_COL.imprintColor]   || '').trim(),
+            comments:      (cols[DW_COL.comments]       || '').trim()
         });
     }
-
-    console.log('[DW DEBUG] Rows matched for this rep:', allDwOrders.length);
-    console.log('[DW DEBUG] Sample tracking values:',
-        allDwOrders.slice(0, 5).map(function(r) {
-            return { so: r.salesOrderNo, tracking: '"' + r.trackingNumbers + '"' };
-        })
-    );
 }
 
 // ── Filter drinkware orders ───────────────────────────────────────────────────
@@ -872,110 +930,6 @@ function applyDwFilter(filter, btn) {
         return d >= new Date(now.getTime() - parseInt(filter) * 24 * 60 * 60 * 1000);
     });
     renderDrinkwareOrders(filtered);
-}
-
-// ── Carrier detection & tracking links ───────────────────────────────────────
-function detectCarrier(tn) {
-    // Strip all whitespace and hyphens before testing
-    tn = tn.replace(/[\s\-]/g, '');
-    // UPS: starts with 1Z, 18 chars total
-    if (/^1Z[A-Z0-9]{16}$/i.test(tn)) return 'ups';
-    // FedEx: 12-digit, 15-digit, or 20-22 digit starting with 96/61/77
-    if (/^\d{12}$/.test(tn)) return 'fedex';
-    if (/^\d{15}$/.test(tn)) return 'fedex';
-    if (/^(96|61|77)\d{18,20}$/.test(tn)) return 'fedex';
-    // USPS: known prefixes or 20-22 digit strings starting with 9
-    if (/^(9400|9205|9407|9208|9300|9305|9410|9420|9470|9505|8200|70|03|23|420)\d+$/.test(tn)) return 'usps';
-    if (/^9\d{19,21}$/.test(tn)) return 'usps';
-    return 'unknown';
-}
-
-function trackingURL(tn) {
-    var carrier = detectCarrier(tn);
-    var clean = tn.replace(/[\s\-]/g, '');
-    if (carrier === 'ups')   return 'https://www.ups.com/track?tracknum=' + clean;
-    if (carrier === 'fedex') return 'https://www.fedex.com/fedextrack/?trknbr=' + clean;
-    if (carrier === 'usps')  return 'https://tools.usps.com/go/TrackConfirmAction?tLabels=' + clean;
-    return 'https://www.google.com/search?q=' + encodeURIComponent(clean + ' tracking');
-}
-
-function carrierLabel(tn) {
-    var c = detectCarrier(tn);
-    if (c === 'ups')   return { icon: '🟤', label: 'UPS',   cls: 'pill-ups'   };
-    if (c === 'fedex') return { icon: '🟣', label: 'FedEx', cls: 'pill-fedex' };
-    if (c === 'usps')  return { icon: '🔴', label: 'USPS',  cls: 'pill-usps'  };
-    return                    { icon: '📦', label: '',       cls: 'pill-unknown'};
-}
-
-// Collect all unique tracking numbers across lines in a group.
-// Handles comma-separated, newline-separated, or space-separated lists.
-function collectTracking(lines) {
-    var seen = {}, nums = [];
-    lines.forEach(function(line) {
-        if (!line.trackingNumbers) return;
-        // Split on commas, semicolons, or newlines
-        line.trackingNumbers.split(/[,;\n]+/).forEach(function(t) {
-            t = t.replace(/\s/g, '');
-            if (t && !seen[t]) { seen[t] = true; nums.push(t); }
-        });
-    });
-    return nums;
-}
-
-function renderTrackingPills(trackingNums) {
-    if (!trackingNums.length) return '';
-    var html = '<div class="tracking-wrap"><div class="tracking-label">📦 Tracking</div><div class="tracking-pills">';
-    trackingNums.forEach(function(tn) {
-        var info = carrierLabel(tn);
-        html += '<a class="tracking-pill ' + info.cls + '" href="' + esc(trackingURL(tn)) + '" target="_blank" rel="noopener">';
-        html += '<span class="carrier-icon">' + info.icon + '</span>';
-        if (info.label) html += '<span>' + info.label + '</span><span style="opacity:0.5;margin:0 2px">·</span>';
-        html += '<span>' + esc(tn) + '</span>';
-        html += '</a>';
-    });
-    html += '</div></div>';
-    return html;
-}
-
-// ── Debug panel (shows raw column V data to verify mapping) ──────────────────
-function renderDwDebugPanel() {
-    var html = '<button class="debug-toggle" onclick="toggleDebugPanel()">🔍 Show column debug info</button>';
-    html += '<div id="dwDebugPanel" style="display:none;">';
-    html += '<div class="debug-panel">';
-    html += '<div class="dbg-title">Column V (index ' + DW_COL.trackingNumbers + ') raw values — first 5 sheet rows</div>';
-
-    if (dwDebugRows.length === 0) {
-        html += '<div class="dbg-row"><span class="dbg-warn">No data rows found in CSV.</span></div>';
-    } else {
-        dwDebugRows.forEach(function(d) {
-            var isWarn = d.colV_raw.indexOf('⚠') !== -1 || d.colV_raw === '(empty)';
-            html += '<div class="dbg-row">';
-            html += '<span class="dbg-key">Row ' + d.row + '</span> &nbsp;·&nbsp; ';
-            html += '<span class="dbg-key">total cols:</span> <span class="dbg-val">' + esc(String(d.totalCols)) + '</span> &nbsp;·&nbsp; ';
-            html += '<span class="dbg-key">repEmail col:</span> <span class="dbg-val">' + esc(d.repEmail) + '</span><br>';
-            html += '<span class="dbg-key">col V value:</span> <span class="' + (isWarn ? 'dbg-warn' : 'dbg-val') + '">' + esc(d.colV_raw || '(empty)') + '</span>';
-            html += '</div>';
-        });
-    }
-
-    html += '<div style="margin-top:10px;color:#6c7086;font-size:11px;">Open browser DevTools → Console for full header row log.</div>';
-    html += '</div></div>';
-
-    // Prepend before the content area
-    $('#dwDebugPanel, .debug-toggle').remove();
-    $('#dwContentArea').before(html);
-}
-
-function toggleDebugPanel() {
-    var $p = $('#dwDebugPanel');
-    var $b = $('.debug-toggle');
-    if ($p.is(':visible')) {
-        $p.hide();
-        $b.text('🔍 Show column debug info');
-    } else {
-        $p.show();
-        $b.text('🔍 Hide column debug info');
-    }
 }
 
 // ── Render drinkware orders ───────────────────────────────────────────────────
@@ -1005,7 +959,6 @@ function renderDrinkwareOrders(rows) {
         var meta = g.meta;
         var totalQty = g.lines.reduce(function (s, r) { return s + (parseInt(r.quantity) || 0); }, 0);
         var soId = 'dw_' + escId(so);
-        var trackingNums = collectTracking(g.lines);
 
         html += '<div class="order-card">';
 
@@ -1017,10 +970,6 @@ function renderDrinkwareOrders(rows) {
         html += dwField('Ship To',     meta.shipTo    || '—');
         html += dwField('Req. Delivery', formatDate(meta.reqDelivery));
         html += '<div class="summary-field"><label>Lines / Qty</label><div class="val">' + g.lines.length + ' lines &nbsp;·&nbsp; ' + totalQty + ' units</div></div>';
-        // Tracking indicator on summary
-        if (trackingNums.length) {
-            html += '<div class="summary-field"><label>Tracking</label><div class="val"><span class="tracking-dot"></span><span class="tracking-hint">' + trackingNums.length + ' pkg' + (trackingNums.length !== 1 ? 's' : '') + '</span></div></div>';
-        }
         html += '<span class="status-badge status-drinkware">☕ Drinkware</span>';
         html += '<button class="expand-btn" id="dwbtn-' + soId + '">▾</button>';
         html += '</div>';
@@ -1028,7 +977,6 @@ function renderDrinkwareOrders(rows) {
         // ── Detail panel ──
         html += '<div class="dw-detail" id="dwdetail-' + soId + '">';
 
-        // Order-level meta strip
         html += '<div class="dw-meta">';
         html += dwMeta('Sales Order No', so);
         html += dwMeta('Custom PO',      meta.customPO  || '—');
@@ -1038,7 +986,6 @@ function renderDrinkwareOrders(rows) {
         html += dwMeta('Rep Email',      meta.repEmail  || '—');
         html += '</div>';
 
-        // Line items table
         html += '<table class="dw-table"><thead><tr>';
         html += '<th>SKU</th><th>Description</th><th>Color</th><th>Qty</th><th>Art Number</th><th>Imprint Color(s)</th><th>Comments</th>';
         html += '</tr></thead><tbody>';
@@ -1056,7 +1003,6 @@ function renderDrinkwareOrders(rows) {
         html += '</tbody></table>';
 
         html += '<div class="detail-footer"><span class="total-items"><strong>' + g.lines.length + '</strong> line(s) &nbsp;·&nbsp; <strong>' + totalQty + '</strong> total units</span></div>';
-        html += renderTrackingPills(trackingNums);
         html += '</div>'; // dw-detail
         html += '</div>'; // order-card
     });
@@ -1079,11 +1025,6 @@ function dwMeta(label, val) {
 }
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
-function showError(msg) {
-    $('#contentArea').html('<div class="state-box"><div class="icon">⚠️</div><p>' + esc(msg) + '</p></div>');
-    $('#pageSubtitle').text('Something went wrong.');
-}
-
 function formatDate(val) {
     if (!val) return '—';
     var d = new Date(val);
