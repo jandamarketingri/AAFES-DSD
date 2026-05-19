@@ -457,13 +457,14 @@ var DRINKWARE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7uNYe
 // I[8] Begin Ship  J[9] Ship By      K[10] Line Key     L[11] Kit Line Key
 // M[12] SKU        N[13] Exploded Kit O[14] Quantity    P[15] Retail Price
 // Q[16] UPC        R[17] Comments    S[18] Qty/Bill     T[19] Brand
-// U[20] Export Date (archived rows only)   V[21] Tracking Numbers   W[22] Invoice PDF Link
+// U[20] Export Date (archived rows only)   V[21] Tracking Numbers
+// W[22]+ Invoice PDF Links (one per column; W = first, X = second, …)
 var ORD_COL = {
     timestamp: 1, repName: 2, repEmail: 3, locationName: 4, shipToCode: 5,
     facilityId: 6, poNumber: 7, beginShip: 8, shipBy: 9, lineKey: 10,
     kitLineKey: 11, sku: 12, explodedKit: 13, quantity: 14, retailPrice: 15,
     upc: 16, comments: 17, qtyPerBill: 18, brand: 19, exportDate: 20, tracking: 21,
-    invoiceLink: 22
+    invoiceLinkStart: 22
 };
 
 // ── Drinkware column indices (0-based) ────────────────────────────────────────
@@ -627,7 +628,15 @@ function parseOrdersCSV(csv) {
             brand:        (cols[ORD_COL.brand]         || '').trim(),
             exportDate:   exportDateRaw,
             tracking:     (cols[ORD_COL.tracking]      || '').trim(),
-            invoiceLink:  (cols[ORD_COL.invoiceLink]   || '').trim()
+            // Collect all invoice links from column W (index 22) onward
+            invoiceLinks: (function() {
+                var links = [];
+                for (var ci = ORD_COL.invoiceLinkStart; ci < cols.length; ci++) {
+                    var lnk = (cols[ci] || '').trim();
+                    if (lnk) links.push(lnk);
+                }
+                return links;
+            })()
         });
     }
     // Sort newest first
@@ -682,12 +691,9 @@ function renderOrders(orders) {
         // Invoice links — collect all unique non-empty links across all rows for this PO
         var invoiceLinkSet = {};
         g.items.forEach(function (r) {
-            if (r.invoiceLink) {
-                r.invoiceLink.split(',').forEach(function (lnk) {
-                    lnk = lnk.trim();
-                    if (lnk) invoiceLinkSet[lnk] = true;
-                });
-            }
+            (r.invoiceLinks || []).forEach(function (lnk) {
+                if (lnk) invoiceLinkSet[lnk] = true;
+            });
         });
         var invoiceLinks = Object.keys(invoiceLinkSet);
 
