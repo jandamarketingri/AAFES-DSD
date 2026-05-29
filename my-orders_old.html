@@ -906,7 +906,7 @@ function renderOrders(orders) {
         }
 
         // ── Expanded detail panel ── (auto-open if search is active)
-        var detailOpen = q ? ' open' : '';
+        var detailOpen = '';
         html += '<div class="order-detail' + detailOpen + '" id="detail-' + escId(po) + '">';
         if (detailOpen) { $('#btn-' + escId(po)).addClass('open'); }
         html += '<div class="detail-meta">';
@@ -1033,7 +1033,7 @@ function renderDrinkwareOrders(rows) {
         var g = grouped[so], meta = g.meta;
         var totalQty = g.lines.reduce(function (s, r) { return s + (parseInt(r.quantity) || 0); }, 0);
         var soId = 'dw_' + escId(so);
-        var detailOpen = q ? ' open' : '';
+        var detailOpen = '';
         html += '<div class="order-card">';
         html += '<div class="dw-summary" onclick="toggleDwDetail(\'' + soId + '\')">';
         html += dwField('Sales Order', so, true);
