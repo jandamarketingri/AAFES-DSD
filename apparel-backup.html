@@ -260,6 +260,25 @@
             color: #666;
             margin-top: 8px;
         }
+        .custom-notice {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 7px 12px;
+            background-color: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #e65100;
+        }
+        .custom-notice::before {
+            content: '★';
+            font-size: 13px;
+            color: #f59e0b;
+            flex-shrink: 0;
+        }
         .image-gallery {
             margin: 15px 0;
             position: relative;
@@ -338,6 +357,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+        .on-hand {
+            font-size: 11px;
+            color: #2e7d32;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 3px;
+        }
+        .on-hand-zero {
+            color: #c62828;
         }
         .size-label {
             font-weight: 600;
@@ -635,7 +664,9 @@ var SHEET_CONFIG = {
     
 var ORDER_SUBMISSION_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4uR7ymSmaf3sHPGSo8pOB5TlkUgkHFPGi-Z1FlHS6Jk850g2wxS/exec';
 var FACILITY_LOOKUP_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR4ok_T7hRYQIVqTZ9y6D2MP8t6aPl3sJ-WhDwAkbCkU_RZBf-dsxLAnbrfOE8RfyrmtZosH6ksRDRq/pub?gid=1286697641&single=true&output=csv';
-
+var INVENTORY_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQEpbZXtXzpwMWYE299MX0gVswcu6x14uOwG_CqqjE8_flhvWoJGOeTcyjKhGjbWGoSadEjBc-T-Lr7/pub?gid=0&single=true&output=csv';
+var PENDING_ORDERS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiPIoX-kRukDbyPcEwaXiYlOXdY8LAmu9NIroi0BuuBRbCYH_SKjt70U7Gf4CwCuNtDIbKHlF3BHNN/pub?gid=1101647414&single=true&output=csv';
+    
 var cart = [];
 var currentCategory = 'men-basic-tees';
 var currentProducts = [];
@@ -643,7 +674,8 @@ var allCategoryProducts = [];
 var searchTerm = '';
 var facilityData = {};
 var universalPricing = {}; // Store pricing by category code
-
+var inventoryData = {}; // SKU → qty available
+  
 // ============================================
 // UPDATE THE CATEGORY ORDER MAPPING
 // ============================================
@@ -784,7 +816,8 @@ $(document).ready(function(){
     loadCategory(currentCategory);
     loadFacilityData();
     loadUniversalPricing();
-    
+    loadInventoryData();
+  
     $('#includeDisplay').prop('disabled', false);
     $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '1');
     
@@ -921,6 +954,7 @@ function loadAllCategories() {
                             if (product.isCap) {
                                 product.sizes['OS'] = cols[5] ? cols[5].trim() : '';
                                 product.keywords = cols[6] ? cols[6].trim().toLowerCase() : '';
+                                product.isCustom = cols[7] ? cols[7].trim().toUpperCase() === 'YES' : false;
                             } else {
                                 if (cols[5] && cols[5].trim()) product.sizes['S'] = cols[5].trim();
                                 if (cols[6] && cols[6].trim()) product.sizes['M'] = cols[6].trim();
@@ -929,6 +963,7 @@ function loadAllCategories() {
                                 if (cols[9] && cols[9].trim()) product.sizes['2XL'] = cols[9].trim();
                                 if (cols[10] && cols[10].trim()) product.sizes['3XL'] = cols[10].trim();
                                 product.keywords = cols[11] ? cols[11].trim().toLowerCase() : '';
+                                product.isCustom = cols[12] ? cols[12].trim().toUpperCase() === 'YES' : false;
                             }
 
                             product.searchText = [
@@ -976,6 +1011,51 @@ function loadFacilityData() {
     });
 }
 
+function loadPendingOrders() {
+    $.ajax({
+        url: PENDING_ORDERS_CSV_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data) {
+            var rows = data.split('\n');
+            for (var i = 1; i < rows.length; i++) {
+                if (!rows[i].trim()) continue;
+                var cols = parseCSVRow(rows[i]);
+                var sku = cols[12] ? cols[12].trim() : '';  // column M
+                var qty = parseInt(cols[14]) || 0;           // column O
+                if (!sku || qty <= 0) continue;
+                var current = inventoryData[sku] || 0;
+                inventoryData[sku] = Math.max(0, current - qty);
+            }
+            if (allCategoryProducts.length > 0) filterAndDisplayProducts();
+        },
+        error: function() { console.warn('Could not load pending orders data'); }
+    });
+}
+    
+function loadInventoryData() {
+    $.ajax({
+        url: INVENTORY_CSV_URL,
+        method: 'GET',
+        dataType: 'text',
+        success: function(data) {
+            var rows = data.split('\n');
+            inventoryData = {};
+            for (var i = 1; i < rows.length; i++) {
+                if (!rows[i].trim()) continue;
+                var cols = parseCSVRow(rows[i]);
+                var sku = cols[0] ? cols[0].trim() : '';
+                var qty = parseInt(cols[1]) || 0;
+                if (sku) inventoryData[sku] = qty;
+            }
+            console.log('Loaded inventory for', Object.keys(inventoryData).length, 'SKUs');
+            // Re-render if products are already loaded
+            loadPendingOrders();
+        },
+        error: function() { console.warn('Could not load inventory data'); }
+    });
+}
+  
 function parseProducts(csvData, category) {
     var rows = csvData.split('\n');
     allCategoryProducts = [];
@@ -1003,6 +1083,7 @@ function parseProducts(csvData, category) {
                 if(product.isCap){
                     product.sizes['OS'] = cols[5] ? cols[5].trim() : '';
                     product.keywords = cols[6] ? cols[6].trim().toLowerCase() : '';
+                    product.isCustom = cols[7] ? cols[7].trim().toUpperCase() === 'YES' : false;
                 } else {
                     if(cols[5] && cols[5].trim()) product.sizes['S'] = cols[5].trim();
                     if(cols[6] && cols[6].trim()) product.sizes['M'] = cols[6].trim();
@@ -1011,6 +1092,7 @@ function parseProducts(csvData, category) {
                     if(cols[9] && cols[9].trim()) product.sizes['2XL'] = cols[9].trim();
                     if(cols[10] && cols[10].trim()) product.sizes['3XL'] = cols[10].trim();
                     product.keywords = cols[11] ? cols[11].trim().toLowerCase() : '';
+                    product.isCustom = cols[12] ? cols[12].trim().toUpperCase() === 'YES' : false;
                 }
                 
                 product.searchText = [
@@ -1073,7 +1155,11 @@ function displayProducts() {
             html += '<div class="sku-card"><div class="sku-header">';
             html += '<div class="product-name">' + product.name + '</div>';
             html += '<div class="product-description">' + product.description + '</div>';
-            html += '<span class="sku-category">' + getCategoryLabel(product.category) + '</span></div>';
+            html += '<span class="sku-category">' + getCategoryLabel(product.category) + '</span>';
+            if (product.isCustom) {
+                html += '<div class="custom-notice">Custom item — minimum order quantity required</div>';
+            }
+            html += '</div>';
             
             if(product.images.length > 0){
                 html += '<div class="image-gallery">';
@@ -1090,10 +1176,15 @@ function displayProducts() {
             
             var isOneSize = (Object.keys(product.sizes).length === 1 && product.sizes['OS']);
             
+            // AFTER:
             if(isOneSize){
+                var osSku = product.sizes['OS'];
+                var osOnHand = inventoryData[osSku] || 0;
+                var osOnHandHtml = '<div class="on-hand ' + (osOnHand === 0 ? 'on-hand-zero' : '') + '">' + osOnHand + ' on hand</div>';
                 html += '<div class="size-grid-section">';
                 html += '<div class="size-grid-header">One Size Fits All</div>';
                 html += '<input type="number" class="size-qty-input" id="qty-' + index + '-OS" value="0" min="0" oninput="updateProductTotal(' + index + ')">';
+                html += osOnHandHtml;
                 html += '<div class="total-qty-display" id="total-' + index + '">Total: 0 pieces</div>';
                 html += '</div>';
             } else {
@@ -1104,17 +1195,21 @@ function displayProducts() {
                 html += '<button class="quick-fill-btn" onclick="clearSizes(' + index + ')">Clear</button>';
                 html += '</div></div>';
                 html += '<div class="size-grid">';
-                
+            
                 var sizeOrder = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
                 sizeOrder.forEach(function(size){
                     if(product.sizes[size]){
+                        var sku = product.sizes[size];
+                        var onHand = inventoryData[sku] || 0;
+                        var onHandHtml = '<div class="on-hand ' + (onHand === 0 ? 'on-hand-zero' : '') + '">' + onHand + ' on hand</div>';
                         html += '<div class="size-item">';
                         html += '<div class="size-label">' + size + '</div>';
                         html += '<input type="number" class="size-qty-input" id="qty-' + index + '-' + size + '" value="0" min="0" oninput="updateProductTotal(' + index + ')">';
+                        html += onHandHtml;
                         html += '</div>';
                     }
                 });
-                
+            
                 html += '</div>';
                 html += '<div class="total-qty-display" id="total-' + index + '">Total: 0 pieces</div>';
                 html += '</div>';
@@ -1211,7 +1306,8 @@ function addToCart(index) {
                     category: product.category,
                     priceCode: priceCode,
                     cost: pricing.cost,
-                    retail: pricing.retail
+                    retail: pricing.retail,
+                    isCustom: product.isCustom || false
                 });
             }
             addedAny = true;
@@ -1235,7 +1331,8 @@ function addToCart(index) {
                             category: product.category,
                             priceCode: priceCode,
                             cost: pricing.cost,
-                            retail: pricing.retail
+                            retail: pricing.retail,
+                            isCustom: product.isCustom || false
                         });
                     }
                     addedAny = true;
