@@ -300,80 +300,116 @@
             color: var(--success);
         }
 
-        /* ── Signs catalog ── */
-        .signs-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 14px;
-            margin-top: 4px;
-        }
-        .sign-card {
-            border: 1.5px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            background: var(--surface);
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-        .sign-card:hover {
-            border-color: var(--accent);
-            box-shadow: 0 2px 10px rgba(102,126,234,0.1);
-        }
-        .sign-card.has-qty {
-            border-color: var(--accent);
-            background: #f7f9ff;
-        }
-        .sign-card-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 3px;
-        }
-        .sign-card-desc {
+        /* ── Sign configuration ── */
+        .sign-config-section { margin-bottom: 24px; }
+        .sign-config-label {
             font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
             color: var(--text-muted);
-            margin-bottom: 12px;
-            line-height: 1.4;
-        }
-        .sign-card-sku {
-            font-family: 'DM Mono', monospace;
-            font-size: 11px;
-            color: var(--accent);
             margin-bottom: 10px;
         }
-        .sign-qty-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .sign-qty-row label {
-            font-size: 11px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-            white-space: nowrap;
-        }
-        .sign-qty-input {
-            width: 70px;
-            padding: 6px 10px;
-            border: 1.5px solid var(--border);
-            border-radius: 6px;
-            font-family: 'DM Mono', monospace;
+
+        /* Size toggle buttons */
+        .size-btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .size-btn {
+            padding: 10px 22px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            font-family: 'DM Sans', sans-serif;
             font-size: 14px;
             font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.18s;
+            line-height: 1.3;
             text-align: center;
-            outline: none;
-            transition: border-color 0.2s;
         }
-        .sign-qty-input:focus {
+        .size-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .size-btn.selected {
             border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(102,126,234,0.12);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(102,126,234,0.3);
         }
-        .sign-qty-input.has-value {
+        .size-btn .size-label { display: block; font-size: 16px; font-weight: 700; }
+        .size-btn .size-sub   { display: block; font-size: 11px; opacity: 0.75; margin-top: 1px; }
+
+        /* Pricing toggle */
+        .pricing-btn-group { display: flex; gap: 10px; }
+        .pricing-btn {
+            padding: 9px 28px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .pricing-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .pricing-btn.selected {
             border-color: var(--accent);
-            color: var(--accent);
-            background: #f0f4ff;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 10px rgba(102,126,234,0.3);
         }
+
+        /* Styles list */
+        .styles-area { margin-top: 4px; }
+        .styles-loading, .styles-empty, .styles-error {
+            padding: 28px 16px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            border: 1.5px dashed var(--border);
+            border-radius: 8px;
+        }
+        .styles-prompt {
+            padding: 28px 16px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            border: 1.5px dashed var(--border);
+            border-radius: 8px;
+        }
+        .styles-list { display: flex; flex-direction: column; gap: 6px; }
+        .style-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 11px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            cursor: pointer;
+            transition: border-color 0.18s, background 0.18s;
+            user-select: none;
+        }
+        .style-row:hover { border-color: var(--accent); background: #f7f9ff; }
+        .style-row.selected { border-color: var(--accent); background: #f0f4ff; }
+        .style-checkbox {
+            width: 18px; height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+            font-size: 12px;
+            color: white;
+        }
+        .style-row.selected .style-checkbox {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+        }
+        .style-row.selected .style-checkbox::after { content: '✓'; }
+        .style-info { flex: 1; min-width: 0; }
+        .style-name { font-size: 14px; font-weight: 600; color: var(--text); }
+        .style-desc { font-size: 12px; color: var(--text-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* ── Order summary bar ── */
         .summary-bar {
@@ -543,13 +579,43 @@
         </div>
     </div>
 
-    <!-- ── Signs Catalog ── -->
+    <!-- ── Signs Configuration ── -->
     <div class="form-card">
-        <div class="form-card-title"><span class="icon">🪧</span> Select Fixture Signs</div>
-        <div id="signsArea">
-            <div class="state-box">
-                <div class="spinner"></div>
-                <p>Loading sign catalog…</p>
+        <div class="form-card-title"><span class="icon">🪧</span> Sign Configuration</div>
+
+        <!-- Size selection -->
+        <div class="sign-config-section">
+            <div class="sign-config-label">Sign Size <span style="color:#e53935;">*</span></div>
+            <div class="size-btn-group">
+                <button class="size-btn" data-size="8.5x11" onclick="selectSize(this)">
+                    <span class="size-label">8.5 × 11"</span>
+                    <span class="size-sub">Letter</span>
+                </button>
+                <button class="size-btn" data-size="11x11" onclick="selectSize(this)">
+                    <span class="size-label">11 × 11"</span>
+                    <span class="size-sub">Square</span>
+                </button>
+                <button class="size-btn" data-size="12x12" onclick="selectSize(this)">
+                    <span class="size-label">12 × 12"</span>
+                    <span class="size-sub">Large Square</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Pricing selection -->
+        <div class="sign-config-section">
+            <div class="sign-config-label">Include Pricing on Sign <span style="color:#e53935;">*</span></div>
+            <div class="pricing-btn-group">
+                <button class="pricing-btn" data-pricing="yes" onclick="selectPricing(this)">✓ Yes</button>
+                <button class="pricing-btn" data-pricing="no"  onclick="selectPricing(this)">✕ No</button>
+            </div>
+        </div>
+
+        <!-- Styles from this order -->
+        <div class="sign-config-section" style="margin-bottom:0;">
+            <div class="sign-config-label">Styles on This Order</div>
+            <div class="styles-area" id="stylesArea">
+                <div class="styles-prompt">Select a PO number above to load the styles on this order.</div>
             </div>
         </div>
     </div>
@@ -557,13 +623,18 @@
     <!-- ── Summary + Notes ── -->
     <div class="summary-bar" id="summaryBar" style="display:none;">
         <div class="summary-stat">
-            <span class="num" id="sumSigns">0</span>
-            <span class="lbl">Sign Types</span>
+            <span class="num" id="sumStyles">0</span>
+            <span class="lbl">Styles Selected</span>
         </div>
         <div class="summary-divider"></div>
         <div class="summary-stat">
-            <span class="num" id="sumQty">0</span>
-            <span class="lbl">Total Pieces</span>
+            <span class="num" id="sumSize">—</span>
+            <span class="lbl">Sign Size</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-stat">
+            <span class="num" id="sumPricing">—</span>
+            <span class="lbl">Pricing</span>
         </div>
     </div>
 
@@ -587,33 +658,33 @@ var APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyt75krYE3h9lJl-4
 
 var PENDING_CSV  = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiPIoX-kRukDbyPcEwaXiYlOXdY8LAmu9NIroi0BuuBRbCYH_SKjt70U7Gf4CwCuNtDIbKHlF3BHNN/pub?gid=1101647414&single=true&output=csv';
 var ARCHIVED_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiPIoX-kRukDbyPcEwaXiYlOXdY8LAmu9NIroi0BuuBRbCYH_SKjt70U7Gf4CwCuNtDIbKHlF3BHNN/pub?gid=2075341928&single=true&output=csv';
+var UPC_LOOKUP_CSV = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=1743444304&single=true&output=csv';
 
-// Column indices (0-based)
+// Column indices (0-based) for order CSVs
 // Col G (6) = Facility ID, Col E (4) = Location Name, Col H (7) = PO Number, Col I (8) = Begin Ship Date
-var COL = { facilityId: 6, locationName: 4, poNumber: 7, beginShip: 8, repEmail: 3 };
+// Col D (3) = Rep Email, Col M (12) = SKU, Col N (13) = Exploded Kit flag, Col Q (16) = UPC
+var COL = {
+    facilityId: 6, locationName: 4, poNumber: 7, beginShip: 8, repEmail: 3,
+    sku: 12, explodedKit: 13, upc: 16
+};
 
-// Signs catalog — update SKUs/names/descriptions as needed
-var SIGNS_CATALOG = [
-    { sku: 'SGN-STD-SM',  name: 'Standard Small Sign',    desc: '4" × 6" shelf talker / price tag sign',        category: 'Shelf' },
-    { sku: 'SGN-STD-MD',  name: 'Standard Medium Sign',   desc: '8" × 10" fixture sign',                        category: 'Shelf' },
-    { sku: 'SGN-STD-LG',  name: 'Standard Large Sign',    desc: '11" × 14" endcap / feature display sign',      category: 'Endcap' },
-    { sku: 'SGN-HDR-SM',  name: 'Header Card Small',      desc: 'Small header card for peg hooks',               category: 'Header' },
-    { sku: 'SGN-HDR-LG',  name: 'Header Card Large',      desc: 'Large header card for wide pegboard fixtures',  category: 'Header' },
-    { sku: 'SGN-SALE',    name: 'Sale / Promo Sign',       desc: 'Promotional sale sign insert',                  category: 'Promo' },
-    { sku: 'SGN-NEW',     name: 'New Arrival Sign',        desc: '"New Arrival" badge / burst sign',              category: 'Promo' },
-    { sku: 'SGN-FLOOR',   name: 'Floor Stand Insert',      desc: 'Floor display easel sign insert, 22" × 28"',   category: 'Floor' },
-    { sku: 'SGN-HANG',    name: 'Hanging Sign',            desc: 'Ceiling / aisle hanging sign with grommets',    category: 'Ceiling' },
-    { sku: 'SGN-WNDW',    name: 'Window Cling',            desc: 'Static cling for window / glass surfaces',      category: 'Window' },
-    { sku: 'SGN-TENT',    name: 'Tent Card',               desc: 'Counter tent card, 5" × 7" fold',              category: 'Counter' },
-    { sku: 'SGN-STRIP',   name: 'Shelf Strip',             desc: 'Shelf edge strip / channel insert',             category: 'Shelf' },
-];
+// UPC lookup CSV columns (0-based): col G (6) = UPC, col F (5) = item CSV URL
+var UPC_COL = { upc: 6, csvUrl: 5 };
+
+// Item CSV columns (0-based): col A (0) = style, col B (1) = style desc, cols F–K (5–10) = sized SKUs
+var ITEM_COL = { style: 0, styleDesc: 1, skuStart: 5, skuEnd: 10 };
 
 // ── State ─────────────────────────────────────────────────────────────────────
-var allOrders = [];        // { po, facilityId, locationName, beginShip, source, repEmail }
-var ordersLoaded = false;
-var selectedPO = null;
+var allOrders        = [];   // { po, facilityId, locationName, beginShip, source, repEmail }
+var allOrderRows     = [];   // all raw rows from both CSVs (for per-PO SKU/UPC lookup)
+var ordersLoaded     = false;
+var upcLookupMap     = {};   // upc → itemCsvUrl
+var upcLookupLoaded  = false;
+var selectedPO       = null;
+var selectedSize     = null;
+var selectedPricing  = null;
 var focusedOptionIndex = -1;
-var repEmailGlobal = '';
+var repEmailGlobal   = '';
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 $(document).ready(function () {
@@ -640,7 +711,7 @@ $(document).ready(function () {
     }
 
     loadOrderData();
-    renderSignsCatalog();
+    loadUpcLookup();
     setupPOAutocomplete();
 });
 
@@ -659,7 +730,7 @@ function loadOrderData() {
         loaded++;
         if (loaded === 2) {
             ordersLoaded = true;
-            // Deduplicate by PO (prefer pending over archived)
+            // Deduplicate allOrders by PO (prefer pending over archived)
             var seen = {};
             allOrders = allOrders.filter(function (o) {
                 if (!o.po) return false;
@@ -678,6 +749,8 @@ function loadOrderData() {
             var cols = parseCSVRow(row);
             var po = (cols[COL.poNumber] || '').trim().replace(/^'/, '');
             if (!po) continue;
+            // Store every raw row for later per-PO style lookups
+            allOrderRows.push({ po: po, cols: cols, source: source });
             allOrders.push({
                 po:           po,
                 facilityId:   (cols[COL.facilityId]   || '').trim(),
@@ -703,6 +776,26 @@ function loadOrderData() {
         success: function (data) { parseCSV(data, 'archived'); },
         error:   function ()     { console.warn('Could not load archived orders CSV'); },
         complete: checkDone
+    });
+}
+
+// ── Load UPC → item CSV URL lookup ────────────────────────────────────────────
+function loadUpcLookup() {
+    $.ajax({
+        url: UPC_LOOKUP_CSV, method: 'GET', dataType: 'text',
+        success: function (csv) {
+            var rows = csv.split('\n');
+            for (var i = 1; i < rows.length; i++) {
+                var row = rows[i].trim();
+                if (!row) continue;
+                var cols = parseCSVRow(row);
+                var upc    = (cols[UPC_COL.upc]    || '').trim();
+                var csvUrl = (cols[UPC_COL.csvUrl]  || '').trim();
+                if (upc && csvUrl) upcLookupMap[upc] = csvUrl;
+            }
+            upcLookupLoaded = true;
+        },
+        error: function () { console.warn('Could not load UPC lookup CSV'); upcLookupLoaded = true; }
     });
 }
 
@@ -803,6 +896,7 @@ function selectPO(idx) {
     $('#beginShip').val(o.beginShip).addClass('autofilled');
 
     closeDropdown();
+    loadStylesForPO(o.po);
 }
 
 function clearAutofill() {
@@ -810,6 +904,8 @@ function clearAutofill() {
     $('#facilityId, #locationName, #beginShip').val('').removeClass('autofilled');
     $('#poHint').text('Search across active and archived orders').removeClass('success error warning');
     $('#poNumber').removeClass('field-valid field-error');
+    $('#stylesArea').html('<div class="styles-prompt">Select a PO number above to load the styles on this order.</div>');
+    updateSummary();
 }
 
 function closeDropdown() {
@@ -817,63 +913,167 @@ function closeDropdown() {
     focusedOptionIndex = -1;
 }
 
-// ── Render signs catalog ──────────────────────────────────────────────────────
-function renderSignsCatalog() {
-    // Group by category
-    var categories = {};
-    var catOrder = [];
-    SIGNS_CATALOG.forEach(function (s) {
-        if (!categories[s.category]) { categories[s.category] = []; catOrder.push(s.category); }
-        categories[s.category].push(s);
-    });
-
-    var html = '';
-    catOrder.forEach(function (cat) {
-        html += '<div class="section-label">' + esc(cat) + ' Signs</div>';
-        html += '<div class="signs-grid" style="margin-bottom:22px;">';
-        categories[cat].forEach(function (sign, i) {
-            var uid = 'sign_' + sign.sku.replace(/[^a-zA-Z0-9]/g, '_');
-            html += '<div class="sign-card" id="card_' + uid + '">';
-            html += '<div class="sign-card-name">' + esc(sign.name) + '</div>';
-            html += '<div class="sign-card-sku">' + esc(sign.sku) + '</div>';
-            html += '<div class="sign-card-desc">' + esc(sign.desc) + '</div>';
-            html += '<div class="sign-qty-row">';
-            html += '<label>Qty</label>';
-            html += '<input type="number" class="sign-qty-input" id="' + uid + '" min="0" value="0" '
-                  + 'oninput="onQtyChange(this, \'' + uid + '\')" data-sku="' + esc(sign.sku) + '">';
-            html += '</div></div>';
-        });
-        html += '</div>';
-    });
-
-    $('#signsArea').html(html);
+// ── Size and Pricing selectors ────────────────────────────────────────────────
+function selectSize(btn) {
+    $('.size-btn').removeClass('selected');
+    $(btn).addClass('selected');
+    selectedSize = $(btn).data('size');
     updateSummary();
 }
 
-function onQtyChange(input, uid) {
-    var val = parseInt(input.value) || 0;
-    if (val < 0) { input.value = 0; val = 0; }
-    var $card = $('#card_' + uid);
-    var $input = $(input);
-    if (val > 0) {
-        $card.addClass('has-qty');
-        $input.addClass('has-value');
-    } else {
-        $card.removeClass('has-qty');
-        $input.removeClass('has-value');
+function selectPricing(btn) {
+    $('.pricing-btn').removeClass('selected');
+    $(btn).addClass('selected');
+    selectedPricing = $(btn).data('pricing');
+    updateSummary();
+}
+
+// ── Load styles for selected PO ───────────────────────────────────────────────
+function loadStylesForPO(po) {
+    $('#stylesArea').html('<div class="styles-loading"><div class="spinner" style="margin:0 auto 10px;"></div>Loading styles from this order…</div>');
+
+    // Collect UPCs from rows matching this PO where explodedKit !== 'Y'
+    var upcs = [];
+    var seenUpcs = {};
+    allOrderRows.forEach(function (r) {
+        if (r.po !== po) return;
+        var exploded = (r.cols[COL.explodedKit] || '').trim().toUpperCase();
+        if (exploded === 'Y') return;
+        var upc = (r.cols[COL.upc] || '').trim();
+        if (upc && !seenUpcs[upc]) { seenUpcs[upc] = true; upcs.push(upc); }
+    });
+
+    if (!upcs.length) {
+        $('#stylesArea').html('<div class="styles-empty">No eligible line items found for PO ' + esc(po) + '.</div>');
+        return;
     }
+
+    // Wait for UPC lookup to be loaded (it usually is by now, but guard anyway)
+    function proceed() {
+        // Map UPCs → unique item CSV URLs
+        var csvUrls = {};
+        upcs.forEach(function (upc) {
+            var url = upcLookupMap[upc];
+            if (url) csvUrls[url] = (csvUrls[url] || []).concat(upc);
+        });
+
+        var urlList = Object.keys(csvUrls);
+        if (!urlList.length) {
+            $('#stylesArea').html('<div class="styles-empty">No item data found for the UPCs on this order. Check the UPC lookup sheet.</div>');
+            return;
+        }
+
+        // Fetch all item CSVs in parallel
+        var pending  = urlList.length;
+        var styles   = {}; // style → { style, styleDesc }
+        var styleOrder = [];
+
+        function onAllDone() {
+            if (!styleOrder.length) {
+                $('#stylesArea').html('<div class="styles-empty">No styles found in item data for this order.</div>');
+                return;
+            }
+            renderStylesList(styleOrder.map(function (s) { return styles[s]; }));
+        }
+
+        urlList.forEach(function (csvUrl) {
+            var upcsForUrl = csvUrls[csvUrl];
+            $.ajax({
+                url: csvUrl, method: 'GET', dataType: 'text',
+                success: function (csv) {
+                    var rows = csv.split('\n');
+                    for (var i = 1; i < rows.length; i++) {
+                        var row = rows[i].trim();
+                        if (!row) continue;
+                        var cols = parseCSVRow(row);
+                        var style     = (cols[ITEM_COL.style]     || '').trim();
+                        var styleDesc = (cols[ITEM_COL.styleDesc]  || '').trim();
+                        if (!style) continue;
+                        // Check if any of the sized SKU columns match one of our UPCs-bearing SKUs
+                        // Actually we match by checking if this row's style/desc is relevant;
+                        // but we need to find rows corresponding to our UPCs via the SKU columns.
+                        // Strategy: check if any SKU in cols 5-10 is one of the SKUs from our order rows.
+                        var rowSkus = [];
+                        for (var ci = ITEM_COL.skuStart; ci <= ITEM_COL.skuEnd; ci++) {
+                            var s = (cols[ci] || '').trim();
+                            if (s) rowSkus.push(s.toUpperCase());
+                        }
+                        // Get the order SKUs for the UPCs on this URL
+                        // We match by UPC: get the SKUs from our order rows that have these UPCs
+                        var orderSkusForUrl = [];
+                        allOrderRows.forEach(function (r) {
+                            if (r.po !== po) return;
+                            if ((r.cols[COL.explodedKit] || '').trim().toUpperCase() === 'Y') return;
+                            var upc = (r.cols[COL.upc] || '').trim();
+                            if (upcsForUrl.indexOf(upc) >= 0) {
+                                var sku = (r.cols[COL.sku] || '').trim().toUpperCase();
+                                if (sku) orderSkusForUrl.push(sku);
+                            }
+                        });
+                        var matched = rowSkus.some(function (s) { return orderSkusForUrl.indexOf(s) >= 0; });
+                        if (matched && !styles[style]) {
+                            styles[style] = { style: style, styleDesc: styleDesc };
+                            styleOrder.push(style);
+                        }
+                    }
+                },
+                error: function () { console.warn('Could not load item CSV: ' + csvUrl); },
+                complete: function () {
+                    pending--;
+                    if (pending === 0) onAllDone();
+                }
+            });
+        });
+    }
+
+    if (upcLookupLoaded) {
+        proceed();
+    } else {
+        // Poll until loaded (max 5s)
+        var tries = 0;
+        var interval = setInterval(function () {
+            tries++;
+            if (upcLookupLoaded || tries > 50) {
+                clearInterval(interval);
+                proceed();
+            }
+        }, 100);
+    }
+}
+
+function renderStylesList(styleItems) {
+    if (!styleItems.length) {
+        $('#stylesArea').html('<div class="styles-empty">No styles found for this order.</div>');
+        return;
+    }
+    var html = '<div class="styles-list">';
+    styleItems.forEach(function (item) {
+        var safeId = 'style_' + item.style.replace(/[^a-zA-Z0-9]/g, '_');
+        html += '<div class="style-row" id="row_' + safeId + '" onclick="toggleStyle(\'' + safeId + '\')" data-style="' + esc(item.style) + '">';
+        html += '<div class="style-checkbox" id="chk_' + safeId + '"></div>';
+        html += '<div class="style-info">';
+        html += '<div class="style-name">' + esc(item.style) + '</div>';
+        if (item.styleDesc) html += '<div class="style-desc">' + esc(item.styleDesc) + '</div>';
+        html += '</div></div>';
+    });
+    html += '</div>';
+    $('#stylesArea').html(html);
+    updateSummary();
+}
+
+function toggleStyle(safeId) {
+    $('#row_' + safeId).toggleClass('selected');
     updateSummary();
 }
 
 function updateSummary() {
-    var totalTypes = 0, totalQty = 0;
-    $('.sign-qty-input').each(function () {
-        var v = parseInt($(this).val()) || 0;
-        if (v > 0) { totalTypes++; totalQty += v; }
-    });
-    $('#sumSigns').text(totalTypes);
-    $('#sumQty').text(totalQty);
-    if (totalTypes > 0) {
+    var selectedStyles = $('.style-row.selected').length;
+    $('#sumStyles').text(selectedStyles);
+    $('#sumSize').text(selectedSize ? selectedSize + '"' : '—');
+    $('#sumPricing').text(selectedPricing ? (selectedPricing === 'yes' ? 'Yes' : 'No') : '—');
+
+    var hasSelection = selectedStyles > 0 || selectedSize || selectedPricing;
+    if (hasSelection) {
         $('#summaryBar').show();
     } else {
         $('#summaryBar').hide();
