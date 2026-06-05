@@ -411,6 +411,113 @@
         .style-name { font-size: 14px; font-weight: 600; color: var(--text); }
         .style-desc { font-size: 12px; color: var(--text-muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+        /* Style quantity input */
+        .style-qty-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+        .style-qty-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .style-qty-input {
+            width: 72px;
+            padding: 6px 10px;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            font-family: 'DM Mono', monospace;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            color: var(--text);
+            background: var(--surface);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .style-qty-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.12);
+        }
+        .style-row.selected .style-qty-input {
+            border-color: var(--accent);
+            background: white;
+        }
+        .style-qty-input.has-value {
+            border-color: #81c784;
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        /* Ship-to options */
+        .ship-btn-group { display: flex; flex-direction: column; gap: 10px; }
+        .ship-btn {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 18px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+            font-family: 'DM Sans', sans-serif;
+            cursor: pointer;
+            transition: all 0.18s;
+            text-align: left;
+        }
+        .ship-btn:hover { border-color: var(--accent); background: #f7f9ff; }
+        .ship-btn.selected {
+            border-color: var(--accent);
+            background: #f0f4ff;
+            box-shadow: 0 2px 10px rgba(102,126,234,0.15);
+        }
+        .ship-radio {
+            width: 18px; height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 1px;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s;
+        }
+        .ship-btn.selected .ship-radio {
+            border-color: var(--accent);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .ship-btn.selected .ship-radio::after {
+            content: '';
+            width: 6px; height: 6px;
+            background: white;
+            border-radius: 50%;
+            display: block;
+        }
+        .ship-btn-body { flex: 1; }
+        .ship-btn-title { font-size: 14px; font-weight: 600; color: var(--text); }
+        .ship-btn-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .ship-preferred {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        .ship-address-fields {
+            display: none;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--border);
+        }
+        .ship-address-fields.open { display: block; }
+
         /* ── Order summary bar ── */
         .summary-bar {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -620,11 +727,102 @@
         </div>
     </div>
 
+    <!-- ── Ship-To ── -->
+    <div class="form-card">
+        <div class="form-card-title"><span class="icon">📦</span> Ship To</div>
+        <div class="ship-btn-group" id="shipBtnGroup">
+
+            <div class="ship-btn selected" data-ship="order" onclick="selectShipTo(this)">
+                <div class="ship-radio"></div>
+                <div class="ship-btn-body">
+                    <div class="ship-btn-title">Ship with Order <span class="ship-preferred">Preferred</span></div>
+                    <div class="ship-btn-sub">Signs will be included with the merchandise shipment for this PO</div>
+                </div>
+            </div>
+
+            <div class="ship-btn" data-ship="store" onclick="selectShipTo(this)">
+                <div class="ship-radio"></div>
+                <div class="ship-btn-body">
+                    <div class="ship-btn-title">Ship to Store</div>
+                    <div class="ship-btn-sub">Ship directly to a store address</div>
+                    <div class="ship-address-fields" id="storeAddressFields">
+                        <div class="form-row" style="margin-bottom:14px;">
+                            <div class="form-group">
+                                <label>Store Name</label>
+                                <input type="text" id="storeAddrName" placeholder="Store name">
+                            </div>
+                            <div class="form-group">
+                                <label>Attention / Contact</label>
+                                <input type="text" id="storeAddrAttn" placeholder="Attn: name or dept.">
+                            </div>
+                        </div>
+                        <div class="form-row single" style="margin-bottom:14px;">
+                            <div class="form-group">
+                                <label>Street Address</label>
+                                <input type="text" id="storeAddrStreet" placeholder="123 Main St">
+                            </div>
+                        </div>
+                        <div class="form-row triple" style="margin-bottom:0;">
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" id="storeAddrCity" placeholder="City">
+                            </div>
+                            <div class="form-group">
+                                <label>State</label>
+                                <input type="text" id="storeAddrState" placeholder="ST" maxlength="2" style="text-transform:uppercase;">
+                            </div>
+                            <div class="form-group">
+                                <label>ZIP Code</label>
+                                <input type="text" id="storeAddrZip" placeholder="00000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ship-btn" data-ship="rep" onclick="selectShipTo(this)">
+                <div class="ship-radio"></div>
+                <div class="ship-btn-body">
+                    <div class="ship-btn-title">Ship to Rep's Residence</div>
+                    <div class="ship-btn-sub">Ship to your personal address</div>
+                    <div class="ship-address-fields" id="repAddressFields">
+                        <div class="form-row single" style="margin-bottom:14px;">
+                            <div class="form-group">
+                                <label>Street Address</label>
+                                <input type="text" id="repAddrStreet" placeholder="123 Main St">
+                            </div>
+                        </div>
+                        <div class="form-row triple" style="margin-bottom:0;">
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" id="repAddrCity" placeholder="City">
+                            </div>
+                            <div class="form-group">
+                                <label>State</label>
+                                <input type="text" id="repAddrState" placeholder="ST" maxlength="2" style="text-transform:uppercase;">
+                            </div>
+                            <div class="form-group">
+                                <label>ZIP Code</label>
+                                <input type="text" id="repAddrZip" placeholder="00000">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <!-- ── Summary + Notes ── -->
     <div class="summary-bar" id="summaryBar" style="display:none;">
         <div class="summary-stat">
             <span class="num" id="sumStyles">0</span>
             <span class="lbl">Styles Selected</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-stat">
+            <span class="num" id="sumQty">0</span>
+            <span class="lbl">Total Signs</span>
         </div>
         <div class="summary-divider"></div>
         <div class="summary-stat">
@@ -683,6 +881,7 @@ var upcLookupLoaded  = false;
 var selectedPO       = null;
 var selectedSize     = null;
 var selectedPricing  = null;
+var selectedShipTo   = 'order';
 var focusedOptionIndex = -1;
 var repEmailGlobal   = '';
 
@@ -713,6 +912,32 @@ $(document).ready(function () {
     loadOrderData();
     loadUpcLookup();
     setupPOAutocomplete();
+
+    // Pre-fill PO from URL param (?po=XXXX or ?PO=XXXX)
+    var urlParams = new URLSearchParams(window.location.search);
+    var urlPO = (urlParams.get('po') || urlParams.get('PO') || '').trim();
+    if (urlPO) {
+        $('#poNumber').val(urlPO);
+        // Wait for order data to load, then auto-select the PO
+        var poWaitTries = 0;
+        var poWaitInterval = setInterval(function () {
+            poWaitTries++;
+            if (ordersLoaded || poWaitTries > 60) {
+                clearInterval(poWaitInterval);
+                // Find matching order
+                var match = allOrders.filter(function (o) {
+                    return o.po.toUpperCase() === urlPO.toUpperCase();
+                })[0];
+                if (match) {
+                    // Simulate a selection
+                    window._currentMatches = [match];
+                    selectPO(0);
+                } else {
+                    $('#poHint').text('PO "' + urlPO + '" not found — you can still type to search').addClass('warning');
+                }
+            }
+        }, 100);
+    }
 });
 
 function portalLogout() {
@@ -928,7 +1153,22 @@ function selectPricing(btn) {
     updateSummary();
 }
 
-// ── Load styles for selected PO ───────────────────────────────────────────────
+// ── Ship-To selector ──────────────────────────────────────────────────────────
+function selectShipTo(btn) {
+    $('.ship-btn').removeClass('selected');
+    $('.ship-address-fields').removeClass('open');
+    $(btn).addClass('selected');
+    selectedShipTo = $(btn).data('ship');
+
+    if (selectedShipTo === 'store') {
+        $('#storeAddressFields').addClass('open');
+    } else if (selectedShipTo === 'rep') {
+        $('#repAddressFields').addClass('open');
+    }
+    updateSummary();
+}
+
+
 function loadStylesForPO(po) {
     $('#stylesArea').html('<div class="styles-loading"><div class="spinner" style="margin:0 auto 10px;"></div>Loading styles from this order…</div>');
 
@@ -1049,26 +1289,66 @@ function renderStylesList(styleItems) {
     var html = '<div class="styles-list">';
     styleItems.forEach(function (item) {
         var safeId = 'style_' + item.style.replace(/[^a-zA-Z0-9]/g, '_');
-        html += '<div class="style-row" id="row_' + safeId + '" onclick="toggleStyle(\'' + safeId + '\')" data-style="' + esc(item.style) + '">';
+        html += '<div class="style-row" id="row_' + safeId + '" data-style="' + esc(item.style) + '">';
+        // Left: checkbox + info (clicking this area toggles selection)
+        html += '<div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;cursor:pointer;" onclick="toggleStyle(\'' + safeId + '\')">';
         html += '<div class="style-checkbox" id="chk_' + safeId + '"></div>';
         html += '<div class="style-info">';
         html += '<div class="style-name">' + esc(item.style) + '</div>';
         if (item.styleDesc) html += '<div class="style-desc">' + esc(item.styleDesc) + '</div>';
         html += '</div></div>';
+        // Right: quantity input
+        html += '<div class="style-qty-wrap">';
+        html += '<span class="style-qty-label">Qty</span>';
+        html += '<input type="number" min="0" step="1" class="style-qty-input sign-qty-input" '
+              + 'id="qty_' + safeId + '" data-sku="' + esc(item.style) + '" data-safeid="' + safeId + '" '
+              + 'value="" placeholder="0" onclick="event.stopPropagation();">';
+        html += '</div>';
+        html += '</div>';
     });
     html += '</div>';
     $('#stylesArea').html(html);
+
+    // Auto-select row when qty is typed, deselect when cleared
+    $(document).on('input', '.sign-qty-input', function () {
+        var safeId = $(this).data('safeid');
+        var val = parseInt($(this).val()) || 0;
+        var $row = $('#row_' + safeId);
+        if (val > 0) {
+            $row.addClass('selected');
+            $(this).addClass('has-value');
+        } else {
+            $row.removeClass('selected');
+            $(this).removeClass('has-value');
+        }
+        updateSummary();
+    });
+
     updateSummary();
 }
 
 function toggleStyle(safeId) {
-    $('#row_' + safeId).toggleClass('selected');
+    var $row = $('#row_' + safeId);
+    $row.toggleClass('selected');
+    if (!$row.hasClass('selected')) {
+        // Clear qty when deselecting via checkbox click
+        var $qty = $('#qty_' + safeId);
+        $qty.val('').removeClass('has-value');
+    } else {
+        // Focus qty input when selecting
+        setTimeout(function () { $('#qty_' + safeId).focus(); }, 50);
+    }
     updateSummary();
 }
 
 function updateSummary() {
     var selectedStyles = $('.style-row.selected').length;
+    var totalQtySelected = 0;
+    $('.sign-qty-input').each(function () {
+        totalQtySelected += parseInt($(this).val()) || 0;
+    });
     $('#sumStyles').text(selectedStyles);
+    $('#sumQty').text(totalQtySelected);
     $('#sumSize').text(selectedSize ? selectedSize + '"' : '—');
     $('#sumPricing').text(selectedPricing ? (selectedPricing === 'yes' ? 'Yes' : 'No') : '—');
 
@@ -1082,33 +1362,58 @@ function updateSummary() {
 
 // ── Submit ────────────────────────────────────────────────────────────────────
 function submitRequest() {
-    // Validation
     var po       = $('#poNumber').val().trim();
     var repName  = $('#repName').val().trim();
     var repEmail = $('#repEmail').val().trim();
 
-    if (!po) {
-        alert('Please enter or select a PO number.');
-        $('#poNumber').focus();
-        return;
-    }
-    if (!repName || !repEmail) {
-        alert('Rep name and email are required.');
-        return;
-    }
+    if (!po) { alert('Please enter or select a PO number.'); $('#poNumber').focus(); return; }
+    if (!repName || !repEmail) { alert('Rep name and email are required.'); return; }
+    if (!selectedSize) { alert('Please select a sign size.'); return; }
+    if (!selectedPricing) { alert('Please choose whether to include pricing on the sign.'); return; }
 
-    // Collect sign quantities
+    // Collect style quantities
     var items = [];
     $('.sign-qty-input').each(function () {
         var qty = parseInt($(this).val()) || 0;
         if (qty > 0) {
-            items.push({ sku: $(this).data('sku'), quantity: qty });
+            items.push({ style: $(this).data('sku'), quantity: qty });
         }
     });
-
     if (items.length === 0) {
-        alert('Please select at least one sign type before submitting.');
+        alert('Please enter a quantity for at least one style.');
         return;
+    }
+
+    // Collect ship-to info
+    var shipTo = { method: selectedShipTo };
+    if (selectedShipTo === 'store') {
+        var street = $('#storeAddrStreet').val().trim();
+        var city   = $('#storeAddrCity').val().trim();
+        var state  = $('#storeAddrState').val().trim();
+        var zip    = $('#storeAddrZip').val().trim();
+        if (!street || !city || !state || !zip) {
+            alert('Please fill in all store address fields.');
+            return;
+        }
+        shipTo.name    = $('#storeAddrName').val().trim();
+        shipTo.attn    = $('#storeAddrAttn').val().trim();
+        shipTo.street  = street;
+        shipTo.city    = city;
+        shipTo.state   = state;
+        shipTo.zip     = zip;
+    } else if (selectedShipTo === 'rep') {
+        var street = $('#repAddrStreet').val().trim();
+        var city   = $('#repAddrCity').val().trim();
+        var state  = $('#repAddrState').val().trim();
+        var zip    = $('#repAddrZip').val().trim();
+        if (!street || !city || !state || !zip) {
+            alert('Please fill in all address fields for your residence.');
+            return;
+        }
+        shipTo.street = street;
+        shipTo.city   = city;
+        shipTo.state  = state;
+        shipTo.zip    = zip;
     }
 
     var payload = {
@@ -1119,6 +1424,9 @@ function submitRequest() {
         beginShip:    $('#beginShip').val().trim(),
         repName:      repName,
         repEmail:     repEmail,
+        signSize:     selectedSize,
+        includePricing: selectedPricing,
+        shipTo:       shipTo,
         notes:        $('#notes').val().trim(),
         orderDate:    new Date().toISOString(),
         items:        items
@@ -1126,27 +1434,21 @@ function submitRequest() {
 
     $('#submitBtn').prop('disabled', true).text('Submitting…');
 
-    // Submit via form POST (same pattern as apparel.html)
-    var form = $('<form>', {
-        method: 'POST',
-        action: APPS_SCRIPT_URL,
-        target: '_blank',
-        style:  'display:none;'
-    });
+    var form = $('<form>', { method: 'POST', action: APPS_SCRIPT_URL, target: '_blank', style: 'display:none;' });
     form.append($('<input>', { type: 'hidden', name: 'data', value: JSON.stringify(payload) }));
     $('body').append(form);
     form.submit();
     setTimeout(function () { form.remove(); }, 1000);
 
     var totalQty = items.reduce(function (s, i) { return s + i.quantity; }, 0);
-    alert('✅ Fixture signs request submitted!\n\nPO: ' + po + '\nSign types: ' + items.length + '\nTotal pieces: ' + totalQty + '\n\nA confirmation will be sent to ' + repEmail + '.');
+    var shipLabel = selectedShipTo === 'order' ? 'with order' : selectedShipTo === 'store' ? 'to store' : 'to rep residence';
+    alert('✅ Fixture signs request submitted!\n\nPO: ' + po + '\nStyles: ' + items.length + ' · Total qty: ' + totalQty + '\nSize: ' + selectedSize + '  ·  Pricing: ' + (selectedPricing === 'yes' ? 'Yes' : 'No') + '\nShip: ' + shipLabel + '\n\nA confirmation will be sent to ' + repEmail + '.');
 
-    // Reset signs quantities
-    $('.sign-qty-input').val(0).removeClass('has-value');
-    $('.sign-card').removeClass('has-qty');
+    // Reset form state
+    $('.sign-qty-input').val('').removeClass('has-value');
+    $('.style-row').removeClass('selected');
     updateSummary();
     $('#notes').val('');
-
     $('#submitBtn').prop('disabled', false).text('Submit Fixture Signs Request');
 }
 
