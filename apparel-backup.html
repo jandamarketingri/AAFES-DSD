@@ -1583,7 +1583,7 @@ function fetchLatestPOAndRedirect(facilityId, orderDateISO, repEmail) {
     var FIXTURE_BASE_URL = 'https://jandamarketingri.github.io/AAFES-DSD/fixture-request.html';
     var maxAttempts = 5;
     var attempt = 0;
-    var intervalMs = 7500;
+    var intervalMs = 10000;
 
     // Build the date string the PO number starts with: facilityId + YYYYMMDD
     var d = new Date(orderDateISO);
