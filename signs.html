@@ -970,10 +970,40 @@ $(document).ready(function(){
     loadAllSignsData();
     loadFacilityData();
     loadPricingData(); // ✅ LOAD PRICING ON STARTUP
+
+    // Set date minimums
+    var today = new Date();
+    var todayStr = today.toISOString().split('T')[0];
+    
+    var minShipBy = new Date(today);
+    minShipBy.setDate(minShipBy.getDate() + 7);
+    var minShipByStr = minShipBy.toISOString().split('T')[0];
+    
+    $('#beginShipDate').attr('min', todayStr);
+    $('#shipByDate').attr('min', minShipByStr);
     
     $('#searchInput').on('input', function(){ 
         searchTerm = $(this).val().toLowerCase().trim(); 
         filterAndDisplayProducts(); 
+    });
+
+    $('#beginShipDate').on('change', function() {
+        var beginShip = new Date($(this).val() + 'T00:00:00');
+    
+        var todayPlus7 = new Date(today);
+        todayPlus7.setDate(todayPlus7.getDate() + 7);
+    
+        var beginPlus3 = new Date(beginShip);
+        beginPlus3.setDate(beginPlus3.getDate() + 3);
+    
+        var minShipBy = new Date(Math.max(todayPlus7, beginPlus3));
+        var minShipByStr = minShipBy.toISOString().split('T')[0];
+    
+        $('#shipByDate').attr('min', minShipByStr);
+    
+        if ($('#shipByDate').val() && $('#shipByDate').val() < minShipByStr) {
+            $('#shipByDate').val('');
+        }
     });
     
     $('#facilityId').on('input', function(){
