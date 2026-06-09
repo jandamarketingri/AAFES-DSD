@@ -282,6 +282,45 @@
             text-decoration: none;
         }
         .invoice-link-btn .inv-icon { font-size: 13px; }
+
+        /* ── Fixture signs link bar ── */
+        .fixture-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 22px 10px;
+            border-top: 1px dashed var(--border);
+        }
+        .fixture-bar-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .fixture-signs-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px 4px 9px;
+            border-radius: 6px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            text-decoration: none;
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            color: #7a4a00;
+            transition: background 0.15s, box-shadow 0.15s;
+        }
+        .fixture-signs-btn:hover {
+            background: #fff0b3;
+            box-shadow: 0 1px 6px rgba(245,158,11,0.25);
+            text-decoration: none;
+        }
         .order-detail {
             display: none;
             border-top: 1px solid var(--border);
@@ -903,6 +942,13 @@ function renderOrders(orders) {
             });
             html += '</div></div>';
         }
+
+        // ── Fixture signs bar — always shown ──
+        var fixtureUrl = 'fixture-request.html?po=' + encodeURIComponent(po);
+        html += '<div class="fixture-bar" onclick="event.stopPropagation()">';
+        html += '<span class="fixture-bar-label">🪧 Signs</span>';
+        html += '<a href="' + esc(fixtureUrl) + '" class="fixture-signs-btn">🪧 Request Fixture Signs</a>';
+        html += '</div>';
 
         // ── Expanded detail panel ── (auto-open if search is active)
         var detailOpen = '';
