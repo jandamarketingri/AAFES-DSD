@@ -1607,13 +1607,19 @@ function submitOrder() {
 /**
  * After submission, polls Apps Script for the most recently written PO number
  * for this facility + date + rep, then redirects to the fixture signs form.
- * Retries up to 5 times (every 2.5s) to give the sheet write time to complete.
+ * Retries up to 8 times (every 12s, after an initial 6s head-start) to give
+ * the sheet write time to complete. Note: this only confirms the PO row
+ * exists — it does not guarantee every line item has finished writing, and
+ * the fixture-request page reads from the published CSV export (which has
+ * its own Google-side cache delay separate from this wait). fixture-request.html
+ * has its own background retry/refresh logic to catch up if styles are
+ * still missing when it loads.
  */
 function fetchLatestPOAndRedirect(facilityId, orderDateISO, repEmail) {
     var FIXTURE_BASE_URL = 'https://jandamarketingri.github.io/AAFES-DSD/fixture-request.html';
-    var maxAttempts = 5;
+    var maxAttempts = 8;
     var attempt = 0;
-    var intervalMs = 10000;
+    var intervalMs = 12000;
 
     // Build the date string the PO number starts with: facilityId + YYYYMMDD
     var d = new Date(orderDateISO);
@@ -1628,6 +1634,7 @@ function fetchLatestPOAndRedirect(facilityId, orderDateISO, repEmail) {
         $.ajax({
             url: ORDER_SUBMISSION_URL,
             method: 'GET',
+            cache: false,
             data: {
                 action: 'getLatestPO',
                 email: repEmail,
@@ -1659,7 +1666,7 @@ function fetchLatestPOAndRedirect(facilityId, orderDateISO, repEmail) {
     }
 
     // Give the sheet write a head-start before the first poll
-    setTimeout(attempt_fetch, 3000);
+    setTimeout(attempt_fetch, 6000);
 }
 </script>
     
