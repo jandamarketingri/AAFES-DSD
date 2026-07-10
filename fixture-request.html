@@ -720,7 +720,15 @@
 
         <!-- Styles from this order -->
         <div class="sign-config-section" style="margin-bottom:0;">
-            <div class="sign-config-label">Styles on This Order</div>
+            <div class="sign-config-label" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+                <span>Styles on This Order</span>
+                <button type="button" id="refreshStylesBtn" onclick="refreshStylesForCurrentPO()"
+                        style="display:none;font-size:11px;font-weight:600;padding:4px 10px;border:1.5px solid var(--border);
+                               border-radius:6px;background:var(--surface);color:var(--text-muted);cursor:pointer;">
+                    🔄 Refresh Styles
+                </button>
+            </div>
+            <div class="field-hint" id="stylesFreshnessHint" style="display:none;margin-bottom:8px;"></div>
             <div class="styles-area" id="stylesArea">
                 <div class="styles-prompt">Select a PO number above to load the styles on this order.</div>
             </div>
@@ -932,6 +940,10 @@ $(document).ready(function () {
                     // Simulate a selection
                     window._currentMatches = [match];
                     selectPO(0);
+                    // We arrived here straight off an order submission — the published
+                    // CSV export may still be catching up with Google's own cache, so
+                    // keep quietly re-checking for any styles that didn't show up yet.
+                    scheduleBackgroundStyleRefreshes(match.po);
                 } else {
                     $('#poHint').text('PO "' + urlPO + '" not found — you can still type to search').addClass('warning');
                 }
@@ -948,8 +960,16 @@ function portalLogout() {
 }
 
 // ── Load order data from both CSV sources ─────────────────────────────────────
-function loadOrderData() {
+// Accepts an optional callback, invoked once both CSVs have loaded (or failed).
+// Can be called again later (e.g. by the background refresh / manual refresh
+// button) to re-pull the published CSVs — this is what lets us recover from
+// Google's publish-to-web cache lagging behind a just-submitted order.
+function loadOrderData(onDone) {
     var loaded = 0;
+
+    // Reset accumulators on every call so repeated refreshes don't duplicate rows
+    allOrderRows = [];
+    allOrders = [];
 
     function checkDone() {
         loaded++;
@@ -963,6 +983,7 @@ function loadOrderData() {
                 seen[o.po] = true;
                 return true;
             });
+            if (typeof onDone === 'function') onDone();
         }
     }
 
@@ -987,9 +1008,11 @@ function loadOrderData() {
         }
     }
 
-    // Fetch pending
+    // Fetch pending — cache:false busts browser caching; it does NOT bust
+    // Google's own publish-to-web cache, which is the more likely culprit
+    // when a freshly-submitted order's rows are briefly missing.
     $.ajax({
-        url: PENDING_CSV, method: 'GET', dataType: 'text',
+        url: PENDING_CSV, method: 'GET', dataType: 'text', cache: false,
         success: function (data) { parseCSV(data, 'pending'); },
         error:   function ()     { console.warn('Could not load pending orders CSV'); },
         complete: checkDone
@@ -997,17 +1020,63 @@ function loadOrderData() {
 
     // Fetch archived
     $.ajax({
-        url: ARCHIVED_CSV, method: 'GET', dataType: 'text',
+        url: ARCHIVED_CSV, method: 'GET', dataType: 'text', cache: false,
         success: function (data) { parseCSV(data, 'archived'); },
         error:   function ()     { console.warn('Could not load archived orders CSV'); },
         complete: checkDone
     });
 }
 
+// ── Background + manual re-check for missing styles ───────────────────────────
+// When we land here via ?po=... right after an order submission, the published
+// CSV export may not yet reflect every line item (Google's cache lag). This
+// re-pulls the CSVs and re-derives the styles list, merging in anything new,
+// without wiping out styles/quantities the rep may have already started
+// entering.
+var styleRefreshAttempt = 0;
+var styleRefreshTimer = null;
+
+function scheduleBackgroundStyleRefreshes(po) {
+    styleRefreshAttempt = 0;
+    var delays = [8000, 20000, 40000]; // spaced out to give Google's cache time to catch up
+    $('#stylesFreshnessHint').show().removeClass('error warning').addClass('success')
+        .text('🔄 Double-checking for any styles still syncing from the order sheet…');
+
+    function runNext() {
+        if (styleRefreshAttempt >= delays.length) {
+            $('#stylesFreshnessHint').fadeOut(400);
+            return;
+        }
+        var delay = delays[styleRefreshAttempt];
+        styleRefreshAttempt++;
+        styleRefreshTimer = setTimeout(function () {
+            if (!selectedPO || selectedPO.po !== po) return; // rep switched POs, stop
+            loadOrderData(function () {
+                loadStylesForPO(po, true /* merge, don't clear existing rows */);
+                runNext();
+            });
+        }, delay);
+    }
+    runNext();
+}
+
+function refreshStylesForCurrentPO() {
+    if (!selectedPO) return;
+    if (styleRefreshTimer) clearTimeout(styleRefreshTimer);
+    var $btn = $('#refreshStylesBtn');
+    $btn.prop('disabled', true).text('Refreshing…');
+    $('#stylesFreshnessHint').show().removeClass('error warning').addClass('success').text('🔄 Refreshing from the order sheet…');
+    loadOrderData(function () {
+        loadStylesForPO(selectedPO.po, true);
+        $btn.prop('disabled', false).text('🔄 Refresh Styles');
+        $('#stylesFreshnessHint').fadeOut(600);
+    });
+}
+
 // ── Load UPC → item CSV URL lookup ────────────────────────────────────────────
 function loadUpcLookup() {
     $.ajax({
-        url: UPC_LOOKUP_CSV, method: 'GET', dataType: 'text',
+        url: UPC_LOOKUP_CSV, method: 'GET', dataType: 'text', cache: false,
         success: function (csv) {
             var rows = csv.split('\n');
             for (var i = 1; i < rows.length; i++) {
@@ -1110,6 +1179,9 @@ function selectPO(idx) {
     var o = window._currentMatches[idx];
     if (!o) return;
 
+    if (styleRefreshTimer) { clearTimeout(styleRefreshTimer); styleRefreshTimer = null; }
+    $('#stylesFreshnessHint').hide();
+
     selectedPO = o;
     $('#poNumber').val(o.po).removeClass('field-error').addClass('field-valid');
     $('#poHint').text('✓ Found in ' + (o.source === 'pending' ? 'active orders' : 'archived orders'))
@@ -1121,6 +1193,7 @@ function selectPO(idx) {
     $('#beginShip').val(o.beginShip).addClass('autofilled');
 
     closeDropdown();
+    $('#refreshStylesBtn').show();
     loadStylesForPO(o.po);
 }
 
@@ -1169,8 +1242,12 @@ function selectShipTo(btn) {
 }
 
 
-function loadStylesForPO(po) {
-    $('#stylesArea').html('<div class="styles-loading"><div class="spinner" style="margin:0 auto 10px;"></div>Loading styles from this order…</div>');
+function loadStylesForPO(po, isMerge) {
+    // On a merge refresh, keep whatever's currently rendered/entered on screen
+    // instead of blanking it out — we only want to add newly-discovered styles.
+    if (!isMerge) {
+        $('#stylesArea').html('<div class="styles-loading"><div class="spinner" style="margin:0 auto 10px;"></div>Loading styles from this order…</div>');
+    }
 
     // Collect UPCs from rows matching this PO where explodedKit !== 'Y'
     var upcs = [];
@@ -1210,16 +1287,16 @@ function loadStylesForPO(po) {
 
         function onAllDone() {
             if (!styleOrder.length) {
-                $('#stylesArea').html('<div class="styles-empty">No styles found in item data for this order.</div>');
+                if (!isMerge) $('#stylesArea').html('<div class="styles-empty">No styles found in item data for this order.</div>');
                 return;
             }
-            renderStylesList(styleOrder.map(function (s) { return styles[s]; }));
+            renderStylesList(styleOrder.map(function (s) { return styles[s]; }), isMerge);
         }
 
         urlList.forEach(function (csvUrl) {
             var upcsForUrl = csvUrls[csvUrl];
             $.ajax({
-                url: csvUrl, method: 'GET', dataType: 'text',
+                url: csvUrl, method: 'GET', dataType: 'text', cache: false,
                 success: function (csv) {
                     var rows = csv.split('\n');
                     for (var i = 1; i < rows.length; i++) {
@@ -1281,33 +1358,52 @@ function loadStylesForPO(po) {
     }
 }
 
-function renderStylesList(styleItems) {
+function renderStylesList(styleItems, isMerge) {
     if (!styleItems.length) {
-        $('#stylesArea').html('<div class="styles-empty">No styles found for this order.</div>');
+        if (!isMerge) $('#stylesArea').html('<div class="styles-empty">No styles found for this order.</div>');
         return;
     }
+
+    // On a merge (background/manual refresh), preserve whatever the rep has
+    // already selected/typed so re-rendering doesn't wipe their entries —
+    // we're only trying to surface styles that were missing the first time.
+    var existingQty = {};
+    var priorSafeIds = {};
+    $('.sign-qty-input').each(function () {
+        var safeId = $(this).data('safeid');
+        priorSafeIds[safeId] = true;
+        var val = $(this).val();
+        if (safeId && val) existingQty[safeId] = val;
+    });
+
     var html = '<div class="styles-list">';
     styleItems.forEach(function (item) {
         var safeId = 'style_' + item.style.replace(/[^a-zA-Z0-9]/g, '_');
-        html += '<div class="style-row" id="row_' + safeId + '" data-style="' + esc(item.style) + '">';
+        var prevVal   = existingQty[safeId] || '';
+        var hasVal    = prevVal && parseInt(prevVal) > 0;
+        var isNewRow  = isMerge && !priorSafeIds[safeId];
+        html += '<div class="style-row' + (hasVal ? ' selected' : '') + '" id="row_' + safeId + '" data-style="' + esc(item.style) + '">';
         // Left: checkbox + info (clicking this area toggles selection)
         html += '<div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;cursor:pointer;" onclick="toggleStyle(\'' + safeId + '\')">';
         html += '<div class="style-checkbox" id="chk_' + safeId + '"></div>';
         html += '<div class="style-info">';
-        html += '<div class="style-name">' + esc(item.style) + '</div>';
+        html += '<div class="style-name">' + esc(item.style)
+              + (isNewRow ? ' <span style="font-size:10px;font-weight:700;color:var(--success);background:var(--success-bg);padding:1px 6px;border-radius:8px;vertical-align:middle;">NEW</span>' : '')
+              + '</div>';
         if (item.styleDesc) html += '<div class="style-desc">' + esc(item.styleDesc) + '</div>';
         html += '</div></div>';
         // Right: quantity input
         html += '<div class="style-qty-wrap">';
         html += '<span class="style-qty-label">Qty</span>';
-        html += '<input type="number" min="0" step="1" class="style-qty-input sign-qty-input" '
+        html += '<input type="number" min="0" step="1" class="style-qty-input sign-qty-input' + (hasVal ? ' has-value' : '') + '" '
               + 'id="qty_' + safeId + '" data-sku="' + esc(item.style) + '" data-safeid="' + safeId + '" '
-              + 'value="" placeholder="0" onclick="event.stopPropagation();">';
+              + 'value="' + esc(prevVal) + '" placeholder="0" onclick="event.stopPropagation();">';
         html += '</div>';
         html += '</div>';
     });
     html += '</div>';
     $('#stylesArea').html(html);
+    $('#refreshStylesBtn').show();
 
     // Auto-select row when qty is typed, deselect when cleared
     $(document).on('input', '.sign-qty-input', function () {
