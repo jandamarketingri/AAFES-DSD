@@ -423,6 +423,33 @@
             padding: 20px;
             line-height: 1.6;
         }
+        .cart-comments-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+        .cart-comments-section label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        .cart-comments-section textarea {
+            width: 100%;
+            min-height: 70px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        .cart-comments-section textarea:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
         .cart-totals {
             border-top: 2px solid #4CAF50;
             margin-top: 10px;
@@ -514,6 +541,10 @@
             <button class="close-cart" onclick="closeCart()">&times;</button>
         </div>
         <div id="cartItems"></div>
+        <div class="cart-comments-section">
+            <label for="orderComments">Order Comments / Special Instructions</label>
+            <textarea id="orderComments" placeholder="Any special instructions, rush requests, or notes for this order…"></textarea>
+        </div>
         <div class="cart-actions">
             <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
             <button class="submit-order-btn" onclick="submitOrder()">Submit Order</button>
@@ -929,6 +960,7 @@ function submitOrder() {
         shipByDate: $('#shipByDate').val(),
         orderDate: new Date().toISOString(),
         accessCode: authData.accessCode,
+        comments: $('#orderComments').val().trim(),
         items: cart
     };
     
@@ -958,6 +990,7 @@ function submitOrder() {
     cart = [];
     updateCartBadge();
     closeCart();
+    $('#orderComments').val('');
     $('.submit-order-btn').prop('disabled', false).text('Submit Order');
 }
 
