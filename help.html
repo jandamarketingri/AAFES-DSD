@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Need Help?</title>
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #f5f6fa;
+        margin: 0;
+        padding: 40px 20px;
+        display: flex;
+        justify-content: center;
+    }
+    .card {
+        background: white;
+        max-width: 480px;
+        width: 100%;
+        padding: 32px;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    h1 {
+        font-size: 22px;
+        margin-top: 0;
+        margin-bottom: 6px;
+        color: #222;
+    }
+    p.subtitle {
+        color: #666;
+        font-size: 14px;
+        margin-top: 0;
+        margin-bottom: 24px;
+    }
+    label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #444;
+        margin-bottom: 6px;
+        margin-top: 16px;
+    }
+    input, textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        box-sizing: border-box;
+    }
+    textarea {
+        min-height: 120px;
+        resize: vertical;
+    }
+    button {
+        margin-top: 24px;
+        width: 100%;
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 6px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #5a6fd8;
+    }
+    .back-link {
+        display: inline-block;
+        margin-bottom: 20px;
+        font-size: 13px;
+        color: #667eea;
+        text-decoration: none;
+    }
+    #statusMsg {
+        margin-top: 16px;
+        font-size: 14px;
+        text-align: center;
+        display: none;
+    }
+    #statusMsg.success { color: #1a7a3c; }
+    #statusMsg.error { color: #dc3545; }
+</style>
+</head>
+<body>
+<div class="card">
+    <a href="index.html" class="back-link">&larr; Back to portal</a>
+    <h1>Need help?</h1>
+    <p class="subtitle">Send us a message and we'll get back to you as soon as we can.</p>
+
+    <form id="helpForm" action="https://script.google.com/macros/s/AKfycbynC-eA--5f1hSJ6Mqs2k8c_qxf32nocA6nuN3KGDB1p5lJPcsUdefV78UNzoAqaySM/exec" method="POST">
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="email">Your email</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="message">What do you need help with?</label>
+        <textarea id="message" name="message" required></textarea>
+
+        <button type="submit">Send message</button>
+    </form>
+    <div id="statusMsg"></div>
+</div>
+
+<script>
+document.getElementById('helpForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var form = e.target;
+    var statusEl = document.getElementById('statusMsg');
+    var formData = new FormData(form);
+    var encoded = new URLSearchParams();
+    formData.forEach(function (value, key) {
+        encoded.append(key, value);
+    });
+
+    fetch(form.action, {
+        method: 'POST',
+        body: encoded
+    }).then(function (response) {
+        return response.json();
+    }).then(function (result) {
+        if (result.status === 'success') {
+            statusEl.textContent = "Thanks! Your message has been sent.";
+            statusEl.className = 'success';
+            statusEl.style.display = 'block';
+            form.reset();
+        } else {
+            statusEl.textContent = "Something went wrong. Please try again.";
+            statusEl.className = 'error';
+            statusEl.style.display = 'block';
+        }
+    }).catch(function () {
+        statusEl.textContent = "Something went wrong. Please try again.";
+        statusEl.className = 'error';
+        statusEl.style.display = 'block';
+    });
+});
+</script>
+</body>
+</html>
