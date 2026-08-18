@@ -214,6 +214,7 @@
                     sessionStorage.setItem('salesPortalAuth', JSON.stringify({
                         email: email,
                         name: response.name || email.split('@')[0],
+                        role: response.role || 'User',
                         timestamp: new Date().toISOString()
                     }));
 
