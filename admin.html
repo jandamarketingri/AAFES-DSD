@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sales Portal - Add Style</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background: white;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        select:disabled {
+            background: #f3f4f6;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .category-toggle {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .category-btn {
+            flex: 1;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-btn.active {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .category-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 12px;
+            display: none;
+        }
+
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .item-details {
+            background: #f3f4f6;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .item-details table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .item-details td {
+            padding: 6px 0;
+            color: #333;
+        }
+
+        .item-details td:first-child {
+            font-weight: 600;
+            width: 40%;
+            color: #666;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 30px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>Add Style</h1>
+    <p class="subtitle">Select a category and item type to add a new style</p>
+
+    <div id="errorMessage" class="error"></div>
+
+    <div class="category-toggle">
+        <button type="button" class="category-btn active" id="apparelBtn" onclick="selectCategory('apparel')">👕 Apparel</button>
+        <button type="button" class="category-btn" id="signsBtn" disabled title="Coming soon">🪧 Signs</button>
+    </div>
+
+    <div class="form-group">
+        <label>Item Type *</label>
+        <select id="itemTypeSelect" disabled>
+            <option value="">Loading item types…</option>
+        </select>
+    </div>
+
+    <div class="loading" id="loadingMsg">Loading apparel data…</div>
+
+    <div class="item-details" id="itemDetails">
+        <table>
+            <tr><td>Item Code</td><td id="detailItemCode"></td></tr>
+            <tr><td>CRC</td><td id="detailCRC"></td></tr>
+            <tr><td>Cost</td><td id="detailCost"></td></tr>
+            <tr><td>Retail</td><td id="detailRetail"></td></tr>
+            <tr><td>UPC</td><td id="detailUPC"></td></tr>
+        </table>
+    </div>
+
+    <a href="admin.html" class="back-link">&larr; Back to Admin</a>
+</div>
+
+<script>
+    var APPAREL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=1743444304&single=true&output=csv';
+
+    var apparelItems = []; // filtered, mapped list: {displayName, description, itemCode, crc, cost, retail, sheetUrl, upc}
+
+    // Auth check
+    $(document).ready(function () {
+        var authData = sessionStorage.getItem('salesPortalAuth');
+        if (!authData) {
+            window.location.href = 'login.html';
+            return;
+        }
+        try {
+            var auth = JSON.parse(authData);
+            if (auth.role !== 'Admin') {
+                window.location.href = 'index.html';
+                return;
+            }
+        } catch (e) {
+            sessionStorage.removeItem('salesPortalAuth');
+            window.location.href = 'login.html';
+            return;
+        }
+
+        loadApparelItems();
+    });
+
+    function selectCategory(category) {
+        // Only 'apparel' is active for now; Signs button is disabled
+        $('#apparelBtn').addClass('active');
+    }
+
+    function loadApparelItems() {
+        $('#loadingMsg').show();
+        $('#errorMessage').hide();
+
+        Papa.parse(APPAREL_CSV_URL, {
+            download: true,
+            header: true,
+            skipEmptyLines: true,
+            complete: function (results) {
+                $('#loadingMsg').hide();
+
+                apparelItems = results.data
+                    .filter(function (row) {
+                        var retail = (row['Retail'] || '').toString().trim();
+                        var description = (row['Description'] || '').toString().trim();
+                        return retail !== '' && description !== '';
+                    })
+                    .map(function (row) {
+                        var description = row['Description'].toString().trim();
+                        var displayName = description.replace(/^7\.62\s*/, '').trim();
+                        return {
+                            displayName: displayName,
+                            description: description,
+                            itemCode: (row['Item Code'] || '').toString().trim(),
+                            crc: (row['CRC'] || '').toString().trim(),
+                            cost: (row['Cost'] || '').toString().trim(),
+                            retail: (row['Retail'] || '').toString().trim(),
+                            sheetUrl: (row['Sheet for items'] || '').toString().trim(),
+                            upc: (row['UPC'] || '').toString().trim()
+                        };
+                    })
+                    .sort(function (a, b) {
+                        return a.displayName.localeCompare(b.displayName);
+                    });
+
+                populateItemTypeDropdown();
+            },
+            error: function (err) {
+                $('#loadingMsg').hide();
+                showError('Unable to load apparel data. Please try again.');
+            }
+        });
+    }
+
+    function populateItemTypeDropdown() {
+        var $select = $('#itemTypeSelect');
+        $select.empty();
+
+        if (apparelItems.length === 0) {
+            $select.append($('<option>').val('').text('No item types available'));
+            return;
+        }
+
+        $select.append($('<option>').val('').text('Select an item type…'));
+
+        apparelItems.forEach(function (item, index) {
+            $select.append($('<option>').val(index).text(item.displayName));
+        });
+
+        $select.prop('disabled', false);
+    }
+
+    $('#itemTypeSelect').on('change', function () {
+        var index = $(this).val();
+        if (index === '') {
+            $('#itemDetails').hide();
+            return;
+        }
+
+        var item = apparelItems[index];
+        $('#detailItemCode').text(item.itemCode);
+        $('#detailCRC').text(item.crc);
+        $('#detailCost').text(item.cost);
+        $('#detailRetail').text(item.retail);
+        $('#detailUPC').text(item.upc);
+        $('#itemDetails').show();
+    });
+
+    function showError(message) {
+        $('#errorMessage').text(message).fadeIn();
+    }
+</script>
+
+</body>
+</html>
