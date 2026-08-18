@@ -432,6 +432,7 @@
 
 <script>
     var APPAREL_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRDkzzgPIkLzN8SY8g_rwU3gK7YwJbsRMYdFtnIYw2qEFja87-1GXaKgyObGMQyJTQrotJv1GofRuqj/pub?gid=1743444304&single=true&output=csv';
+    var ADD_STYLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8G3U6NJxIQxxRlfDEkBK8JEBj5RVs1ky9fl-KG37QPzELQ1JNA4ohfusmK8LHIj_Rhg/exec';
 
     var apparelItems = []; // filtered, mapped list: {displayName, description, itemCode, crc, cost, retail, sheetUrl, upc}
 
@@ -683,7 +684,7 @@
         $('#submitBtn').prop('disabled', true);
         $('#submitLoadingMsg').show();
 
-        fetch(AUTH_SCRIPT_URL, {
+        fetch(ADD_STYLE_SCRIPT_URL, {
             method: 'POST',
             headers: {
                 // text/plain avoids a CORS preflight against Apps Script;
