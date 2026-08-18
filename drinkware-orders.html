@@ -946,16 +946,20 @@ function totalAllocated(sel) {
     }, 0);
 }
 
-// A line is ready if: at least one art group has a valid art number AND at least 1 qty
-function lineIsReady(sel) {
+// A line is ready if: at least one art group has a valid art number AND at least 1 qty,
+// AND the total allocated across all art groups exactly matches the ordered quantity.
+function lineIsReady(sel, orderedQty) {
     if (!sel || sel.submitted) return false;
     if (!sel.artGroups || sel.artGroups.length === 0) return false;
-    return sel.artGroups.some(function (ag) {
+    var hasValidGroup = sel.artGroups.some(function (ag) {
         var artOk = /^.+_[A-Za-z]{2}$/.test((ag.artNumber || '').trim());
         var qtyOk = Object.values(ag.colorQtys || {}).some(function (v) { return (parseInt(v) || 0) > 0; });
         var imprintOk = qtyOk ? ((ag.imprintColor || '').trim().length > 0) : false;
         return artOk && qtyOk && imprintOk;
     });
+    if (!hasValidGroup) return false;
+    var orderedQtyNum = parseInt(orderedQty) || 0;
+    return totalAllocated(sel) === orderedQtyNum;
 }
 
 // Default new empty art group
@@ -976,7 +980,7 @@ function buildOrderCard(so) {
     lines.forEach(function (l, idx) {
         var s = selections[lk(so, idx)] || {};
         if (s.submitted) submittedCount++;
-        else if (lineIsReady(s)) readyCount++;
+        else if (lineIsReady(s, l.quantityOrdered)) readyCount++;
     });
     var doneCount = readyCount + submittedCount;
     var pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
@@ -1034,7 +1038,7 @@ function buildLineItem(so, line, idx) {
     var alloced = totalAllocated(sel);
     var cardCls = sel.submitted   ? 'line-item is-submitted'
                 : (alloced > qty  ? 'line-item is-over'
-                : (lineIsReady(sel) ? 'line-item is-ready' : 'line-item'));
+                : (lineIsReady(sel, qty) ? 'line-item is-ready' : 'line-item'));
 
     var html = '<div class="' + cardCls + '" id="li-' + keyId + '">';
     html += '<div class="line-item-header">';
@@ -1433,7 +1437,7 @@ function onQtyInput(keyId, so, idx, gIdx, color, rawVal) {
     var $li = $('#li-' + keyId);
     $li.removeClass('is-ready is-over');
     if (allocated > orderedQty)       $li.addClass('is-over');
-    else if (lineIsReady(selections[key])) $li.addClass('is-ready');
+    else if (lineIsReady(selections[key], orderedQty)) $li.addClass('is-ready');
 
     refreshOrderStatus(so);
     updateSubmitBar();
@@ -1475,7 +1479,7 @@ function refreshOrderStatus(so) {
     lines.forEach(function (l, idx) {
         var s = selections[lk(so, idx)] || {};
         if (s.submitted) submittedCount++;
-        else if (lineIsReady(s)) readyCount++;
+        else if (lineIsReady(s, l.quantityOrdered)) readyCount++;
     });
     var doneCount = readyCount + submittedCount;
     var pct  = total > 0 ? Math.round((doneCount / total) * 100) : 0;
@@ -1502,7 +1506,7 @@ function updateSubmitBar() {
     orderKeys.forEach(function (so) {
         ordersGrouped[so].lines.forEach(function (l, idx) {
             var s = selections[lk(so, idx)] || {};
-            if (!s.submitted) { pendingTotal++; if (lineIsReady(s)) readyCount++; }
+            if (!s.submitted) { pendingTotal++; if (lineIsReady(s, l.quantityOrdered)) readyCount++; }
         });
     });
     if (pendingTotal === 0) { $('#submitBar').hide(); return; }
@@ -1523,6 +1527,8 @@ function submitSelections() {
             var key = lk(so, idx);
             var sel = selections[key] || {};
             if (sel.submitted) return;
+            var orderedQty = parseInt(line.quantityOrdered) || 0;
+            var allocated  = totalAllocated(sel);
             (sel.artGroups || []).forEach(function(ag, gIdx) {
                 var groupTotal = Object.values(ag.colorQtys || {}).reduce(function(s,v){ return s+(parseInt(v)||0); }, 0);
                 if (groupTotal > 0 && !(ag.artNumber || '').trim()) {
@@ -1532,6 +1538,11 @@ function submitSelections() {
                     errors.push('Sales Order ' + so + ', line ' + (idx+1) + ', Art #' + (gIdx+1) + ' has quantities but no imprint color.');
                 }
             });
+            // Flag any line where the rep has started entering quantities but the total
+            // doesn't match the ordered quantity — these must be fixed before submitting.
+            if (allocated > 0 && allocated !== orderedQty) {
+                errors.push('Sales Order ' + so + ', line ' + (idx+1) + ' (' + (line.itemCodeDesc || line.itemCode) + '): allocated ' + allocated + ' but order calls for ' + orderedQty + '.');
+            }
         });
     });
     if (errors.length > 0) {
@@ -1545,7 +1556,7 @@ function submitSelections() {
         g.lines.forEach(function (line, idx) {
             var key = lk(so, idx);
             var sel = selections[key] || {};
-            if (sel.submitted || !lineIsReady(sel)) return;
+            if (sel.submitted || !lineIsReady(sel, line.quantityOrdered)) return;
 
             var upc     = line.upc;
             var catalog = catalogData[upc] || [];
@@ -1601,7 +1612,7 @@ function submitSelections() {
     orderKeys.forEach(function (so) {
         ordersGrouped[so].lines.forEach(function (l, idx) {
             var key = lk(so, idx);
-            if (selections[key] && !selections[key].submitted && lineIsReady(selections[key]))
+            if (selections[key] && !selections[key].submitted && lineIsReady(selections[key], l.quantityOrdered))
                 selections[key].submitted = true;
         });
     });
