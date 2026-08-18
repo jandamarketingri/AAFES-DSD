@@ -375,11 +375,15 @@
             <div class="hint">The style without a size suffix.</div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group" id="sizeSkuSection">
             <label>Full SKUs with Size</label>
             <div class="hint">Auto-filled from the Base SKU as you type &mdash; edit any field if the size suffix isn't standard.</div>
             <div class="size-sku-grid" id="sizeSkuGrid"></div>
             <button type="button" class="add-3x-btn" id="add3xBtn" onclick="add3xSize()">+ Add 3X size</button>
+        </div>
+
+        <div class="form-group" id="oneSizeNote" style="display:none;">
+            <div class="hint" style="margin-top:0;">This item is one size fits most &mdash; the Base SKU above will be used as the SKU.</div>
         </div>
 
         <div class="form-group">
@@ -525,6 +529,14 @@
         $select.prop('disabled', false);
     }
 
+    // Item types that are one-size-fits-most (no size breakdown —
+    // just a single SKU written to both the SKU and "SKU again" columns).
+    var ONE_SIZE_ITEM_TYPES = ['Adjustable Cap', 'Elevated Cap', "Woman's Cap"];
+
+    function isOneSizeItem(displayName) {
+        return ONE_SIZE_ITEM_TYPES.indexOf(displayName) !== -1;
+    }
+
     $('#itemTypeSelect').on('change', function () {
         var index = $(this).val();
         if (index === '') {
@@ -542,6 +554,15 @@
         $('#itemDetails').show();
 
         resetStyleDetails();
+
+        if (isOneSizeItem(item.displayName)) {
+            $('#sizeSkuSection').hide();
+            $('#oneSizeNote').show();
+        } else {
+            $('#sizeSkuSection').show();
+            $('#oneSizeNote').hide();
+        }
+
         $('#styleDetailsSection').show();
     });
 
@@ -656,11 +677,14 @@
         }
 
         var item = apparelItems[itemIndex];
+        var oneSize = isOneSizeItem(item.displayName);
 
         var sizeSkus = {};
-        sizes.forEach(function (size) {
-            sizeSkus[size] = $('.size-sku-input[data-size="' + size + '"]').val().trim();
-        });
+        if (!oneSize) {
+            sizes.forEach(function (size) {
+                sizeSkus[size] = $('.size-sku-input[data-size="' + size + '"]').val().trim();
+            });
+        }
 
         var images = [];
         [1, 2, 3].forEach(function (slot) {
@@ -672,6 +696,7 @@
         var payload = {
             action: 'addStyle',
             category: 'apparel',
+            oneSize: oneSize,
             sheetUrl: item.sheetUrl,
             baseSku: baseSku,
             description: description,
@@ -718,6 +743,8 @@
         $('#descriptionInput').val('');
         $('#searchTermsInput').val('');
         $('#customPrintCheckbox').prop('checked', false);
+        $('#oneSizeNote').hide();
+        $('#sizeSkuSection').show();
         [1, 2, 3].forEach(function (slot) {
             delete selectedImages[slot];
             $('#image' + slot + 'Input').val('');
