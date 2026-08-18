@@ -144,6 +144,74 @@
             color: #666;
         }
 
+        .style-details-section {
+            display: none;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .hint {
+            color: #888;
+            font-size: 12px;
+            margin-top: -4px;
+            margin-bottom: 16px;
+        }
+
+        .size-sku-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .size-sku-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .size-label {
+            width: 40px;
+            flex-shrink: 0;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0;
+        }
+
+        .size-sku-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .size-sku-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .size-sku-input.modified {
+            border-color: #667eea;
+            background: #f7f7ff;
+        }
+
+        .add-3x-btn {
+            margin-top: 12px;
+            background: none;
+            border: 1px dashed #aaa;
+            color: #667eea;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .add-3x-btn:hover {
+            background: #f3f4f6;
+        }
+
         .back-link {
             display: block;
             text-align: center;
@@ -189,6 +257,21 @@
             <tr><td>Retail</td><td id="detailRetail"></td></tr>
             <tr><td>UPC</td><td id="detailUPC"></td></tr>
         </table>
+    </div>
+
+    <div class="style-details-section" id="styleDetailsSection">
+        <div class="form-group">
+            <label>Base SKU *</label>
+            <input type="text" id="baseSkuInput" placeholder="e.g. 762-500BLK" autocomplete="off">
+            <div class="hint">The style without a size suffix.</div>
+        </div>
+
+        <div class="form-group">
+            <label>Full SKUs with Size</label>
+            <div class="hint">Auto-filled from the Base SKU as you type &mdash; edit any field if the size suffix isn't standard.</div>
+            <div class="size-sku-grid" id="sizeSkuGrid"></div>
+            <button type="button" class="add-3x-btn" id="add3xBtn" onclick="add3xSize()">+ Add 3X size</button>
+        </div>
     </div>
 
     <a href="admin.html" class="back-link">&larr; Back to Admin</a>
@@ -292,6 +375,7 @@
         var index = $(this).val();
         if (index === '') {
             $('#itemDetails').hide();
+            $('#styleDetailsSection').hide();
             return;
         }
 
@@ -302,11 +386,70 @@
         $('#detailRetail').text(item.retail);
         $('#detailUPC').text(item.upc);
         $('#itemDetails').show();
+
+        resetStyleDetails();
+        $('#styleDetailsSection').show();
     });
 
     function showError(message) {
         $('#errorMessage').text(message).fadeIn();
     }
+
+    // ---- Base SKU / size field logic ----
+    var DEFAULT_SIZES = ['S', 'M', 'L', 'XL', 'XX'];
+    var sizes = [];
+    var sizeFieldTouched = {};
+
+    function resetStyleDetails() {
+        sizes = DEFAULT_SIZES.slice();
+        sizeFieldTouched = {};
+        $('#baseSkuInput').val('');
+        renderSizeFields();
+        $('#add3xBtn').show();
+    }
+
+    function renderSizeFields() {
+        var $grid = $('#sizeSkuGrid');
+        $grid.empty();
+
+        sizes.forEach(function (size) {
+            if (!(size in sizeFieldTouched)) {
+                sizeFieldTouched[size] = false;
+            }
+            var $row = $('<div class="size-sku-row"></div>');
+            $row.append($('<label class="size-label"></label>').text(size));
+            $row.append($('<input type="text" class="size-sku-input" autocomplete="off">').attr('data-size', size));
+            $grid.append($row);
+        });
+    }
+
+    function add3xSize() {
+        if (sizes.indexOf('3X') !== -1) return;
+        sizes.push('3X');
+        sizeFieldTouched['3X'] = false;
+        renderSizeFields();
+        updateSizeFieldsFromBaseSku();
+        $('#add3xBtn').hide();
+    }
+
+    function updateSizeFieldsFromBaseSku() {
+        var baseSku = $('#baseSkuInput').val().trim();
+        sizes.forEach(function (size) {
+            if (!sizeFieldTouched[size]) {
+                var $input = $('.size-sku-input[data-size="' + size + '"]');
+                $input.val(baseSku ? baseSku + '-' + size : '');
+            }
+        });
+    }
+
+    $('#baseSkuInput').on('input', updateSizeFieldsFromBaseSku);
+
+    // Delegated handler so it keeps working after fields are re-rendered
+    $('#sizeSkuGrid').on('input', '.size-sku-input', function () {
+        var size = $(this).data('size');
+        sizeFieldTouched[size] = true;
+        $(this).addClass('modified');
+    });
 </script>
 
 </body>
