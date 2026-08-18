@@ -139,6 +139,19 @@
         </a>
     </div>
 
+    <div id="adminSection" style="display:none;">
+        <h3 style="text-align: center; margin-top: 40px;">Admin</h3>
+        <div class="nav-grid" id="adminNavGrid">
+            <!-- Admin-only nav-card links go here, e.g.:
+            <a href="admin.html" class="nav-card">
+                <div class="icon">⚙️</div>
+                <h2>Admin Panel</h2>
+                <p>Manage users and settings</p>
+            </a>
+            -->
+        </div>
+    </div>
+
 </div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
@@ -165,6 +178,11 @@ $(document).ready(function(){
             '</div>';
         
         $('body').append(userInfo);
+
+        // Show admin-only section for Admin role
+        if (auth.role === 'Admin') {
+            $('#adminSection').show();
+        }
         
     } catch(e){
         // Invalid auth data
