@@ -388,6 +388,40 @@
             margin-right: 15px;
             text-align: right;
         }
+        .cart-qty-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+        .cart-qty-btn {
+            width: 26px;
+            height: 26px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            line-height: 1;
+            transition: background-color 0.3s;
+        }
+        .cart-qty-btn:hover {
+            background-color: #f0f0f0;
+        }
+        .cart-qty-input {
+            width: 48px;
+            text-align: center;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .cart-qty-price {
+            font-size: 13px;
+            color: #333;
+        }
         .remove-item {
             background-color: #f44336;
             color: white;
@@ -799,9 +833,12 @@ function displayCart() {
             html += '<div class="cart-item-pricing">Cost: $' + (item.cost || 0).toFixed(2) + ' | Retail: $' + (item.retail || 0).toFixed(2) + ' ea</div>';
             html += '</div>';
             html += '<div class="cart-item-qty">';
-            html += 'Qty: ' + item.quantity + '<br>';
-            html += 'Cost: $' + itemCost.toFixed(2) + '<br>';
-            html += 'Retail: $' + itemRetail.toFixed(2);
+            html += '<div class="cart-qty-control">';
+            html += '<button class="cart-qty-btn" onclick="decrementCartQty(' + i + ')">−</button>';
+            html += '<input type="number" class="cart-qty-input" id="cart-qty-' + i + '" value="' + item.quantity + '" min="1" onchange="setCartQty(' + i + ', this.value)">';
+            html += '<button class="cart-qty-btn" onclick="incrementCartQty(' + i + ')">+</button>';
+            html += '</div>';
+            html += '<div class="cart-qty-price">Cost: $' + itemCost.toFixed(2) + '<br>Retail: $' + itemRetail.toFixed(2) + '</div>';
             html += '</div>';
             html += '<button class="remove-item" onclick="removeFromCart(' + i + ')">Remove</button></div>';
         });
@@ -819,6 +856,28 @@ function displayCart() {
         html += '</div>';
     }
     $('#cartItems').html(html);
+}
+
+function incrementCartQty(i) {
+    cart[i].quantity += 1;
+    updateCartBadge();
+    displayCart();
+}
+
+function decrementCartQty(i) {
+    if(cart[i].quantity > 1){
+        cart[i].quantity -= 1;
+        updateCartBadge();
+        displayCart();
+    }
+}
+
+function setCartQty(i, value) {
+    var qty = parseInt(value) || 1;
+    if(qty < 1) qty = 1;
+    cart[i].quantity = qty;
+    updateCartBadge();
+    displayCart();
 }
 
 function removeFromCart(i) { cart.splice(i, 1); updateCartBadge(); displayCart(); }
