@@ -893,6 +893,14 @@ var selectedShipTo   = 'order';
 var focusedOptionIndex = -1;
 var repEmailGlobal   = '';
 
+// Cart→fixture handoff: when we arrive via ?fromCart=1, styles come straight
+// from sessionStorage (stashed by apparel.html at submit time) instead of
+// being re-derived from the order sheet's published CSV export, which can
+// lag well behind a just-completed write. See applyCartPrefill().
+var cartPrefillActive = false; // true once we've rendered from the stash and are waiting to "consume" it on the first PO selection
+var cartPrefillPO     = null;  // the PO the stash was for, if apparel.html managed to resolve one
+var CART_PREFILL_MAX_AGE_MS = 15 * 60 * 1000; // ignore stale stashes (e.g. an old tab left open)
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 $(document).ready(function () {
     // Auth check
@@ -921,9 +929,15 @@ $(document).ready(function () {
     loadUpcLookup();
     setupPOAutocomplete();
 
-    // Pre-fill PO from URL param (?po=XXXX or ?PO=XXXX)
     var urlParams = new URLSearchParams(window.location.search);
     var urlPO = (urlParams.get('po') || urlParams.get('PO') || '').trim();
+    var fromCart = urlParams.get('fromCart') === '1';
+
+    // If we just came from the cart, render styles straight from the stashed
+    // cart data — no need to wait on anything network-related for this part.
+    if (fromCart) applyCartPrefill(urlPO);
+
+    // Pre-fill PO from URL param (?po=XXXX or ?PO=XXXX)
     if (urlPO) {
         $('#poNumber').val(urlPO);
         // Wait for order data to load, then auto-select the PO
@@ -940,17 +954,64 @@ $(document).ready(function () {
                     // Simulate a selection
                     window._currentMatches = [match];
                     selectPO(0);
-                    // We arrived here straight off an order submission — the published
-                    // CSV export may still be catching up with Google's own cache, so
-                    // keep quietly re-checking for any styles that didn't show up yet.
+                    // Keep quietly re-checking the order sheet in the background — mainly
+                    // to catch anything that isn't part of the cart itself (e.g. a display
+                    // item added server-side), not to (re-)discover the cart's own styles.
                     scheduleBackgroundStyleRefreshes(match.po);
-                } else {
+                } else if (!fromCart) {
                     $('#poHint').text('PO "' + urlPO + '" not found — you can still type to search').addClass('warning');
                 }
+                // If fromCart and no match yet, say nothing — the CSV is just still
+                // catching up; the rep already has their styles from the prefill.
             }
         }, 100);
     }
 });
+
+// ── Cart→fixture prefill ────────────────────────────────────────────────────
+// Reads the stash apparel.html leaves in sessionStorage at submit time and
+// renders the styles list from it immediately, bypassing the order sheet's
+// CSV export (and its cache lag) entirely for this handoff.
+function applyCartPrefill(urlPO) {
+    var raw;
+    try { raw = sessionStorage.getItem('pendingFixtureOrder'); } catch (e) { return; }
+    if (!raw) return;
+
+    var entry;
+    try { entry = JSON.parse(raw); } catch (e) { sessionStorage.removeItem('pendingFixtureOrder'); return; }
+
+    var age = Date.now() - (entry.timestamp || 0);
+    if (age > CART_PREFILL_MAX_AGE_MS) {
+        sessionStorage.removeItem('pendingFixtureOrder');
+        return; // stale — likely an old tab; fall back to normal CSV-driven lookup
+    }
+
+    // Sanity-check: if the URL gives us a PO and the stash names a different
+    // one, don't apply it — this isn't the order we think it is.
+    if (urlPO && entry.po && entry.po.toUpperCase() !== urlPO.toUpperCase()) {
+        return;
+    }
+
+    if (entry.facilityId)   $('#facilityId').val(entry.facilityId).addClass('autofilled');
+    if (entry.locationName) $('#locationName').val(entry.locationName).addClass('autofilled');
+    if (entry.beginShip)    $('#beginShip').val(entry.beginShip).addClass('autofilled');
+    if (entry.po) {
+        $('#poNumber').val(entry.po).removeClass('field-error').addClass('field-valid');
+        $('#poHint').text('✓ Loaded from your order').removeClass('error warning').addClass('success');
+    } else {
+        $('#poHint').text('Styles loaded from your cart — enter your PO number above').removeClass('error success warning');
+    }
+
+    if (entry.styles && entry.styles.length) {
+        renderStylesList(entry.styles, false);
+    }
+
+    cartPrefillActive = true;
+    cartPrefillPO = entry.po || null;
+
+    // One-shot: this data is only good for the order that was just submitted.
+    sessionStorage.removeItem('pendingFixtureOrder');
+}
 
 function portalLogout() {
     if (confirm('Are you sure you want to log out?')) {
@@ -1194,6 +1255,16 @@ function selectPO(idx) {
 
     closeDropdown();
     $('#refreshStylesBtn').show();
+
+    if (cartPrefillActive && (!cartPrefillPO || cartPrefillPO === o.po)) {
+        // Styles for this PO already came straight from the cart at submit
+        // time — that's a fresher, more reliable source than re-deriving them
+        // from the order sheet's CSV export, and re-loading here would blow
+        // away anything the rep has already started entering. Consume the
+        // one-time prefill and skip the CSV-based reload.
+        cartPrefillActive = false;
+        return;
+    }
     loadStylesForPO(o.po);
 }
 
