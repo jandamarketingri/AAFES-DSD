@@ -571,6 +571,11 @@
 // ▶ File → Share → Publish to web → select the orders tab → CSV → paste URL here
 var ORDERS_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiPIoX-kRukDbyPcEwaXiYlOXdY8LAmu9NIroi0BuuBRbCYH_SKjt70U7Gf4CwCuNtDIbKHlF3BHNN/pub?gid=2075341928&single=true&output=csv';
 
+// Second orders source — same column layout (A–T), but has no U/V/W
+// (Export Date, Tracking, Invoices) columns. Missing columns simply
+// come back as '' via parseOrdersCSV's fallbacks below.
+var ORDERS_CSV_URL_2 = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiPIoX-kRukDbyPcEwaXiYlOXdY8LAmu9NIroi0BuuBRbCYH_SKjt70U7Gf4CwCuNtDIbKHlF3BHNN/pub?gid=1101647414&single=true&output=csv';
+
 var DRINKWARE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7uNYew2smPQWTZRff7v-70y1jrRYViSu-buckNngS2m16e3GoqUuueaEQqsTn09PmoyGQOvleYBpG/pub?gid=1339922144&single=true&output=csv';
 
 // ── Orders column indices (0-based) ───────────────────────────────────────────
@@ -788,27 +793,29 @@ function loadOrders() {
         $('#pageSubtitle').text('Configuration needed.');
         return;
     }
-    $.ajax({
-        url: ORDERS_CSV_URL, method: 'GET', dataType: 'text',
-        success: function (csv) {
-            parseOrdersCSV(csv);
-            $('#filterBar').show();
-            $('#pageSubtitle').text('Showing orders placed under your account.');
-            applyFilter('30', $('#filterBar .filter-btn[data-filter="30"]')[0]);
-        },
-        error: function () {
-            $('#contentArea').html(
-                '<div class="state-box"><div class="icon">⚠️</div>' +
-                '<p>Could not load orders. Check the CSV URL and sheet publish settings.</p></div>'
-            );
-            $('#pageSubtitle').text('Something went wrong.');
-        }
+    $.when(
+        $.ajax({ url: ORDERS_CSV_URL,   method: 'GET', dataType: 'text' }),
+        $.ajax({ url: ORDERS_CSV_URL_2, method: 'GET', dataType: 'text' })
+    ).done(function (r1, r2) {
+        allOrders = [];
+        parseOrdersCSV(r1[0]); // r1[0]/r2[0] = response text ($.when passes [data, textStatus, jqXHR])
+        parseOrdersCSV(r2[0]);
+        $('#filterBar').show();
+        $('#pageSubtitle').text('Showing orders placed under your account.');
+        applyFilter('30', $('#filterBar .filter-btn[data-filter="30"]')[0]);
+    }).fail(function () {
+        $('#contentArea').html(
+            '<div class="state-box"><div class="icon">⚠️</div>' +
+            '<p>Could not load orders. Check the CSV URL and sheet publish settings.</p></div>'
+        );
+        $('#pageSubtitle').text('Something went wrong.');
     });
 }
 
 // ── Parse orders CSV ──────────────────────────────────────────────────────────
+// Appends to allOrders (caller resets allOrders = [] before the first call)
+// so this can be run once per source sheet.
 function parseOrdersCSV(csv) {
-    allOrders = [];
     var rows = csv.split('\n');
     for (var i = 1; i < rows.length; i++) {
         if (!rows[i].trim()) continue;
