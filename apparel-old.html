@@ -496,6 +496,41 @@
             font-size: 14px;
             color: #333;
             margin-right: 15px;
+            text-align: right;
+        }
+        .cart-qty-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+        .cart-qty-btn {
+            width: 26px;
+            height: 26px;
+            border: 1px solid #ddd;
+            background-color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            line-height: 1;
+            transition: background-color 0.3s;
+        }
+        .cart-qty-btn:hover {
+            background-color: #f0f0f0;
+        }
+        .cart-qty-input {
+            width: 48px;
+            text-align: center;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .cart-qty-price {
+            font-size: 13px;
+            color: #333;
         }
         .remove-item {
             background-color: #f44336;
@@ -535,6 +570,39 @@
         .submit-order-btn {
             background-color: #4CAF50;
             color: white;
+        }
+        .fixture-signs-row {
+            margin: 14px 0 4px;
+            padding: 12px 16px;
+            background: #fff8e1;
+            border: 1.5px solid #ffe082;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #5f4200;
+            cursor: pointer;
+            user-select: none;
+        }
+        .fixture-signs-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #f59e0b;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .fixture-signs-row label {
+            cursor: pointer;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        .fixture-signs-row .fixture-hint {
+            font-size: 12px;
+            font-weight: 400;
+            color: #8a6200;
+            display: block;
+            margin-top: 2px;
         }
         .loading {
             text-align: center;
@@ -639,6 +707,13 @@
             <button class="close-cart">&times;</button>
         </div>
         <div id="cartItems"></div>
+        <div class="fixture-signs-row" onclick="$('#requestFixtureSigns').prop('checked', !$('#requestFixtureSigns').prop('checked'))">
+            <input type="checkbox" id="requestFixtureSigns" onclick="event.stopPropagation()">
+            <label for="requestFixtureSigns" onclick="event.stopPropagation()">
+                🪧 Request Fixture Signs after submitting
+                <span class="fixture-hint">You'll be taken to the Fixture Signs request form pre-filled with your PO number.</span>
+            </label>
+        </div>
         <div class="cart-actions">
             <button class="clear-cart-btn" onclick="clearCart()">Clear Cart</button>
             <button class="submit-order-btn" onclick="submitOrder()">Submit Order</button>
@@ -817,7 +892,18 @@ $(document).ready(function(){
     loadFacilityData();
     loadUniversalPricing();
     loadInventoryData();
-  
+
+    // Set date minimums
+    var today = new Date();
+    var todayStr = today.toISOString().split('T')[0];
+    
+    var minShipBy = new Date(today);
+    minShipBy.setDate(minShipBy.getDate() + 7);
+    var minShipByStr = minShipBy.toISOString().split('T')[0];
+    
+    $('#beginShipDate').attr('min', todayStr);
+    $('#shipByDate').attr('min', minShipByStr);
+    
     $('#includeDisplay').prop('disabled', false);
     $('#includeDisplay').closest('.checkbox-group').find('label').css('opacity', '1');
     
@@ -828,6 +914,25 @@ $(document).ready(function(){
     $('#searchInput').on('input', function(){
         searchTerm = $(this).val().toLowerCase().trim();
         filterAndDisplayProducts();
+    });
+
+    $('#beginShipDate').on('change', function() {
+        var beginShip = new Date($(this).val() + 'T00:00:00');
+    
+        var todayPlus7 = new Date(today);
+        todayPlus7.setDate(todayPlus7.getDate() + 7);
+    
+        var beginPlus3 = new Date(beginShip);
+        beginPlus3.setDate(beginPlus3.getDate() + 3);
+    
+        var minShipBy = new Date(Math.max(todayPlus7, beginPlus3));
+        var minShipByStr = minShipBy.toISOString().split('T')[0];
+    
+        $('#shipByDate').attr('min', minShipByStr);
+    
+        if ($('#shipByDate').val() && $('#shipByDate').val() < minShipByStr) {
+            $('#shipByDate').val('');
+        }
     });
     
     $('#facilityId').on('input', function(){
@@ -1307,7 +1412,13 @@ function addToCart(index) {
                     priceCode: priceCode,
                     cost: pricing.cost,
                     retail: pricing.retail,
-                    isCustom: product.isCustom || false
+                    isCustom: product.isCustom || false,
+                    // Same style name/description the fixture-signs item CSVs use —
+                    // carrying these along lets us hand fixture-request.html its
+                    // styles list directly instead of re-deriving it from the
+                    // (cache-lagged) order sheet export after submission.
+                    style: product.name,
+                    styleDesc: product.description || ''
                 });
             }
             addedAny = true;
@@ -1332,7 +1443,13 @@ function addToCart(index) {
                             priceCode: priceCode,
                             cost: pricing.cost,
                             retail: pricing.retail,
-                            isCustom: product.isCustom || false
+                            isCustom: product.isCustom || false,
+                            // Same style name/description the fixture-signs item CSVs use —
+                            // carrying these along lets us hand fixture-request.html its
+                            // styles list directly instead of re-deriving it from the
+                            // (cache-lagged) order sheet export after submission.
+                            style: product.name,
+                            styleDesc: product.description || ''
                         });
                     }
                     addedAny = true;
@@ -1390,9 +1507,12 @@ function displayCart() {
             html += '<div class="cart-item-size">Cost: $' + (item.cost || 0).toFixed(2) + ' | Retail: $' + (item.retail || 0).toFixed(2) + ' ea</div>';
             html += '</div>';
             html += '<div class="cart-item-qty">';
-            html += 'Qty: ' + item.quantity + '<br>';
-            html += 'Cost: $' + itemCost.toFixed(2) + '<br>';
-            html += 'Retail: $' + itemRetail.toFixed(2);
+            html += '<div class="cart-qty-control">';
+            html += '<button class="cart-qty-btn" onclick="decrementCartQty(' + index + ')">−</button>';
+            html += '<input type="number" class="cart-qty-input" id="cart-qty-' + index + '" value="' + item.quantity + '" min="1" onchange="setCartQty(' + index + ', this.value)">';
+            html += '<button class="cart-qty-btn" onclick="incrementCartQty(' + index + ')">+</button>';
+            html += '</div>';
+            html += '<div class="cart-qty-price">Cost: $' + itemCost.toFixed(2) + '<br>Retail: $' + itemRetail.toFixed(2) + '</div>';
             html += '</div>';
             html += '<button class="remove-item" onclick="removeFromCart(' + index + ')">Remove</button></div>';
         });
@@ -1410,6 +1530,28 @@ function displayCart() {
         html += '</div>';
     }
     $('#cartItems').html(html);
+}
+
+function incrementCartQty(index) {
+    cart[index].quantity += 1;
+    updateCartBadge();
+    displayCart();
+}
+
+function decrementCartQty(index) {
+    if(cart[index].quantity > 1){
+        cart[index].quantity -= 1;
+        updateCartBadge();
+        displayCart();
+    }
+}
+
+function setCartQty(index, value) {
+    var qty = parseInt(value) || 1;
+    if(qty < 1) qty = 1;
+    cart[index].quantity = qty;
+    updateCartBadge();
+    displayCart();
 }
 
 function removeFromCart(index) {
@@ -1439,6 +1581,7 @@ function injectPortalHeader() {
 
         var bar = '<div id="portalHeaderBar" style="position:fixed;top:20px;right:20px;background:white;padding:10px 20px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.2);display:flex;gap:10px;align-items:center;z-index:1000;">' +
             '<span style="color:#666;font-size:14px;">👤 ' + auth.name + '</span>' +
+            '<a href="help.html" style="background:#28a745;color:white;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;text-decoration:none;font-size:14px;">🆘 Need Help</a>' +
             '<a href="my-orders.html" style="background:#667eea;color:white;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;text-decoration:none;font-size:14px;">📋 My Orders</a>' +
             '<button onclick="portalLogout()" style="background:#dc3545;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">Logout</button>' +
             '</div>';
@@ -1478,6 +1621,7 @@ function submitOrder() {
     
     if(cart.length === 0){ alert('Your cart is empty!'); return; }
     
+    var wantFixtureSigns = $('#requestFixtureSigns').is(':checked');
     var authData = JSON.parse(sessionStorage.getItem('salesPortalAuth'));
     
     var orderData = {
@@ -1492,6 +1636,36 @@ function submitOrder() {
         accessCode: authData.accessCode,
         items: cart
     };
+    
+    // Capture these now before cart is cleared
+    var submittedFacilityId = orderData.facilityId;
+    var submittedOrderDate  = orderData.orderDate;
+    var submittedEmail      = orderData.repEmail;
+    var totalItems          = cart.reduce(function(sum, item){ return sum + item.quantity; }, 0);
+
+    // Stash the fixture-sign styles for this order directly, keyed off data we
+    // already have in memory — no need to make fixture-request.html wait on the
+    // order sheet's publish-to-web CSV (which can lag well behind a live write)
+    // just to re-derive the same styles list we already know right now.
+    if (wantFixtureSigns) {
+        var seenStyles = {};
+        var styleList = [];
+        cart.forEach(function (item) {
+            if (!item.style || seenStyles[item.style]) return;
+            seenStyles[item.style] = true;
+            styleList.push({ style: item.style, styleDesc: item.styleDesc || '' });
+        });
+        sessionStorage.setItem('pendingFixtureOrder', JSON.stringify({
+            po: null, // filled in once fetchLatestPOAndRedirect resolves it (may stay null on fallback)
+            facilityId: submittedFacilityId,
+            locationName: orderData.locationName,
+            beginShip: orderData.beginShipDate,
+            repEmail: submittedEmail,
+            repName: orderData.repName,
+            styles: styleList,
+            timestamp: Date.now()
+        }));
+    }
     
     $('.submit-order-btn').prop('disabled', true).text('Submitting...');
     
@@ -1511,17 +1685,98 @@ function submitOrder() {
     $('body').append(form);
     form.submit();
     
-    setTimeout(function() {
-        form.remove();
-    }, 1000);
+    setTimeout(function() { form.remove(); }, 1000);
     
-    alert('📤 Order submitted! A new window will open showing the confirmation.\n\nTotal items: ' + cart.reduce((sum, item) => sum + item.quantity, 0));
+    alert('📤 Order submitted! A new window will open showing the confirmation.\n\nTotal items: ' + totalItems);
     
     cart = [];
     updateCartBadge();
     closeCart();
-    
+    $('#requestFixtureSigns').prop('checked', false);
     $('.submit-order-btn').prop('disabled', false).text('Submit Order');
+    
+    // If fixture signs were requested, poll for the PO number then redirect
+    if (wantFixtureSigns) {
+        fetchLatestPOAndRedirect(submittedFacilityId, submittedOrderDate, submittedEmail);
+    }
+}
+
+/**
+ * After submission, polls Apps Script for the most recently written PO number
+ * for this facility + date + rep, then redirects to the fixture signs form.
+ * Retries up to 8 times (every 12s, after an initial 6s head-start) to give
+ * the sheet write time to complete. This only confirms the PO row exists —
+ * it does not tell us anything about the order's styles/line items, but we
+ * no longer need it to: the styles list was already stashed in sessionStorage
+ * (see submitOrder) straight from the cart, so fixture-request.html doesn't
+ * have to wait on the order sheet's published CSV export to render them.
+ * The `fromCart=1` param tells it to look for that stashed data.
+ */
+function stashResolvedPO(poNumber) {
+    try {
+        var raw = sessionStorage.getItem('pendingFixtureOrder');
+        if (!raw) return;
+        var entry = JSON.parse(raw);
+        entry.po = poNumber;
+        sessionStorage.setItem('pendingFixtureOrder', JSON.stringify(entry));
+    } catch (e) { /* non-critical — fixture page still falls back fine */ }
+}
+
+function fetchLatestPOAndRedirect(facilityId, orderDateISO, repEmail) {
+    var FIXTURE_BASE_URL = 'https://jandamarketingri.github.io/AAFES-DSD/fixture-request.html';
+    var maxAttempts = 8;
+    var attempt = 0;
+    var intervalMs = 12000;
+
+    // Build the date string the PO number starts with: facilityId + YYYYMMDD
+    var d = new Date(orderDateISO);
+    var yyyy = d.getFullYear();
+    var mm   = ('0' + (d.getMonth() + 1)).slice(-2);
+    var dd   = ('0' + d.getDate()).slice(-2);
+    var dateStr = yyyy + '' + mm + '' + dd;
+    var poPrefix = facilityId + dateStr;
+
+    function attempt_fetch() {
+        attempt++;
+        $.ajax({
+            url: ORDER_SUBMISSION_URL,
+            method: 'GET',
+            cache: false,
+            data: {
+                action: 'getLatestPO',
+                email: repEmail,
+                poPrefix: poPrefix
+            },
+            dataType: 'json',
+            success: function(resp) {
+                if (resp.success && resp.poNumber) {
+                    stashResolvedPO(resp.poNumber);
+                    window.location.href = FIXTURE_BASE_URL + '?po=' + encodeURIComponent(resp.poNumber) + '&fromCart=1';
+                } else if (attempt < maxAttempts) {
+                    setTimeout(attempt_fetch, intervalMs);
+                } else {
+                    // Fallback: go to fixture form without a PO pre-filled. The styles
+                    // list is still sitting in sessionStorage, so it'll show up as soon
+                    // as the rep types/selects the PO themselves.
+                    if (confirm('⚠ Could not retrieve your PO number automatically.\n\nClick OK to open the Fixture Signs form anyway (you can enter the PO manually), or Cancel to stay here.')) {
+                        window.location.href = FIXTURE_BASE_URL + '?fromCart=1';
+                    }
+                }
+            },
+            error: function() {
+                if (attempt < maxAttempts) {
+                    setTimeout(attempt_fetch, intervalMs);
+                } else {
+                    if (confirm('⚠ Could not reach the server to retrieve your PO number.\n\nClick OK to open the Fixture Signs form anyway, or Cancel to stay here.')) {
+                        window.location.href = FIXTURE_BASE_URL + '?fromCart=1';
+                    }
+                }
+            }
+        });
+    }
+
+    // Give the sheet write a head-start before the first poll
+    setTimeout(attempt_fetch, 6000);
 }
 </script>
     
