@@ -745,7 +745,7 @@
         <div class="fx-lightbox" id="fxLightbox" onclick="if (event.target === this) closeFixturePhoto()">
             <div class="fx-lightbox-box">
                 <div class="fx-lightbox-head"><span id="fxLightboxTitle"></span><button type="button" onclick="closeFixturePhoto()" aria-label="Close">✕</button></div>
-                <div class="fx-lightbox-img"><img id="fxLightboxImg" alt=""></div>
+                <div class="fx-lightbox-img"><img id="fxLightboxImg" alt=""><div class="fx-missing" id="fxLightboxMissing" style="display:none;"></div></div>
                 <div class="fx-lightbox-foot"><button type="button" class="fx-use" id="fxLightboxUse">Use this size</button></div>
             </div>
         </div>
@@ -1351,13 +1351,27 @@ function fixturePhotoFailed(img, i) {
 }
 function openFixturePhoto(i) {
     var fx = FIXTURE_EXAMPLES[i];
+    var url = fixtureImg(fx.driveId, 1600);
     $('#fxLightboxTitle').text(fx.title + ' · ' + fx.note);
-    $('#fxLightboxImg').attr('src', fixtureImg(fx.driveId, 1600)).attr('alt', fx.title + ' ' + fx.note)
-        .off('error').on('error', function () { window.open(fixtureLink(fx.driveId), '_blank'); closeFixturePhoto(); });
+    $('#fxLightboxMissing').hide().empty();
+    // If the large photo can't load, say so inside the window (with a link) —
+    // never open tabs on our own. Only reacts to THIS photo, never to clearing it.
+    $('#fxLightboxImg').off('error').show().attr('alt', fx.title + ' ' + fx.note)
+        .on('error', function () {
+            if (!$('#fxLightbox').hasClass('open') || this.getAttribute('src') !== url) return;
+            $(this).hide();
+            $('#fxLightboxMissing').html('Photo not available here.<br><a href="' + fixtureLink(fx.driveId) +
+                '" target="_blank" rel="noopener">View it in Google Drive</a>').show();
+        })
+        .attr('src', url);
     $('#fxLightboxUse').off('click').on('click', function () { selectSizeValue(fx.size); closeFixturePhoto(); });
     $('#fxLightbox').addClass('open');
 }
-function closeFixturePhoto() { $('#fxLightbox').removeClass('open'); $('#fxLightboxImg').attr('src', ''); }
+function closeFixturePhoto() {
+    if (!$('#fxLightbox').hasClass('open')) return;
+    $('#fxLightbox').removeClass('open');
+    $('#fxLightboxImg').off('error').removeAttr('src');   // no handler left to fire when the photo is cleared
+}
 
 $(document).on('click', '.fx-card', function (e) {
     if ($(e.target).closest('.fx-zoom, a').length) return;
