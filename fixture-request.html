@@ -337,6 +337,32 @@
         .size-btn .size-label { display: block; font-size: 16px; font-weight: 700; }
         .size-btn .size-sub   { display: block; font-size: 11px; opacity: 0.75; margin-top: 1px; }
 
+        /* Fixture example photos */
+        .fixture-guide { margin-top: 16px; }
+        .fixture-guide-title { font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px; }
+        .fixture-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; }
+        .fx-card { border: 2px solid var(--border); border-radius: 10px; background: var(--surface); overflow: hidden; cursor: pointer; text-align: left; padding: 0; font-family: 'DM Sans', sans-serif; transition: border-color 0.18s, box-shadow 0.18s; position: relative; }
+        .fx-card:hover { border-color: var(--accent); }
+        .fx-card.selected { border-color: var(--accent); box-shadow: 0 2px 12px rgba(102,126,234,0.3); }
+        .fx-card.selected::after { content: '✓'; position: absolute; top: 8px; left: 8px; width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .fx-photo { aspect-ratio: 4 / 3; background: #f3f2ee; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .fx-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .fx-photo .fx-missing { font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px; }
+        .fx-photo .fx-missing a { color: var(--accent); font-weight: 600; }
+        .fx-body { padding: 9px 12px 11px; }
+        .fx-size { font-size: 14px; font-weight: 700; color: var(--text); }
+        .fx-note { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+        .fx-zoom { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(255,255,255,0.92); box-shadow: 0 1px 4px rgba(0,0,0,0.2); cursor: pointer; font-size: 13px; }
+        .fx-lightbox { position: fixed; inset: 0; background: rgba(20,20,30,0.7); z-index: 500; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .fx-lightbox.open { display: flex; }
+        .fx-lightbox-box { background: #fff; border-radius: 12px; max-width: 900px; width: 100%; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; }
+        .fx-lightbox-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; font-weight: 600; border-bottom: 1px solid var(--border); }
+        .fx-lightbox-head button { border: none; background: none; font-size: 18px; cursor: pointer; color: var(--text-muted); }
+        .fx-lightbox-img { flex: 1; min-height: 0; background: #f3f2ee; display: flex; align-items: center; justify-content: center; }
+        .fx-lightbox-img img { max-width: 100%; max-height: calc(92vh - 120px); object-fit: contain; display: block; }
+        .fx-lightbox-foot { padding: 12px 16px; border-top: 1px solid var(--border); text-align: right; }
+        .fx-use { padding: 9px 20px; border: none; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; }
+
         /* Pricing toggle */
         .pricing-btn-group { display: flex; gap: 10px; }
         .pricing-btn {
@@ -706,6 +732,21 @@
                     <span class="size-label">12 × 12"</span>
                     <span class="size-sub">Large Square</span>
                 </button>
+            </div>
+
+            <!-- Example photos: which sign size fits which fixture -->
+            <div class="fixture-guide">
+                <div class="fixture-guide-title">Not sure which size? Find the fixture that matches the store's, and click it.</div>
+                <div class="fixture-cards" id="fixtureCards"></div>
+            </div>
+        </div>
+
+        <!-- Larger view of an example photo -->
+        <div class="fx-lightbox" id="fxLightbox" onclick="if (event.target === this) closeFixturePhoto()">
+            <div class="fx-lightbox-box">
+                <div class="fx-lightbox-head"><span id="fxLightboxTitle"></span><button type="button" onclick="closeFixturePhoto()" aria-label="Close">✕</button></div>
+                <div class="fx-lightbox-img"><img id="fxLightboxImg" alt=""></div>
+                <div class="fx-lightbox-foot"><button type="button" class="fx-use" id="fxLightboxUse">Use this size</button></div>
             </div>
         </div>
 
@@ -1282,12 +1323,64 @@ function closeDropdown() {
     focusedOptionIndex = -1;
 }
 
+// ── Fixture example photos ────────────────────────────────────────────────────
+// Each photo is a Google Drive file, shared "Anyone with the link". To add or
+// change one, paste the file's ID (the long part of its share link between
+// /d/ and /view) and the sign size it goes with.
+var FIXTURE_EXAMPLES = [
+    { size: '8.5x11', title: '8.5 × 11"', note: '20-cubby fixture',          driveId: '1t_hkreD1KoyleSk-qqWz5X9a7b4p8BDU' },
+    { size: '8.5x11', title: '8.5 × 11"', note: '16-cubby fixture',          driveId: '1fCWEeUMHRM-LQBKR0NMgmGCChx3Z6pLY' },
+    { size: '11x11',  title: '11 × 11"',  note: 'Newest fixture',            driveId: '1BTax__YheTsYWYS5Aa3amsvc1bkQ4PTP' },
+    { size: '12x12',  title: '12 × 12"',  note: 'Large Square',              driveId: '1lXGh23hKrXNK22bba6F-LZn0RcM2fqyg' }
+];
+function fixtureImg(id, width) { return 'https://drive.google.com/thumbnail?id=' + encodeURIComponent(id) + '&sz=w' + width; }
+function fixtureLink(id) { return 'https://drive.google.com/file/d/' + encodeURIComponent(id) + '/view'; }
+
+function renderFixtureCards() {
+    $('#fixtureCards').html(FIXTURE_EXAMPLES.map(function (fx, i) {
+        return '<div class="fx-card" data-size="' + esc(fx.size) + '" data-i="' + i + '" role="button" tabindex="0" title="Use ' + esc(fx.title) + ' signs">' +
+            '<div class="fx-photo"><img src="' + fixtureImg(fx.driveId, 600) + '" alt="' + esc(fx.title + ' ' + fx.note) + '" loading="lazy" ' +
+            'onerror="fixturePhotoFailed(this, ' + i + ')"></div>' +
+            '<button type="button" class="fx-zoom" data-i="' + i + '" title="See it larger">🔍</button>' +
+            '<div class="fx-body"><div class="fx-size">' + esc(fx.title) + '</div><div class="fx-note">' + esc(fx.note) + '</div></div></div>';
+    }).join(''));
+}
+function fixturePhotoFailed(img, i) {
+    $(img).parent().html('<div class="fx-missing">Photo not available here.<br><a href="' + fixtureLink(FIXTURE_EXAMPLES[i].driveId) +
+        '" target="_blank" rel="noopener" onclick="event.stopPropagation();">View example</a></div>');
+}
+function openFixturePhoto(i) {
+    var fx = FIXTURE_EXAMPLES[i];
+    $('#fxLightboxTitle').text(fx.title + ' · ' + fx.note);
+    $('#fxLightboxImg').attr('src', fixtureImg(fx.driveId, 1600)).attr('alt', fx.title + ' ' + fx.note)
+        .off('error').on('error', function () { window.open(fixtureLink(fx.driveId), '_blank'); closeFixturePhoto(); });
+    $('#fxLightboxUse').off('click').on('click', function () { selectSizeValue(fx.size); closeFixturePhoto(); });
+    $('#fxLightbox').addClass('open');
+}
+function closeFixturePhoto() { $('#fxLightbox').removeClass('open'); $('#fxLightboxImg').attr('src', ''); }
+
+$(document).on('click', '.fx-card', function (e) {
+    if ($(e.target).closest('.fx-zoom, a').length) return;
+    selectSizeValue($(this).data('size'));
+});
+$(document).on('keydown', '.fx-card', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectSizeValue($(this).data('size')); }
+});
+$(document).on('click', '.fx-zoom', function (e) { e.stopPropagation(); openFixturePhoto(+$(this).data('i')); });
+$(document).on('keydown', function (e) { if (e.key === 'Escape') closeFixturePhoto(); });
+$(function () { renderFixtureCards(); });
+
 // ── Size and Pricing selectors ────────────────────────────────────────────────
 function selectSize(btn) {
     $('.size-btn').removeClass('selected');
     $(btn).addClass('selected');
     selectedSize = $(btn).data('size');
+    $('.fx-card').removeClass('selected').filter(function () { return $(this).data('size') === selectedSize; }).addClass('selected');
     updateSummary();
+}
+function selectSizeValue(size) {
+    var btn = $('.size-btn').filter(function () { return $(this).data('size') === size; })[0];
+    if (btn) selectSize(btn);
 }
 
 function selectPricing(btn) {
@@ -1583,8 +1676,10 @@ function submitRequest() {
         shipTo.zip    = zip;
     }
 
+    var authDataForSubmit = JSON.parse(sessionStorage.getItem('salesPortalAuth') || '{}');
     var payload = {
         action:       'fixtureSignsRequest',
+        token:        authDataForSubmit.token,
         poNumber:     po,
         facilityId:   $('#facilityId').val().trim(),
         locationName: $('#locationName').val().trim(),
