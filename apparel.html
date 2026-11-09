@@ -889,6 +889,7 @@ function logout() {
 $(document).ready(function(){
     checkAuthentication();
     loadCategory(currentCategory);
+    $(document).on('change', '#facilityId, #locationName, #beginShipDate, #shipByDate, #includeDisplay', function () { if (cart.length) saveCartLocal(); });
     loadFacilityData();
     loadUniversalPricing();
     loadInventoryData();
@@ -961,6 +962,9 @@ $(document).ready(function(){
             $locationName.val('');
         }
     });
+
+    // A cart saved before the page closed or crashed comes back (see saveCartLocal).
+    restoreCartLocal();
 });
 
 function parseCSVRow(row) {
@@ -1109,6 +1113,8 @@ function loadFacilityData() {
                     }
                 }
             }
+            // A restored cart's facility ID gets its usual check now that the list is here.
+            if ($('#facilityId').val().trim().length === 7) $('#facilityId').trigger('input');
         },
         error: function(){
             console.warn('Could not load facility data');
@@ -1251,6 +1257,18 @@ function getCategoryLabel(category) {
     return labels[category] || "Products";
 }
 
+// Product photos are often full-size camera/Drive images (several MB each).
+// Showing dozens of them at full size can run the browser tab out of memory
+// and blank the page (reported Nov 2026). Google Drive links are asked for at
+// the size they're shown instead; other links are left as they are.
+function photoUrl(url, width) {
+    url = String(url || '').trim();
+    var m = /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:[^#]*&)?id=|thumbnail\?(?:[^#]*&)?id=)([A-Za-z0-9_-]{10,})/.exec(url) ||
+            /lh\d\.googleusercontent\.com\/d\/([A-Za-z0-9_-]{10,})/.exec(url);
+    if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w' + width;
+    return url;
+}
+
 function displayProducts() {
     var html = '';
     if(currentProducts.length === 0){
@@ -1268,11 +1286,11 @@ function displayProducts() {
             
             if(product.images.length > 0){
                 html += '<div class="image-gallery">';
-                html += '<img src="' + product.images[0] + '" class="main-image" id="main-img-' + index + '">';
+                html += '<img src="' + photoUrl(product.images[0], 600) + '" class="main-image" id="main-img-' + index + '" loading="lazy" decoding="async">';
                 if(product.images.length > 1){
                     html += '<div class="thumbnail-container">';
                     product.images.forEach(function(img, imgIndex){
-                        html += '<img src="' + img + '" class="thumbnail ' + (imgIndex === 0 ? 'active' : '') + '" onclick="changeImage(' + index + ', ' + imgIndex + ')" data-index="' + imgIndex + '">';
+                        html += '<img src="' + photoUrl(img, 120) + '" class="thumbnail ' + (imgIndex === 0 ? 'active' : '') + '" onclick="changeImage(' + index + ', ' + imgIndex + ')" data-index="' + imgIndex + '" loading="lazy" decoding="async">';
                     });
                     html += '</div>';
                 }
@@ -1328,7 +1346,7 @@ function displayProducts() {
 
 function changeImage(productIndex, imageIndex) {
     var product = currentProducts[productIndex];
-    $('#main-img-' + productIndex).attr('src', product.images[imageIndex]);
+    $('#main-img-' + productIndex).attr('src', photoUrl(product.images[imageIndex], 600));
     $('#main-img-' + productIndex).closest('.image-gallery').find('.thumbnail').removeClass('active');
     $('#main-img-' + productIndex).closest('.image-gallery').find('.thumbnail[data-index="' + imageIndex + '"]').addClass('active');
 }
@@ -1472,7 +1490,57 @@ function addToCart(index) {
     }
 }
 
+// ── Saved cart ───────────────────────────────────────────────────────────────
+// The cart used to live only in the open page, so a crash or closed window
+// lost everything. It's now saved in this browser (per rep) on every change
+// and offered back when the page opens again. Cleared when the order is sent.
+var CART_SAVE_DAYS = 7;
+function cartSaveKey() {
+    var a = window.originalAuthData || {};
+    return 'aafesApparelCart:' + String(a.email || '').toLowerCase();
+}
+function saveCartLocal() {
+    try {
+        if (!cart.length) { localStorage.removeItem(cartSaveKey()); return; }
+        localStorage.setItem(cartSaveKey(), JSON.stringify({
+            savedAt: Date.now(), cart: cart,
+            facilityId: $('#facilityId').val(), locationName: $('#locationName').val(),
+            beginShipDate: $('#beginShipDate').val(), shipByDate: $('#shipByDate').val(),
+            includeDisplay: $('#includeDisplay').is(':checked')
+        }));
+    } catch (e) { /* storage full or blocked: the page still works, it just can't save */ }
+}
+function restoreCartLocal() {
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(cartSaveKey()) || 'null'); } catch (e) {}
+    if (!saved || !saved.cart || !saved.cart.length) return;
+    if (Date.now() - (saved.savedAt || 0) > CART_SAVE_DAYS * 86400000) { try { localStorage.removeItem(cartSaveKey()); } catch (e) {} return; }
+    cart = saved.cart;
+    // Facility ID is re-checked once the facility list has loaded (loadFacilityData).
+    if (saved.facilityId && !$('#facilityId').val()) $('#facilityId').val(saved.facilityId);
+    if (saved.locationName && !$('#locationName').val()) $('#locationName').val(saved.locationName);
+    if (saved.beginShipDate && !$('#beginShipDate').val()) $('#beginShipDate').val(saved.beginShipDate).trigger('change');
+    if (saved.shipByDate && !$('#shipByDate').val()) $('#shipByDate').val(saved.shipByDate);
+    if (saved.includeDisplay) $('#includeDisplay').prop('checked', true);
+    updateCartBadge();
+    var pieces = cart.reduce(function (s, i) { return s + (i.quantity || 0); }, 0);
+    var when = new Date(saved.savedAt);
+    $('#headerForm').prepend(
+        '<div id="cartRestored" style="background:#e8f4fd;border:1px solid #9fd0f5;padding:12px 14px;margin-bottom:15px;border-radius:4px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">' +
+        '<div><strong>🛒 Your cart was saved.</strong> We brought back the ' + cart.length + ' line' + (cart.length === 1 ? '' : 's') + ' (' + pieces + ' pieces) you entered ' +
+        when.toLocaleDateString() + ' at ' + when.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }) + '. Keep going, or start over.</div>' +
+        '<div style="display:flex;gap:8px;"><button type="button" onclick="openCart()" style="background:#2196F3;color:white;border:none;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">View Cart</button>' +
+        '<button type="button" onclick="startOverCart()" style="background:white;color:#c62828;border:1px solid #e0a0a0;padding:6px 12px;border-radius:4px;cursor:pointer;font-weight:600;">Start Over</button></div></div>');
+}
+function startOverCart() {
+    if (!confirm('Empty the saved cart and start a new order?')) return;
+    cart = [];
+    updateCartBadge();
+    $('#cartRestored').remove();
+}
+
 function updateCartBadge() {
+    saveCartLocal();
     var totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     totalItems > 0 ? $('.cart-badge').text(totalItems).show() : $('.cart-badge').hide();
 }
@@ -1780,7 +1848,5 @@ function fetchLatestPOAndRedirect(facilityId, orderDateISO, repEmail) {
 }
 </script>
     
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="portal-header.js"></script>
 </body>
 </html>
