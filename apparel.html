@@ -1257,16 +1257,28 @@ function getCategoryLabel(category) {
     return labels[category] || "Products";
 }
 
-// Product photos are often full-size camera/Drive images (several MB each).
-// Showing dozens of them at full size can run the browser tab out of memory
-// and blank the page (reported Nov 2026). Google Drive links are asked for at
-// the size they're shown instead; other links are left as they are.
+// Product photos are often full-size camera images (several MB each). Showing
+// dozens of them at full size can run the browser tab out of memory and blank
+// the page (reported Nov 2026), so Google Drive and Imgur photos are asked for
+// at about the size they're shown. Other links are left as they are. If a
+// smaller copy ever fails to load, the <img> falls back to the original link
+// (see photoTag).
 function photoUrl(url, width) {
     url = String(url || '').trim();
     var m = /drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:[^#]*&)?id=|thumbnail\?(?:[^#]*&)?id=)([A-Za-z0-9_-]{10,})/.exec(url) ||
             /lh\d\.googleusercontent\.com\/d\/([A-Za-z0-9_-]{10,})/.exec(url);
     if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w' + width;
+    // Imgur: a letter after the image ID picks a smaller copy (t = 160px, l = 640px).
+    // IDs are 5 or 7 characters; anything longer already has a size letter.
+    var i = /^(https?:)?\/\/(?:i\.)?imgur\.com\/([A-Za-z0-9]{5}|[A-Za-z0-9]{7})(\.(?:jpe?g|png|webp))?(?:[?#].*)?$/i.exec(url);
+    if (i) return 'https://i.imgur.com/' + i[2] + (width <= 160 ? 't' : 'l') + (i[3] && !/png/i.test(i[3]) ? i[3] : (i[3] || '.jpg'));
     return url;
+}
+/** <img> for a product photo: smaller copy first, the original link if that fails. */
+function photoTag(url, width, attrs) {
+    var small = photoUrl(url, width), full = String(url || '').trim();
+    return '<img src="' + small + '"' + (small !== full ? ' data-full="' + full.replace(/"/g, '&quot;') + '" onerror="if(this.dataset.full&&this.src!==this.dataset.full){this.src=this.dataset.full;}"' : '') +
+        ' loading="lazy" decoding="async" ' + attrs + '>';
 }
 
 function displayProducts() {
@@ -1286,11 +1298,11 @@ function displayProducts() {
             
             if(product.images.length > 0){
                 html += '<div class="image-gallery">';
-                html += '<img src="' + photoUrl(product.images[0], 600) + '" class="main-image" id="main-img-' + index + '" loading="lazy" decoding="async">';
+                html += photoTag(product.images[0], 600, 'class="main-image" id="main-img-' + index + '"');
                 if(product.images.length > 1){
                     html += '<div class="thumbnail-container">';
                     product.images.forEach(function(img, imgIndex){
-                        html += '<img src="' + photoUrl(img, 120) + '" class="thumbnail ' + (imgIndex === 0 ? 'active' : '') + '" onclick="changeImage(' + index + ', ' + imgIndex + ')" data-index="' + imgIndex + '" loading="lazy" decoding="async">';
+                        html += photoTag(img, 120, 'class="thumbnail ' + (imgIndex === 0 ? 'active' : '') + '" onclick="changeImage(' + index + ', ' + imgIndex + ')" data-index="' + imgIndex + '"');
                     });
                     html += '</div>';
                 }
@@ -1346,7 +1358,8 @@ function displayProducts() {
 
 function changeImage(productIndex, imageIndex) {
     var product = currentProducts[productIndex];
-    $('#main-img-' + productIndex).attr('src', photoUrl(product.images[imageIndex], 600));
+    var full = String(product.images[imageIndex] || '').trim(), small = photoUrl(full, 600);
+    $('#main-img-' + productIndex).attr('data-full', small !== full ? full : null).attr('src', small);
     $('#main-img-' + productIndex).closest('.image-gallery').find('.thumbnail').removeClass('active');
     $('#main-img-' + productIndex).closest('.image-gallery').find('.thumbnail[data-index="' + imageIndex + '"]').addClass('active');
 }
